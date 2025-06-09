@@ -1,6 +1,11 @@
 ## Architecture
 ```mermaid
 architecture-beta
+    service nginx(internet)[Nginx]
+    nginx:B --> T:api
+    nginx:B --> T:home
+    nginx:B --> T:app
+
     group back(server)[Backend]
     service db(database)[Database] in back
     service auth(cloud)[Authentication] in back
@@ -15,7 +20,7 @@ architecture-beta
 
     group front[Frontend]
     service app(internet)[App] in front
+    service home(internet)[Home] in front
 
     api:R <-- L:app
-
 ```
