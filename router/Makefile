@@ -1,3 +1,7 @@
+include ../.utils/colors
+
+MAKE=make --no-print-directory
+
 TARGET_DIR=.
 DOCKER_CONTAINER_NAME=nginx-shoplist
 
@@ -6,13 +10,16 @@ NETWORK=shoplist
 all: run
 
 run: ensure_network_exits
-	docker run -d \
-		--name $(DOCKER_CONTAINER_NAME) \
-		-p 80:80 \
-		--network $(NETWORK) \
-		--restart=always \
-		nginx:1.25.0-alpine-slim
-	make update
+	@docker inspect $(DOCKER_CONTAINER_NAME) >/dev/null 2>&1 || ( \
+		echo "${GREEN}Creating${NC} reverse proxy: ${TITLE}${DOCKER_CONTAINER_NAME}${NC}" && \
+		docker run -d \
+			--name $(DOCKER_CONTAINER_NAME) \
+			-p 80:80 \
+			--network $(NETWORK) \
+			$(DOCKER_CONFIG) \
+			nginx:1.25.0-alpine-slim && \
+		${MAKE} update) && \
+		${MAKE} start
 
 ensure_network_exits:
 	@docker network inspect $(NETWORK) >/dev/null 2>&1 || \
@@ -23,17 +30,23 @@ update:
 	docker exec -it $(DOCKER_CONTAINER_NAME) nginx -t
 	docker exec -it $(DOCKER_CONTAINER_NAME) nginx -s reload
 
-stop:
-	docker stop $(DOCKER_CONTAINER_NAME) || true
-
 start:
-	docker start $(DOCKER_CONTAINER_NAME)
+	@echo "${GREEN}Starting${NC} reverse proxy: ${TITLE}${DOCKER_CONTAINER_NAME}${NC}"
+	@docker start $(DOCKER_CONTAINER_NAME) >/dev/null
+	@echo "http://localhost"
+
+stop:
+	@echo -n "${LRED}Stopping${NC} reverse proxy: ${TITLE}${DOCKER_CONTAINER_NAME}${NC}"
+	@docker stop $(DOCKER_CONTAINER_NAME) >/dev/null || true
+	@echo " ${LGREEN}OK${NC}"
 
 remove:
-	docker rm -f $(DOCKER_CONTAINER_NAME)
+	@echo -n "${LRED}Removing${NC} reverse proxy: ${TITLE}${DOCKER_CONTAINER_NAME}${NC}"
+	@docker rm -f $(DOCKER_CONTAINER_NAME) >/dev/null || true
+	@echo " ${LGREEN}OK${NC}"
 
 connect:
-	docker exec -it $(DOCKER_CONTAINER_NAME) /bin/sh
+	@echo "${GREEN}Connecting${NC} to reverse proxy: ${TITLE}${DOCKER_CONTAINER_NAME}${NC}"
+	@docker exec -it $(DOCKER_CONTAINER_NAME) /bin/sh
 
-
-.PHONY: run update
+.PHONY: all run update start stop remove connect ensure_network_exits
