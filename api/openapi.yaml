@@ -1,0 +1,16 @@
+openapi: 3.0.4
+info:
+  title: Shoplist API
+  description: |-
+    Official OpenAPI specification for the Shoplist API
+
+    Some useful links:
+    - [Swagger Editor](https://editor.swagger.io/)
+  contact:
+    url: https://github.com/jkutkut/shoplist
+  license:
+    name: GPL 3.0
+    url: https://github.com/jkutkut/shoplist/blob/main/LICENSE
+  version: 0.1.0
+servers:
+  - url: https://localhost/api
