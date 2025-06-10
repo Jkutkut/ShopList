@@ -14,3 +14,63 @@ info:
   version: 0.1.0
 servers:
   - url: https://localhost/api
+components:
+  schemas:
+    uuid:
+      type: string
+      format: uuid
+      description: A 128-bit number encoded as a string.
+      minLength: 36
+      maxLength: 36
+    name:
+      type: string
+      description: A string representing the name of the entity.
+      example: Marvin
+      minLength: 1
+      maxLength: 32
+    description:
+      type: string
+      nullable: true
+      minLength: 0
+      maxLength: 255
+    created_at:
+      type: string
+      format: date-time
+      description: The date and time when the entity was created.
+      example: 1970-01-01T00:00:00Z
+    updated_at:
+      type: string
+      format: date-time
+      description: The date and time when the entity was last updated.
+      example: 1970-01-01T00:00:00Z
+    created_by:
+      allOf:
+        - $ref: '#/components/schemas/uuid'
+        - description: The ID of the user who created the entity.
+    updated_by:
+      allOf:
+        - $ref: '#/components/schemas/uuid'
+        - description: The ID of the user who last updated the entity.
+    metadata:
+      type: object
+      description: Additional metadata about the entity.
+      properties:
+        created_by:
+          $ref: '#/components/schemas/created_by'
+        updated_by:
+          $ref: '#/components/schemas/updated_by'
+        created_at:
+          $ref: '#/components/schemas/created_at'
+        updated_at:
+          $ref: '#/components/schemas/updated_at'
+    team:
+      allOf:
+        - type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/uuid'
+            name:
+              $ref: '#/components/schemas/name'
+            description:
+              $ref: '#/components/schemas/description'
+        - $ref: '#/components/schemas/metadata'
