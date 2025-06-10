@@ -33,6 +33,10 @@ components:
       nullable: true
       minLength: 0
       maxLength: 255
+    image:
+      type: string
+      nullable: true
+      description: A URL to an image representing the entity.
     created_at:
       type: string
       format: date-time
@@ -73,4 +77,19 @@ components:
               $ref: '#/components/schemas/name'
             description:
               $ref: '#/components/schemas/description'
+            image:
+              $ref: '#/components/schemas/image'
         - $ref: '#/components/schemas/metadata'
+    user:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/uuid'
+        name:
+          $ref: '#/components/schemas/name'
+        image:
+          $ref: '#/components/schemas/image'
+        created_at:
+          $ref: '#/components/schemas/created_at'
+        updated_at:
+          $ref: '#/components/schemas/updated_at'
