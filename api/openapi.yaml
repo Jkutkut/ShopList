@@ -67,6 +67,21 @@ components:
           $ref: '#/components/schemas/created_at'
         updated_at:
           $ref: '#/components/schemas/updated_at'
+    result:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          description: Whether the operation was successful.
+        code:
+          type: integer
+          format: int32
+          description: The HTTP status code.
+        message:
+          type: string
+          description: A message describing the error.
+      required:
+        - ok
     team:
       allOf:
         - type: object
