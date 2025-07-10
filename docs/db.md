@@ -59,6 +59,7 @@ classDiagram
         id
         list_id
         product_id
+        index
     }
 
     List "1" -- "*" ListProduct : contains

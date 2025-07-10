@@ -42,6 +42,7 @@
 - Accessibility
 - Offline mode
 - Export features
+- Budget manager
 ### Home:
 - Astro
 ### Editors:
