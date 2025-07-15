@@ -1,4 +1,8 @@
-use rocket::{Config, Build, Rocket, launch, routes, catchers, get};
+use rocket::{
+	Config, Build, Rocket,
+	launch, routes, catchers,
+	get,
+};
 use std::net::Ipv4Addr;
 use rocket::serde::json::Json;
 
@@ -7,6 +11,27 @@ mod route_error;
 #[get("/")]
 fn ping() -> Json<&'static str> {
 	Json(concat!("shoplist-", env!("CARGO_BIN_NAME"), " is up and running"))
+}
+
+mod login {
+	use rocket::serde::json::Json;
+	use rocket::post;
+	use serde::Deserialize;
+	use crate::route_error::InvalidAPI;
+
+	#[derive(Debug, Deserialize)]
+	pub struct BasicCredentials {
+		username: String,
+		password: String
+	}
+
+	#[post("/login/basic", data = "<credentials>")]
+	pub async fn basic(
+		credentials: Json<BasicCredentials>
+	) -> Result<Json<String>, InvalidAPI> {
+		println!("Credentials: {:?}", credentials);
+		Err("WIP: Not implemented".into())
+	}
 }
 
 fn config() -> Config {
@@ -30,7 +55,10 @@ async fn rocket() -> Rocket<Build> {
 		..config()
 	};
 	rocket::custom(&config)
-		.mount("/", routes![ping])
+		.mount("/", routes![
+			ping,
+			login::basic
+		])
 		.register("/", catchers![
 			route_error::not_implemented,
 			route_error::not_found,
