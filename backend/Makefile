@@ -6,7 +6,7 @@ endif
 ifeq ($(OS),Darwin)
 	DIR = ${PWD}
 endif
-REPO = $(shell cat Cargo.toml | grep name | cut -d '"' -f 2)
+REPO = shoplist
 STATE_DIR = .state
 
 # ****** Rust Constants ******
@@ -36,7 +36,7 @@ build_image: ${BUILD_IMAGE_STATE}
 # ****** Commands ******
 
 terminal: build_image
-	${DOCKER_RUN_IT} ${RUN_ATTRS} -p 50051:50051 ${BUILD_IMAGE}
+	${DOCKER_RUN_IT} ${RUN_ATTRS} ${BUILD_IMAGE}
 
 reset_file_permissions:
 	sudo chown -R ${USER}:${USER} .
@@ -44,5 +44,11 @@ reset_file_permissions:
 build: build_image
 	${DOCKER_RUN} ${RUN_ATTRS} --entrypoint cargo ${BUILD_IMAGE} build
 
-run: build_image
+run_auth: build_image
 	${DOCKER_RUN} ${RUN_ATTRS} -p 50051:50051 --entrypoint cargo ${BUILD_IMAGE} run -p auth
+
+run_api: build_image
+	${DOCKER_RUN} ${RUN_ATTRS} -p 80:80 --entrypoint cargo ${BUILD_IMAGE} run -p api
+
+clean:
+	${DOCKER_RUN} ${RUN_ATTRS} --entrypoint cargo jkutkut/docker4rust clean
