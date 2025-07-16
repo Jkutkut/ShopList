@@ -8,6 +8,10 @@ use rocket::serde::json::Json;
 
 mod route_error;
 
+pub mod auth {
+	tonic::include_proto!("auth");
+}
+
 #[get("/")]
 fn ping() -> Json<&'static str> {
 	Json(concat!("shoplist-", env!("CARGO_BIN_NAME"), " is up and running"))
@@ -17,7 +21,11 @@ mod login {
 	use rocket::serde::json::Json;
 	use rocket::post;
 	use serde::Deserialize;
-	use crate::route_error::InvalidAPI;
+
+	use crate::route_error::{InvalidResponse, invalid_api};
+	use crate::auth::auth_service_client::AuthServiceClient;
+	use crate::auth::AuthResponse;
+	use crate::auth::LoginRequest;
 
 	#[derive(Debug, Deserialize)]
 	pub struct BasicCredentials {
@@ -27,10 +35,25 @@ mod login {
 
 	#[post("/login/basic", data = "<credentials>")]
 	pub async fn basic(
-		credentials: Json<BasicCredentials>
-	) -> Result<Json<String>, InvalidAPI> {
+		credentials: Json<BasicCredentials>,
+	) -> Result<Json<String>, InvalidResponse> {
 		println!("Credentials: {:?}", credentials);
-		Err("WIP: Not implemented".into())
+
+		let mut auth_grpc_client = AuthServiceClient::connect("http://0.0.0.0:50051").await.unwrap();
+		let auth_request = tonic::Request::new(LoginRequest {
+			username: credentials.username.clone(),
+			password: credentials.password.clone(),
+		});
+
+		let response = auth_grpc_client.basic_login(auth_request).await;
+		if let Err(e) = response {
+			return Err(invalid_api(&format!("GRPC error: {:?}", e)));
+		}
+		let response: AuthResponse = response.unwrap().into_inner();
+
+		println!("Response: {:#?}", response);
+
+		Err(invalid_api("WIP: Not implemented"))
 	}
 }
 

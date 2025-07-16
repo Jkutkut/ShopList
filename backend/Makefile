@@ -18,7 +18,7 @@ CARGO_REGISTRY = -v cargo_registy:/root/.cargo/registry
 DOCKER_RUN = docker run --rm -t
 DOCKER_RUN_IT = ${DOCKER_RUN} -it --name ${REPO}
 
-RUN_ATTRS = ${CODE_VOLUME} ${CARGO_REGISTRY} -w /${REPO}/backend
+RUN_ATTRS = ${CODE_VOLUME} ${CARGO_REGISTRY} -w /${REPO}/backend --network host
 
 # ****** Docker Images ******
 BUILD_IMAGE = jkutkut/${REPO}_builder:latest
