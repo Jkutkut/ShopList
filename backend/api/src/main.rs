@@ -1,9 +1,8 @@
 use rocket::{
-	Config, Build, Rocket,
+	Build, Rocket,
 	launch, routes, catchers,
 	get,
 };
-use std::net::Ipv4Addr;
 use rocket::serde::json::Json;
 
 mod route_error;
@@ -20,6 +19,7 @@ fn ping() -> Json<&'static str> {
 mod login {
 	use rocket::serde::json::Json;
 	use rocket::post;
+	use rocket::http::{Cookie, CookieJar};
 	use serde::Deserialize;
 
 	use crate::route_error::{InvalidResponse, invalid_api};
@@ -36,6 +36,7 @@ mod login {
 	#[post("/login/basic", data = "<credentials>")]
 	pub async fn basic(
 		credentials: Json<BasicCredentials>,
+		cookies: &CookieJar<'_>,
 	) -> Result<Json<String>, InvalidResponse> {
 		println!("Credentials: {:?}", credentials);
 
@@ -51,39 +52,56 @@ mod login {
 		}
 		let response: AuthResponse = response.unwrap().into_inner();
 
+		cookies.add_private(Cookie::new("bearer", response.token.clone()));
+
 		println!("Response: {:#?}", response);
 
 		Err(invalid_api("WIP: Not implemented"))
 	}
 }
 
-fn config() -> Config {
-	#[cfg(debug_assertions)]
-	{
-		Config::debug_default()
+use rocket::{
+	Request,
+	request,
+	request::FromRequest,
+};
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct User {
+	token: String,
+}
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for User {
+	type Error = ();
+
+	async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
+		match req.cookies().get_private("bearer") {
+			Some(cookie) => request::Outcome::Success(User {
+				token: cookie.value().to_string(),
+			}),
+			_ => request::Outcome::Error((rocket::http::Status::Unauthorized, ())),
+		}
 	}
-	#[cfg(not(debug_assertions))]
-	{
-		Config::release_default()
-	}
+}
+
+#[get("/me")]
+fn me(user: User) -> Json<User> {
+	println!("User: {:#?}", &user);
+	Json(user)
 }
 
 #[launch]
 async fn rocket() -> Rocket<Build> {
-	let port = 80;
-
-	let config = Config {
-		address: Ipv4Addr::new(0, 0, 0, 0).into(),
-		port,
-		..config()
-	};
-	rocket::custom(&config)
+	rocket::build()
 		.mount("/", routes![
 			ping,
+			me,
 			login::basic
 		])
 		.register("/", catchers![
 			route_error::not_implemented,
+			route_error::unauthorized,
 			route_error::not_found,
 			route_error::internal_server_error,
 		])

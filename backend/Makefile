@@ -35,6 +35,8 @@ build_image: ${BUILD_IMAGE_STATE}
 
 # ****** Commands ******
 
+include .env
+
 terminal: build_image
 	${DOCKER_RUN_IT} ${RUN_ATTRS} ${BUILD_IMAGE}
 
@@ -48,7 +50,10 @@ run_auth: build_image
 	${DOCKER_RUN} ${RUN_ATTRS} -p 50051:50051 --entrypoint cargo ${BUILD_IMAGE} run -p auth
 
 run_api: build_image
-	${DOCKER_RUN} ${RUN_ATTRS} -p 80:80 --entrypoint cargo ${BUILD_IMAGE} run -p api
+	${DOCKER_RUN} ${RUN_ATTRS} -p 80:80 \
+		--env ROCKET_CONFIG=api/Rocket.toml \
+		--env ROCKET_SECRET_KEY=$(ROCKET_SECRET_KEY) \
+		--entrypoint cargo ${BUILD_IMAGE} run -p api
 
 clean:
 	${DOCKER_RUN} ${RUN_ATTRS} --entrypoint cargo jkutkut/docker4rust clean

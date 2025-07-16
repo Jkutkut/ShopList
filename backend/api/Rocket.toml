@@ -1,0 +1,9 @@
+[default]
+address = "127.0.0.1"
+port = 80
+# secret_key = "XXXXXX" # e.g. via `head -c64 /dev/urandom | base64`
+# log_level = "error"
+# log_format = "compact"
+
+# [debug]
+# [release]
