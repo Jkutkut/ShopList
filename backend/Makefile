@@ -28,7 +28,7 @@ ${STATE_DIR}:
 	mkdir -p $@
 
 ${BUILD_IMAGE_STATE}: Dockerfile ${STATE_DIR}
-	docker build --target dev -t ${BUILD_IMAGE} -f $< .
+	docker build --target builder -t ${BUILD_IMAGE} -f $< .
 	@touch $@
 
 build_image: ${BUILD_IMAGE_STATE}

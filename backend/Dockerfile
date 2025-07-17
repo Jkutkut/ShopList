@@ -1,5 +1,5 @@
 # -----------------------------------
-FROM jkutkut/docker4rust as dev
+FROM jkutkut/docker4rust as builder
 
 RUN apk add protobuf # protobuf-compiler
 

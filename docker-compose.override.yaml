@@ -1,0 +1,30 @@
+services:
+  auth:
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+      target: builder
+    volumes:
+      - cargo_registy:/root/.cargo/registry
+      - .:/shoplist
+    working_dir: /shoplist/backend
+    entrypoint: cargo
+    command: run -p auth
+  api:
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+      target: builder
+    volumes:
+      - cargo_registy:/root/.cargo/registry
+      - .:/shoplist
+    ports:
+      - "80:80"
+    working_dir: /shoplist/backend
+    environment:
+      ROCKET_CONFIG: /shoplist/backend/api/Rocket.toml
+      ROCKET_SECRET_KEY: ${ROCKET_SECRET_KEY}
+    entrypoint: cargo
+    command: run -p api
+volumes:
+  cargo_registy:
