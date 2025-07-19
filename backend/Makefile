@@ -18,7 +18,7 @@ CARGO_REGISTRY = -v cargo_registy:/root/.cargo/registry
 DOCKER_RUN = docker run --rm -t
 DOCKER_RUN_IT = ${DOCKER_RUN} -it --name ${REPO}
 
-RUN_ATTRS = ${CODE_VOLUME} ${CARGO_REGISTRY} -w /${REPO}/backend --network host
+RUN_ATTRS = ${CODE_VOLUME} ${CARGO_REGISTRY} -w /${REPO}/backend
 
 # ****** Docker Images ******
 BUILD_IMAGE = jkutkut/${REPO}_builder:latest
@@ -33,27 +33,10 @@ ${BUILD_IMAGE_STATE}: Dockerfile ${STATE_DIR}
 
 build_image: ${BUILD_IMAGE_STATE}
 
-# ****** Commands ******
-
-include .env
-
-terminal: build_image
-	${DOCKER_RUN_IT} ${RUN_ATTRS} ${BUILD_IMAGE}
-
+# ****** Actions ******
 reset_file_permissions:
 	sudo chown -R ${USER}:${USER} .
 
-build: build_image
-	${DOCKER_RUN} ${RUN_ATTRS} --entrypoint cargo ${BUILD_IMAGE} build
-
-run_auth: build_image
-	${DOCKER_RUN} ${RUN_ATTRS} -p 50051:50051 --entrypoint cargo ${BUILD_IMAGE} run -p auth
-
-run_api: build_image
-	${DOCKER_RUN} ${RUN_ATTRS} -p 80:80 \
-		--env ROCKET_CONFIG=api/Rocket.toml \
-		--env ROCKET_SECRET_KEY=$(ROCKET_SECRET_KEY) \
-		--entrypoint cargo ${BUILD_IMAGE} run -p api
-
-clean:
-	${DOCKER_RUN} ${RUN_ATTRS} --entrypoint cargo jkutkut/docker4rust clean
+terminal: build_image
+	${DOCKER_RUN_IT} ${RUN_ATTRS} ${BUILD_IMAGE}
+	make reset_file_permissions
