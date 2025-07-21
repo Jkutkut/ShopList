@@ -94,7 +94,7 @@ fn me(user: User) -> Json<User> {
 #[launch]
 async fn rocket() -> Rocket<Build> {
 	rocket::build()
-		.mount("/", routes![
+		.mount("/api", routes![
 			ping,
 			me,
 			login::basic

@@ -1,3 +1,7 @@
+include ../.utils/colors
+
+MAKE=make --no-print-directory
+
 # ****** Operating System ******
 OS = $(shell uname -s)
 ifeq ($(OS),Linux)
@@ -28,6 +32,7 @@ ${STATE_DIR}:
 	mkdir -p $@
 
 ${BUILD_IMAGE_STATE}: Dockerfile ${STATE_DIR}
+	@echo "${TITLE}Building ${YELLOW}${BUILD_IMAGE}${NC}"
 	docker build --target builder -t ${BUILD_IMAGE} -f $< .
 	@touch $@
 
@@ -35,8 +40,10 @@ build_image: ${BUILD_IMAGE_STATE}
 
 # ****** Actions ******
 reset_file_permissions:
+	@echo "${TITLE}Resetting file permissions${NC}"
 	sudo chown -R ${USER}:${USER} .
 
 terminal: build_image
+	@echo "${TITLE}Opening ${YELLOW}${REPO}${NC} terminal${NC}"
 	${DOCKER_RUN_IT} ${RUN_ATTRS} ${BUILD_IMAGE}
-	make reset_file_permissions
+	${MAKE} reset_file_permissions

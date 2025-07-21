@@ -18,8 +18,6 @@ services:
     volumes:
       - cargo_registy:/root/.cargo/registry
       - .:/shoplist
-    ports:
-      - "80:80"
     working_dir: /shoplist/backend
     environment:
       ROCKET_CONFIG: /shoplist/backend/api/Rocket.toml

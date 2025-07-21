@@ -29,14 +29,29 @@ services:
   api:
     container_name: shoplist-api
     hostname: shoplist-api
+    ports:
+      - "80"
     networks:
       - shoplist-auth-network
+      - shoplist-api-network
     depends_on:
       - auth
+  nginx:
+    container_name: shoplist-nginx
+    build:
+      context: ./router/
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - shoplist-api-network
+    ports:
+      - "80:80"
 volumes:
   db_data:
 networks:
   shoplist-db-network:
     driver: bridge
   shoplist-auth-network:
+    driver: bridge
+  shoplist-api-network:
     driver: bridge

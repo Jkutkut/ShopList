@@ -5,19 +5,8 @@ MAKE=make --no-print-directory
 DEV_DOCKER_CONFIG="--rm"
 PRD_DOCKER_CONFIG="--restart=unless-stopped"
 
-# ########   Router   ########
-run:
-	@echo "${GREEN}Running${NC}"
-	@DOCKER_CONFIG="${PRD_DOCKER_CONFIG}" ${MAKE} -C router run
-
-remove:
-	@${MAKE} -C router remove
-
-stop:
-	@${MAKE} -C router stop
-
 # ########   Docker Compose   ########
-PROJECTS = api auth db
+PROJECTS = api auth db nginx
 
 logs:
 	@echo "${TITLE}Monitoring ${YELLOW}all ${TITLE}logs...${NC}"
