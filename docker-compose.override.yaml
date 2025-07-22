@@ -9,7 +9,7 @@ services:
       - .:/shoplist
     working_dir: /shoplist/backend
     entrypoint: cargo
-    command: run -p auth
+    command: watch -- cargo run -p auth
   api:
     build:
       context: ./backend/
@@ -23,6 +23,6 @@ services:
       ROCKET_CONFIG: /shoplist/backend/api/Rocket.toml
       ROCKET_SECRET_KEY: ${ROCKET_SECRET_KEY}
     entrypoint: cargo
-    command: run -p api
+    command: watch -- cargo run -p api
 volumes:
   cargo_registy:

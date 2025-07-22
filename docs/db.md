@@ -1,7 +1,7 @@
 ## DB Model
 ```mermaid
 classDiagram
-    class Team {
+    class teams {
         id
         name
         description
@@ -12,11 +12,24 @@ classDiagram
         updated_by
     }
 
-    class Credentials {
-        ...
+    class credentials {
+        id
+        token
+        user_id
+        created_at
+        expires_at
     }
 
-    class User {
+    class basic_logins {
+        id
+        user_id
+        email
+        password
+    }
+
+    basic_logins "0,1" -- "1" users : authenticates
+
+    class users {
         id
         name
         image
@@ -24,24 +37,24 @@ classDiagram
         updated_at
     }
 
-    class Role {
+    class roles {
         id
         name
     }
 
-    class UserRole {
+    class user_roles {
         id
         user_id
         role_id
         team_id
     }
 
-    User "*" -- "*" UserRole : is allowed
-    Role "1" -- "*" UserRole : describes
-    Team "1" -- "*" UserRole : has
-    User "1" -- "1" Credentials : authenticates
+    users "*" -- "*" user_roles : is allowed
+    roles "1" -- "*" user_roles : describes
+    teams "1" -- "*" user_roles : has
+    users "1" -- "1" credentials : authenticates
 
-    class List {
+    class lists {
         id
         team_id
         name
@@ -53,19 +66,19 @@ classDiagram
         updated_by
     }
 
-    Team "1" -- "*" List : owns
+    teams "1" -- "*" lists : owns
 
-    class ListProduct {
+    class list_products {
         id
         list_id
         product_id
         index
     }
 
-    List "1" -- "*" ListProduct : contains
-    ListProduct "*" -- "1" Product : is in
+    lists "1" -- "*" list_products : contains
+    list_products "*" -- "1" products : is in
 
-    class Product {
+    class products {
         id
         team_id
         name
@@ -73,49 +86,49 @@ classDiagram
         image
     }
 
-    Team "1" -- "*" Product : defines
+    teams "1" -- "*" products : defines
 
-    class GenericProduct {
+    class generic_products {
         id
         brand_product_id,
         generic_product_id
     }
 
-    Product "1" -- "*" GenericProduct : is generic
-    GenericProduct "*" -- "1" Product : is brand
+    products "1" -- "*" generic_products : is generic
+    generic_products "*" -- "1" products : is brand
 
-    class Category {
+    class categories {
         id
         team_id
         name
     }
 
-    Category "1" -- "*" Product : categorizes
+    categories "1" -- "*" products : categorizes
 
-    class Tag {
+    class tags {
         id
         team_id
         name
     }
 
-    class ProductTag {
+    class product_tags {
         id
         product_id
         tag_id
     }
 
-    ProductTag "*" -- "1" Product : has tags
-    ProductTag "*" -- "1" Tag : has tags
-    Tag "*" -- "1" Team: defines
-    Category "*" -- "1" Team : defines
+    product_tags "*" -- "1" products : has tags
+    product_tags "*" -- "1" tags : has tags
+    tags "*" -- "1" teams: defines
+    categories "*" -- "1" teams : defines
 
-    class ProductIdentifier {
+    class product_identifiers {
         id
         product_id
         identifier
     }
 
-    ProductIdentifier "*" -- "1" Product : identifies
+    product_identifiers "*" -- "1" products : identifies
 
 
 ```

@@ -1,20 +1,30 @@
 use tonic::{transport::Server, Request, Response, Status};
+use tokio_postgres::NoTls;
+
+mod db;
 
 pub mod auth {
 	tonic::include_proto!("auth");
 }
 
-use crate::auth::auth_service_server::{
+use auth::auth_service_server::{
 	AuthService,
 	AuthServiceServer
 };
-use crate::auth::{
+use auth::{
 	LoginRequest,
 	AuthResponse
 };
 
-#[derive(Default)]
-pub struct Auth {}
+pub struct Auth {
+	db: db::ShoplistDbAuth
+}
+
+impl Auth {
+	fn new(db: db::ShoplistDbAuth) -> Self {
+		Self { db }
+	}
+}
 
 #[tonic::async_trait]
 impl AuthService for Auth {
@@ -24,28 +34,53 @@ impl AuthService for Auth {
 	) -> Result<Response<AuthResponse>, Status> {
 		let addr = request.remote_addr().unwrap();
 		let LoginRequest { username, password } = request.into_inner();
-		println!("Got a login request from {:?}: {:?}", addr, [&username, &password]);
-		if username.is_empty() || password.is_empty() {
-			return Err(Status::invalid_argument("Empty username or password"));
+		println!("Login request from {:?}: {:?}", addr, &username);
+		match self.db.basic_login(username, password).await {
+			Ok(token) => Ok(Response::new(AuthResponse {
+				token
+			})),
+			Err(_) => Err(Status::unauthenticated("Invalid credentials"))
 		}
-		if &username == "jkutkut" {
-			return Ok(Response::new(AuthResponse {
-				token: "secret".to_string(),
-			}))
-		}
-		Err(Status::unauthenticated("Invalid credentials"))
 	}
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-	println!("Hello auth!");
+	dotenv::from_path(
+		std::env::var("ENV_PATH").unwrap_or("../.env".to_string())
+	).ok();
+
+	let db_properties = format!(
+		"host={} port={} dbname={} user={} password={}",
+		"shoplist-db", "5432",
+		std::env::var("DB_NAME").expect("DB_NAME not defined as environment variable or in .env file"),
+		std::env::var("DB_USER").expect("DB_USER not defined as environment variable or in .env file"),
+		std::env::var("DB_USER_PASSWORD").expect("DB_USER_PASSWORD not defined as environment variable or in .env file")
+	);
+
+	let (client, connection) = match tokio_postgres::connect(&db_properties, NoTls).await {
+		Ok((client, connection)) => (client, connection),
+		Err(e) => {
+			eprintln!("Not able to connect with DB:\n{}", e);
+			eprintln!("Is the DB running?");
+			std::process::exit(1);
+		}
+	};
+
+	tokio::spawn(async move {
+		if let Err(e) = connection.await {
+			eprintln!("connection error: {}", e);
+			eprintln!("Stopping the server...");
+			std::process::exit(1);
+		}
+	});
+
+	let client = db::ShoplistDbAuth::new(client);
+	let auth_server = AuthServiceServer::new(Auth::new(client));
 	let addr = "0.0.0.0:50051".parse().unwrap();
-
-	println!("GreeterServer listening on {addr}");
-
+	println!("Auth server listening on {addr}");
 	Server::builder()
-		.add_service(AuthServiceServer::new(Auth::default()))
+		.add_service(auth_server)
 		.serve(addr)
 		.await?;
 
