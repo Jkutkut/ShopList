@@ -1,48 +1,13 @@
-use tonic::{transport::Server, Request, Response, Status};
+use tonic::transport::Server;
 use tokio_postgres::NoTls;
 
 mod db;
+mod grpc;
 
-pub mod auth {
-	tonic::include_proto!("auth");
-}
-
-use auth::auth_service_server::{
-	AuthService,
-	AuthServiceServer
+use grpc::{
+	AuthServiceServer,
+	Auth
 };
-use auth::{
-	LoginRequest,
-	AuthResponse
-};
-
-pub struct Auth {
-	db: db::ShoplistDbAuth
-}
-
-impl Auth {
-	fn new(db: db::ShoplistDbAuth) -> Self {
-		Self { db }
-	}
-}
-
-#[tonic::async_trait]
-impl AuthService for Auth {
-	async fn basic_login(
-		&self,
-		request: Request<LoginRequest>,
-	) -> Result<Response<AuthResponse>, Status> {
-		let addr = request.remote_addr().unwrap();
-		let LoginRequest { username, password } = request.into_inner();
-		println!("Login request from {:?}: {:?}", addr, &username);
-		match self.db.basic_login(username, password).await {
-			Ok(token) => Ok(Response::new(AuthResponse {
-				token
-			})),
-			Err(_) => Err(Status::unauthenticated("Invalid credentials"))
-		}
-	}
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
