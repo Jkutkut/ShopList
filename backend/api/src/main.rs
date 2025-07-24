@@ -57,7 +57,98 @@ mod login {
 
 		println!("Response: {:#?}", response);
 
-		Err(invalid_api("WIP: Not implemented"))
+		Err(invalid_api(&format!(
+			"WIP: Not implemented. response: {:#?}",
+			response
+		)))
+	}
+}
+
+mod register {
+	use rocket::serde::json::Json;
+	use rocket::post;
+	use rocket::http::{Cookie, CookieJar};
+	use serde::Deserialize;
+
+	use crate::route_error::{InvalidResponse, invalid_api};
+	use crate::auth::auth_service_client::AuthServiceClient;
+	use crate::auth::AuthResponse;
+	use crate::auth::RegisterBasicUserRequest;
+
+	#[derive(Debug, Deserialize)]
+	pub struct RegisterBasicCredentials {
+		name: String,
+		email: String,
+		password: String
+	}
+
+	#[post("/register/basic", data = "<credentials>")]
+	pub async fn basic(
+		credentials: Json<RegisterBasicCredentials>,
+		cookies: &CookieJar<'_>,
+	) -> Result<Json<String>, InvalidResponse> {
+		println!("Credentials: {:?}", credentials);
+
+		let mut auth_grpc_client = AuthServiceClient::connect("http://shoplist-auth:50051").await.unwrap();
+		let auth_request = tonic::Request::new(RegisterBasicUserRequest {
+			name: credentials.name.clone(),
+			email: credentials.email.clone(),
+			password: credentials.password.clone(),
+		});
+
+		let response = auth_grpc_client.register_user_basic_login(auth_request).await;
+		if let Err(e) = response {
+			return Err(invalid_api(&format!("GRPC error: {:?}", e)));
+		}
+		let response: AuthResponse = response.unwrap().into_inner();
+
+		cookies.add_private(Cookie::new("bearer", response.token.clone()));
+
+		println!("Response: {:#?}", response);
+
+		Err(invalid_api(&format!(
+			"WIP: Not implemented. response: {:#?}",
+			response
+		)))
+	}
+}
+
+mod logout {
+	use rocket::serde::json::Json;
+	use rocket::delete;
+	use uuid::Uuid;
+	use serde::Deserialize;
+	use crate::utils::UuidWrapper;
+
+	use crate::route_error::{InvalidResponse, invalid_api};
+	use crate::auth::auth_service_client::AuthServiceClient;
+	use crate::auth::DeleteUserRequest;
+
+	#[derive(Debug, Deserialize)]
+	pub struct ApiDeleteUserRequest {
+		user_id: UuidWrapper
+	}
+
+	#[delete("/user", data = "<data>")]
+	pub async fn delete_user(
+		data: Json<ApiDeleteUserRequest>,
+	) -> Result<(), InvalidResponse> {
+		let ApiDeleteUserRequest { user_id } = data.into_inner();
+		let user_id: Uuid = match user_id.get() {
+			Ok(id) => id,
+			Err(_) => return Err(invalid_api("Invalid user id"))
+		};
+		println!("Delete request: {:?}", user_id);
+		let mut auth_grpc_client = AuthServiceClient::connect("http://shoplist-auth:50051").await.unwrap();
+		let auth_request = tonic::Request::new(DeleteUserRequest {
+			user_id: user_id.to_string()
+		});
+		let response = auth_grpc_client.delete_user(auth_request).await;
+		if let Err(e) = response {
+			return Err(invalid_api(&format!("GRPC error: {:?}", e)));
+		}
+		println!("Response: {:#?}", response);
+		Ok(())
 	}
 }
 
@@ -98,7 +189,9 @@ async fn rocket() -> Rocket<Build> {
 		.mount("/api", routes![
 			ping,
 			me,
-			login::basic
+			login::basic,
+			register::basic,
+			logout::delete_user
 		])
 		.register("/", catchers![
 			route_error::not_implemented,
