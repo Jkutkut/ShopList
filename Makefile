@@ -1,9 +1,32 @@
 include ./.utils/colors
+include .env
 
 MAKE=make --no-print-directory
 
 DEV_DOCKER_CONFIG="--rm"
 PRD_DOCKER_CONFIG="--restart=unless-stopped"
+
+# ########   DB Controler   #########
+
+DB_CONTROLER_NAME=db_controller
+
+run_db_controler:
+	docker ps | grep ${DB_CONTROLER_NAME} > /dev/null || \
+	( \
+		docker ps -a | grep ${DB_CONTROLER_NAME} > /dev/null && \
+		docker start ${DB_CONTROLER_NAME} \
+	) || \
+	docker run -d \
+		--name ${DB_CONTROLER_NAME} \
+		-p ${DB_CONTROLER_PORT}:80 \
+		-e PGADMIN_DEFAULT_EMAIL="${DB_CONTROLER_EMAIL}" \
+		-e PGADMIN_DEFAULT_PASSWORD="${DB_CONTROLER_PASSWORD}" \
+		--network "shoplist_shoplist-db-network" \
+		dpage/pgadmin4
+	open http://localhost:${DB_CONTROLER_PORT}
+
+delete_db_controler:
+	docker rm -f ${DB_CONTROLER_NAME}
 
 # ########   Docker Compose   ########
 PROJECTS = api auth db nginx
