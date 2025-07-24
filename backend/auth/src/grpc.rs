@@ -32,4 +32,33 @@ impl AuthService for Auth {
 			Err(_) => Err(Status::unauthenticated("Invalid credentials"))
 		}
 	}
+
+	async fn register_user_basic_login(
+		&self,
+		request: Request<RegisterBasicUserRequest>,
+	) -> Result<Response<AuthResponse>, Status> {
+		let addr = request.remote_addr().unwrap();
+		let RegisterBasicUserRequest { name, email, password } = request.into_inner();
+		println!("Register request from {:?}: {}", addr, &email);
+		match self.db.register_user_basic_login(name, email, password).await {
+			Ok(token) => Ok(Response::new(AuthResponse {
+				token: "token".to_string()
+			})),
+			Err(_) => Err(Status::unauthenticated("Invalid credentials"))
+		}
+	}
+
+	async fn delete_user(
+		&self,
+		request: Request<DeleteUserRequest>,
+	) -> Result<Response<Empty>, Status> { // TODO protect
+		let addr = request.remote_addr().unwrap();
+		let DeleteUserRequest { user_id } = request.into_inner();
+		println!("Delete request from {:?}: {}", addr, &user_id);
+		let user_id: uuid::Uuid = user_id.parse().unwrap(); // TODO handle
+		match self.db.delete_user(user_id).await {
+			Ok(_) => Ok(Response::new(Empty {})),
+			Err(_) => Err(Status::internal("Failed to delete user"))
+		}
+	}
 }

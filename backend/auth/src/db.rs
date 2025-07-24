@@ -42,6 +42,26 @@ impl ShoplistDbAuth {
 		println!("Password ok: {}", ok);
 		Ok(format!("OK: {}", ok)) // TODO
 	}
+
+	pub async fn register_user_basic_login(&self, name: String, email: String, password: String) -> Result<(), ()> {
+		let password_hash = self.encrypt_password(password);
+		let query = "SELECT create_user_basic_credentials($1, $2, $3)";
+		let stmt = self.db_client.prepare(query).await.unwrap();
+		match self.db_client.execute(&stmt, &[&name, &email, &password_hash]).await {
+			Ok(_) => Ok(()),
+			Err(_) => Err(()) // TODO error?
+		}
+	}
+
+	pub async fn delete_user(&self, user_id: Uuid) -> Result<(), ()> {
+		let query = "DELETE FROM basic_login WHERE user_id = $1";
+		let stmt = self.db_client.prepare(query).await.unwrap();
+		match self.db_client.execute(&stmt, &[&user_id]).await {
+			Ok(r) if r == 1 => Ok(()),
+			Ok(_) => Err(()), // TODO error?
+			Err(_) => Err(()) // TODO error?
+		}
+	}
 }
 
 impl ShoplistDbAuth {
