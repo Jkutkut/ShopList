@@ -6,6 +6,7 @@ use rocket::{
 use rocket::serde::json::Json;
 
 mod route_error;
+mod utils;
 
 pub mod auth {
 	tonic::include_proto!("auth");
