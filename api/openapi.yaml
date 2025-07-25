@@ -11,20 +11,23 @@ info:
   license:
     name: GPL 3.0
     url: https://github.com/jkutkut/shoplist/blob/main/LICENSE
-  version: 0.1.0
+  version: 1.2.0
 servers:
   - url: http://localhost/api
 paths:
   /v1/user:
     delete:
-      summary: Delete current user
-      description: Delete current user
-      parameters:
-        - name: Authorization
-          in: header
-          required: true
-          schema:
-            $ref: '#/components/schemas/bearer-token'
+      summary: Delete user
+      description: Delete user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  $ref: '#/components/schemas/uuid'
       responses:
         '200':
           description: User deleted
@@ -122,6 +125,12 @@ components:
       description: Bearer token
       example: Bearer <jwt token>
     # Common
+    uuid:
+      type: string
+      format: uuid
+      description: A 128-bit number encoded as a string.
+      minLength: 36
+      maxLength: 36
     name:
       type: string
       example: Marvin
@@ -129,12 +138,6 @@ components:
       type: string
       example: please-change-me
     # v0 --------------------------------------------------
-    uuid:
-      type: string
-      format: uuid
-      description: A 128-bit number encoded as a string.
-      minLength: 36
-      maxLength: 36
     description:
       type: string
       nullable: true
