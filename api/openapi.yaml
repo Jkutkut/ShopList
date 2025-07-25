@@ -13,21 +13,128 @@ info:
     url: https://github.com/jkutkut/shoplist/blob/main/LICENSE
   version: 0.1.0
 servers:
-  - url: https://localhost/api
+  - url: http://localhost/api
+paths:
+  /v1/user:
+    delete:
+      summary: Delete current user
+      description: Delete current user
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            $ref: '#/components/schemas/bearer-token'
+      responses:
+        '200':
+          description: User deleted
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/user/register/basic:
+    post:
+      summary: Register user with username and password
+      description: Register user with basic authentication and return JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  $ref: '#/components/schemas/name'
+                email:
+                  $ref: '#/components/schemas/name'
+                password:
+                  $ref: '#/components/schemas/password'
+      responses:
+        '200':
+          description: User registered, JWT token returned
+          headers:
+            set-cookie:
+              schema:
+                $ref: '#/components/schemas/bearer-token'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    $ref: '#/components/schemas/jwt'
+        '401':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/user/login/basic:
+    post:
+      summary: Login user with username and password
+      description: Login user with basic authentication and return JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  $ref: '#/components/schemas/name'
+                password:
+                  $ref: '#/components/schemas/password'
+      responses:
+        '200':
+          description: Login success, JWT token returned
+          headers:
+            set-cookie:
+              schema:
+                $ref: '#/components/schemas/bearer-token'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    $ref: '#/components/schemas/jwt'
+        '401':
+          description: Login failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  # /v1/user/create:
+  # /v1/user/logout:
+  # /v1/user/logout/all:
+
 components:
+  # TODO: add minLength and maxLength
   schemas:
+    # Auth
+    jwt:
+      type: string
+      description: JWT token
+    bearer-token:
+      type: string
+      description: Bearer token
+      example: Bearer <jwt token>
+    # Common
+    name:
+      type: string
+      example: Marvin
+    password:
+      type: string
+      example: please-change-me
+    # v0 --------------------------------------------------
     uuid:
       type: string
       format: uuid
       description: A 128-bit number encoded as a string.
       minLength: 36
       maxLength: 36
-    name:
-      type: string
-      description: A string representing the name of the entity.
-      example: Marvin
-      minLength: 1
-      maxLength: 32
     description:
       type: string
       nullable: true
@@ -70,18 +177,15 @@ components:
     result:
       type: object
       properties:
-        ok:
-          type: boolean
-          description: Whether the operation was successful.
         code:
           type: integer
           format: int32
           description: The HTTP status code.
+          example: 401
         message:
           type: string
           description: A message describing the error.
-      required:
-        - ok
+          example: Invalid credentials
     team:
       allOf:
         - type: object
