@@ -15,19 +15,16 @@ info:
 servers:
   - url: http://localhost/api
 paths:
-  /v1/user:
+  /v1/user/{user_id}:
     delete:
       summary: Delete user
       description: Delete user
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user_id:
-                  $ref: '#/components/schemas/uuid'
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
       responses:
         '200':
           description: User deleted

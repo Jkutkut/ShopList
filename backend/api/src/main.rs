@@ -101,10 +101,9 @@ mod register {
 }
 
 mod logout {
-	use rocket::serde::json::Json;
 	use rocket::delete;
 	use uuid::Uuid;
-	use model::ApiDeleteUserRequest;
+	use model::UuidWrapper;
 
 	use crate::route_error::{InvalidResponse, invalid_api};
 	use model::grpc::auth::{
@@ -112,11 +111,10 @@ mod logout {
 		DeleteUserRequest,
 	};
 
-	#[delete("/user", data = "<data>")]
+	#[delete("/user/<user_id>")]
 	pub async fn delete_user(
-		data: Json<ApiDeleteUserRequest>,
+		user_id: UuidWrapper,
 	) -> Result<(), InvalidResponse> {
-		let ApiDeleteUserRequest { user_id } = data.into_inner();
 		let user_id: Uuid = match user_id.get() {
 			Ok(id) => id,
 			Err(_) => return Err(invalid_api("Invalid user id"))
