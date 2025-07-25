@@ -4,10 +4,8 @@ use tokio_postgres::NoTls;
 mod db;
 mod grpc;
 
-use grpc::{
-	AuthServiceServer,
-	Auth
-};
+use model::grpc::auth::auth_service_server::AuthServiceServer;
+use grpc::Auth;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

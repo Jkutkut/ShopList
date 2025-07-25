@@ -7,10 +7,6 @@ use rocket::serde::json::Json;
 
 mod route_error;
 
-pub mod auth {
-	tonic::include_proto!("auth");
-}
-
 #[get("/")]
 fn ping() -> Json<&'static str> {
 	Json(concat!("shoplist-", env!("CARGO_BIN_NAME"), " is up and running"))
@@ -23,9 +19,11 @@ mod login {
 	use model::ApiBasicCredentials;
 
 	use crate::route_error::{InvalidResponse, invalid_api};
-	use crate::auth::auth_service_client::AuthServiceClient;
-	use crate::auth::AuthResponse;
-	use crate::auth::LoginRequest;
+	use model::grpc::auth::{
+		auth_service_client::AuthServiceClient,
+		AuthResponse,
+		LoginRequest,
+	};
 
 	#[post("/login/basic", data = "<credentials>")]
 	pub async fn basic(
@@ -63,9 +61,11 @@ mod register {
 	use rocket::http::{Cookie, CookieJar};
 
 	use crate::route_error::{InvalidResponse, invalid_api};
-	use crate::auth::auth_service_client::AuthServiceClient;
-	use crate::auth::AuthResponse;
-	use crate::auth::RegisterBasicUserRequest;
+	use model::grpc::auth::{
+		auth_service_client::AuthServiceClient,
+		AuthResponse,
+		RegisterBasicUserRequest,
+	};
 	use model::ApiRegisterBasicCredentials;
 
 	#[post("/register/basic", data = "<credentials>")]
@@ -106,8 +106,10 @@ mod logout {
 	use model::ApiDeleteUserRequest;
 
 	use crate::route_error::{InvalidResponse, invalid_api};
-	use crate::auth::auth_service_client::AuthServiceClient;
-	use crate::auth::DeleteUserRequest;
+	use model::grpc::auth::{
+		auth_service_client::AuthServiceClient,
+		DeleteUserRequest,
+	};
 
 	#[delete("/user", data = "<data>")]
 	pub async fn delete_user(

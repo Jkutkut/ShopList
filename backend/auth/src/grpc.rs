@@ -1,11 +1,16 @@
-tonic::include_proto!("auth");
-
 use crate::db::ShoplistDbAuth;
 use tonic::{Request, Response, Status};
-use auth_service_server::AuthService;
 use uuid::Uuid;
-
-pub use auth_service_server::AuthServiceServer;
+use model::grpc::auth::{
+	auth_service_server::{
+		AuthService,
+	},
+	AuthResponse,
+	LoginRequest,
+	RegisterBasicUserRequest,
+	DeleteUserRequest,
+	Empty,
+};
 
 pub struct Auth {
 	db: ShoplistDbAuth

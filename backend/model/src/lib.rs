@@ -21,3 +21,9 @@ pub struct BasicLogin {
 	pub email: String,
 	pub password: String,
 }
+
+pub mod grpc {
+	pub mod auth {
+		tonic::include_proto!("auth");
+	}
+}
