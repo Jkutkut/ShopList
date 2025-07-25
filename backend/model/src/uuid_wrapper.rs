@@ -1,6 +1,9 @@
-use rocket::form::{FromFormField, ValueField};
-use rocket::serde::Deserialize;
-use rocket::request::FromParam;
+#[cfg(feature = "api")]
+use rocket::{
+	form::{FromFormField, ValueField},
+	serde::Deserialize,
+	request::FromParam,
+};
 use uuid::Uuid;
 
 pub struct UuidWrapper(Result<Uuid, String>);
@@ -11,6 +14,7 @@ impl UuidWrapper {
   }
 }
 
+#[cfg(feature = "api")]
 impl<'v> FromFormField<'v> for UuidWrapper {
   fn from_value(field: ValueField<'v>) -> rocket::form::Result<'v, Self> {
     Ok(match Uuid::parse_str(field.value) {
@@ -20,6 +24,7 @@ impl<'v> FromFormField<'v> for UuidWrapper {
   }
 }
 
+#[cfg(feature = "api")]
 impl<'r> FromParam<'r> for UuidWrapper {
   type Error = &'r str;
 
@@ -31,6 +36,7 @@ impl<'r> FromParam<'r> for UuidWrapper {
   }
 }
 
+#[cfg(feature = "api")]
 impl<'de> Deserialize<'de> for UuidWrapper {
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
   where
@@ -42,6 +48,7 @@ impl<'de> Deserialize<'de> for UuidWrapper {
     })
   }
 }
+
 impl std::fmt::Debug for UuidWrapper {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{:?}", self.0)

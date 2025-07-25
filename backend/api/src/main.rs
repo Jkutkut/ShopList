@@ -6,7 +6,6 @@ use rocket::{
 use rocket::serde::json::Json;
 
 mod route_error;
-mod utils;
 
 pub mod auth {
 	tonic::include_proto!("auth");
@@ -21,22 +20,16 @@ mod login {
 	use rocket::serde::json::Json;
 	use rocket::post;
 	use rocket::http::{Cookie, CookieJar};
-	use serde::Deserialize;
+	use model::ApiBasicCredentials;
 
 	use crate::route_error::{InvalidResponse, invalid_api};
 	use crate::auth::auth_service_client::AuthServiceClient;
 	use crate::auth::AuthResponse;
 	use crate::auth::LoginRequest;
 
-	#[derive(Debug, Deserialize)]
-	pub struct BasicCredentials {
-		username: String,
-		password: String
-	}
-
 	#[post("/login/basic", data = "<credentials>")]
 	pub async fn basic(
-		credentials: Json<BasicCredentials>,
+		credentials: Json<ApiBasicCredentials>,
 		cookies: &CookieJar<'_>,
 	) -> Result<Json<String>, InvalidResponse> {
 		println!("Credentials: {:?}", credentials);
@@ -68,23 +61,16 @@ mod register {
 	use rocket::serde::json::Json;
 	use rocket::post;
 	use rocket::http::{Cookie, CookieJar};
-	use serde::Deserialize;
 
 	use crate::route_error::{InvalidResponse, invalid_api};
 	use crate::auth::auth_service_client::AuthServiceClient;
 	use crate::auth::AuthResponse;
 	use crate::auth::RegisterBasicUserRequest;
-
-	#[derive(Debug, Deserialize)]
-	pub struct RegisterBasicCredentials {
-		name: String,
-		email: String,
-		password: String
-	}
+	use model::ApiRegisterBasicCredentials;
 
 	#[post("/register/basic", data = "<credentials>")]
 	pub async fn basic(
-		credentials: Json<RegisterBasicCredentials>,
+		credentials: Json<ApiRegisterBasicCredentials>,
 		cookies: &CookieJar<'_>,
 	) -> Result<Json<String>, InvalidResponse> {
 		println!("Credentials: {:?}", credentials);
@@ -117,17 +103,11 @@ mod logout {
 	use rocket::serde::json::Json;
 	use rocket::delete;
 	use uuid::Uuid;
-	use serde::Deserialize;
-	use crate::utils::UuidWrapper;
+	use model::ApiDeleteUserRequest;
 
 	use crate::route_error::{InvalidResponse, invalid_api};
 	use crate::auth::auth_service_client::AuthServiceClient;
 	use crate::auth::DeleteUserRequest;
-
-	#[derive(Debug, Deserialize)]
-	pub struct ApiDeleteUserRequest {
-		user_id: UuidWrapper
-	}
 
 	#[delete("/user", data = "<data>")]
 	pub async fn delete_user(
@@ -186,6 +166,8 @@ fn me(user: User) -> Json<User> {
 #[launch]
 async fn rocket() -> Rocket<Build> {
 	rocket::build()
+		// .attach(cors::CORS)
+		// .manage(auth_grpc_client)
 		.mount("/api", routes![
 			ping,
 			me,
@@ -199,4 +181,8 @@ async fn rocket() -> Rocket<Build> {
 			route_error::not_found,
 			route_error::internal_server_error,
 		])
+		// .mount("/", routes![ping, cors::options])
+		// .mount("/", rocket::fs::FileServer::from(PUBLIC_DIR))
+		// .mount("/api/v1", api::get_v1_routes())
+		// .register("/api", catchers![route_error::api_not_implemented])
 }

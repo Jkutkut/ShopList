@@ -3,6 +3,7 @@ tonic::include_proto!("auth");
 use crate::db::ShoplistDbAuth;
 use tonic::{Request, Response, Status};
 use auth_service_server::AuthService;
+use uuid::Uuid;
 
 pub use auth_service_server::AuthServiceServer;
 
@@ -55,7 +56,10 @@ impl AuthService for Auth {
 		let addr = request.remote_addr().unwrap();
 		let DeleteUserRequest { user_id } = request.into_inner();
 		println!("Delete request from {:?}: {}", addr, &user_id);
-		let user_id: uuid::Uuid = user_id.parse().unwrap(); // TODO handle
+		let user_id: Uuid = match user_id.parse() {
+			Ok(id) => id,
+			Err(_) => return Err(Status::invalid_argument("Invalid user_id"))
+		};
 		match self.db.delete_user(user_id).await {
 			Ok(_) => Ok(Response::new(Empty {})),
 			Err(_) => Err(Status::internal("Failed to delete user"))

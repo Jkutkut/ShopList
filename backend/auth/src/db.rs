@@ -14,17 +14,6 @@ pub struct ShoplistDbAuth {
 	db_client: Client,
 }
 
-mod model {
-	use uuid::Uuid;
-
-	#[derive(Debug)]
-	pub struct BasicLogin {
-		pub id: Uuid,
-		pub user_id: Uuid,
-		pub email: String,
-		pub password: String,
-	}
-}
 use model::{
 	BasicLogin,
 };
