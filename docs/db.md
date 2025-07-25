@@ -37,6 +37,13 @@ classDiagram
         updated_at
     }
 
+    class superusers {
+        id
+        user_id
+    }
+
+    users "1" -- "0,1" superusers : is
+
     class roles {
         id
         name

@@ -1,6 +1,7 @@
 -- ____________ Tables ____________
 DROP TABLE IF EXISTS basic_login;
 DROP TABLE IF EXISTS credentials;
+DROP TABLE IF EXISTS superusers;
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
@@ -9,6 +10,12 @@ CREATE TABLE users (
   image text,
   created_at timestamp DEFAULT now() NOT NULL,
   updated_at timestamp DEFAULT now() NOT NULL
+);
+
+CREATE TABLE superusers (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 CREATE TABLE credentials (
@@ -52,4 +59,12 @@ BEGIN
     INSERT INTO users (name) VALUES (username) RETURNING id INTO user_id;
     INSERT INTO basic_login (user_id, email, password) VALUES (user_id, email, password);
     RETURN user_id;
+END $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS set_superuser(users.id%TYPE);
+
+CREATE FUNCTION set_superuser(user_id users.id%TYPE) RETURNS void
+AS $$
+BEGIN
+    INSERT INTO superusers (user_id) VALUES (user_id);
 END $$ LANGUAGE plpgsql;

@@ -65,9 +65,7 @@ impl AuthService for Auth {
 			Ok(id) => id,
 			Err(_) => return Err(Status::invalid_argument("Invalid user_id"))
 		};
-		match self.db.delete_user(user_id).await {
-			Ok(_) => Ok(Response::new(Empty {})),
-			Err(_) => Err(Status::internal("Failed to delete user"))
-		}
+		self.db.delete_user(&user_id, &user_id).await?;
+		Ok(Response::new(Empty {}))
 	}
 }

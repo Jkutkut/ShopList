@@ -19,6 +19,8 @@ paths:
     delete:
       summary: Delete user
       description: Delete user
+      security:
+        - bearerAuth: []
       parameters:
         - name: user_id
           in: path
@@ -28,8 +30,14 @@ paths:
       responses:
         '200':
           description: User deleted
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
         '401':
-          description: Invalid credentials
+          description: Invalid credentials, user not found, not enough permissions
           content:
             application/json:
               schema:
@@ -212,3 +220,8 @@ components:
           $ref: '#/components/schemas/created_at'
         updated_at:
           $ref: '#/components/schemas/updated_at'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

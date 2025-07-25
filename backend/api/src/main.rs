@@ -100,36 +100,47 @@ mod register {
 	}
 }
 
-mod logout {
-	use rocket::delete;
+mod user {
 	use uuid::Uuid;
-	use model::UuidWrapper;
-
-	use crate::route_error::{InvalidResponse, invalid_api};
-	use model::grpc::auth::{
-		auth_service_client::AuthServiceClient,
-		DeleteUserRequest,
+	use rocket::{
+		delete,
+		http::Status,
+	};
+	use crate::{
+		route_error::InvalidResponse,
+		User,
+	};
+	use model::{
+		UuidWrapper,
+		grpc::auth::{
+			auth_service_client::AuthServiceClient,
+			DeleteUserRequest,
+		},
 	};
 
 	#[delete("/user/<user_id>")]
 	pub async fn delete_user(
 		user_id: UuidWrapper,
+		#[allow(unused_variables)]
+		user: User // TODO
 	) -> Result<(), InvalidResponse> {
 		let user_id: Uuid = match user_id.get() {
 			Ok(id) => id,
-			Err(_) => return Err(invalid_api("Invalid user id"))
+			Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
 		};
 		println!("Delete request: {:?}", user_id);
 		let mut auth_grpc_client = AuthServiceClient::connect("http://shoplist-auth:50051").await.unwrap();
 		let auth_request = tonic::Request::new(DeleteUserRequest {
 			user_id: user_id.to_string()
 		});
-		let response = auth_grpc_client.delete_user(auth_request).await;
-		if let Err(e) = response {
-			return Err(invalid_api(&format!("GRPC error: {:?}", e)));
+		match auth_grpc_client.delete_user(auth_request).await {
+			Ok(_) => Ok(()),
+			Err(e) => match e.code() {
+				// Code::NotFound
+				// Code::PermissionDenied
+				_ => Err(InvalidResponse::new(Status::Unauthorized, "Invalid credentials"))
+			}
 		}
-		println!("Response: {:#?}", response);
-		Ok(())
 	}
 }
 
@@ -169,12 +180,14 @@ async fn rocket() -> Rocket<Build> {
 	rocket::build()
 		.attach(cors::CORS).mount("/", routes![cors::options])
 		// .manage(auth_grpc_client)
-		.mount("/api/v1", routes![
+		.mount("/api", routes![
 			ping,
+		])
+		.mount("/api/v1", routes![
 			me,
 			login::basic,
 			register::basic,
-			logout::delete_user
+			user::delete_user
 		])
 		.register("/", catchers![
 			route_error::not_implemented,

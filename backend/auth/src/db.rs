@@ -9,6 +9,7 @@ use argon2::{
 	Argon2,
 	PasswordVerifier,
 };
+use tonic::Status;
 
 pub struct ShoplistDbAuth {
 	db_client: Client,
@@ -42,13 +43,20 @@ impl ShoplistDbAuth {
 		}
 	}
 
-	pub async fn delete_user(&self, user_id: Uuid) -> Result<(), ()> {
+	pub async fn delete_user(&self, auth_user_id: &Uuid, user_id: &Uuid) -> Result<(), Status> {
+		if user_id != auth_user_id {
+			let query = "SELECT user_id FROM superusers WHERE user_id = $1";
+			let stmt = self.db_client.prepare(query).await.unwrap();
+			match self.db_client.query_one(&stmt, &[&auth_user_id]).await {
+				Ok(_) => (),
+				Err(_) => return Err(Status::permission_denied("Invalid credentials"))
+			};
+		}
 		let query = "DELETE FROM basic_login WHERE user_id = $1";
 		let stmt = self.db_client.prepare(query).await.unwrap();
 		match self.db_client.execute(&stmt, &[&user_id]).await {
 			Ok(r) if r == 1 => Ok(()),
-			Ok(_) => Err(()), // TODO error?
-			Err(_) => Err(()) // TODO error?
+			_ => Err(Status::not_found("User not found"))
 		}
 	}
 }
