@@ -5,6 +5,7 @@ use rocket::{
 };
 use rocket::serde::json::Json;
 
+mod cors;
 mod route_error;
 
 #[get("/")]
@@ -25,7 +26,7 @@ mod login {
 		LoginRequest,
 	};
 
-	#[post("/login/basic", data = "<credentials>")]
+	#[post("/user/login/basic", data = "<credentials>")]
 	pub async fn basic(
 		credentials: Json<ApiBasicCredentials>,
 		cookies: &CookieJar<'_>,
@@ -168,9 +169,9 @@ fn me(user: User) -> Json<User> {
 #[launch]
 async fn rocket() -> Rocket<Build> {
 	rocket::build()
-		// .attach(cors::CORS)
+		.attach(cors::CORS).mount("/", routes![cors::options])
 		// .manage(auth_grpc_client)
-		.mount("/api", routes![
+		.mount("/api/v1", routes![
 			ping,
 			me,
 			login::basic,
