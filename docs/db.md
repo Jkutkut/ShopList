@@ -80,6 +80,12 @@ classDiagram
         list_id
         product_id
         index
+        amount
+        unit
+        created_at
+        created_by
+        updated_at
+        updated_by
     }
 
     lists "1" -- "*" list_products : contains
