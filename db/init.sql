@@ -83,3 +83,21 @@ BEGIN
     INSERT INTO credentials (user_id, token, expires_at) VALUES (user_id, token, expires_at) RETURNING id INTO credential_id;
     RETURN credential_id;
 END $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS logout_everyone();
+
+CREATE FUNCTION logout_everyone() RETURNS void
+AS $$
+BEGIN
+    DELETE FROM credentials;
+END $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS logout_user_everywhere(credentials.user_id%TYPE);
+
+CREATE FUNCTION logout_user_everywhere(
+    usr_id credentials.user_id%TYPE
+) RETURNS void
+AS $$
+BEGIN
+    DELETE FROM credentials WHERE credentials.user_id = usr_id;
+END $$ LANGUAGE plpgsql;
