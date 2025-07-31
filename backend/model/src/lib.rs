@@ -4,6 +4,8 @@ mod uuid_wrapper;
 mod api_model;
 #[cfg(feature = "auth")]
 mod auth_model;
+#[cfg(feature = "auth")]
+pub mod jwt;
 
 pub use uuid_wrapper::*;
 

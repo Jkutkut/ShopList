@@ -6,12 +6,16 @@ mod grpc;
 
 use model::grpc::auth::auth_service_server::AuthServiceServer;
 use grpc::Auth;
+use model::jwt::JWTHandler;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	dotenv::from_path(
 		std::env::var("ENV_PATH").unwrap_or("../.env".to_string())
 	).ok();
+
+	let jwt_secret = std::env::var("JWT_SECRET")
+		.expect("JWT_SECRET not defined as environment variable or in .env file");
 
 	let db_properties = format!(
 		"host={} port={} dbname={} user={} password={}",
@@ -38,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		}
 	});
 
-	let client = db::ShoplistDbAuth::new(client);
+	let client = db::ShoplistDbAuth::new(client, JWTHandler::new(&jwt_secret));
 	let auth_server = AuthServiceServer::new(Auth::new(client));
 	let addr = "0.0.0.0:50051".parse().unwrap();
 	println!("Auth server listening on {addr}");

@@ -68,3 +68,18 @@ AS $$
 BEGIN
     INSERT INTO superusers (user_id) VALUES (user_id);
 END $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS create_credential(credentials.user_id%TYPE, credentials.expires_at%TYPE);
+
+CREATE FUNCTION create_credentials(
+    user_id credentials.user_id%TYPE,
+    token credentials.token%TYPE,
+    expires_at credentials.expires_at%TYPE
+) RETURNS credentials.id%TYPE
+AS $$
+DECLARE
+    credential_id credentials.id%TYPE;
+BEGIN
+    INSERT INTO credentials (user_id, token, expires_at) VALUES (user_id, token, expires_at) RETURNING id INTO credential_id;
+    RETURN credential_id;
+END $$ LANGUAGE plpgsql;

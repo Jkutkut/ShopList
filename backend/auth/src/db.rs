@@ -10,9 +10,11 @@ use argon2::{
 	PasswordVerifier,
 };
 use tonic::Status;
+use model::jwt::JWTHandler;
 
 pub struct ShoplistDbAuth {
 	db_client: Client,
+	jwt: JWTHandler
 }
 
 use model::{
@@ -20,25 +22,29 @@ use model::{
 };
 
 impl ShoplistDbAuth {
-	pub fn new(db_client: Client) -> Self {
+	pub fn new(db_client: Client, jwt: JWTHandler) -> Self {
 		Self {
 			db_client,
+			jwt
 		}
 	}
+
+	// TODO logout_everyone
+	// TODO logout_user_everywhere
 
 	pub async fn basic_login(&self, username: String, password: String) -> Result<String, ()> {
 		let credentials = self.get_user_credentials(&username).await.ok_or(())?;
 		let ok = self.validate_password(password.clone(), credentials.password);
 		println!("Password ok: {}", ok);
-		Ok("<secret token>".into()) // TODO
+		Ok(self.new_jwt(&credentials.user_id).await?)
 	}
 
 	pub async fn register_user_basic_login(&self, name: String, email: String, password: String) -> Result<String, ()> {
 		let password_hash = self.encrypt_password(password);
 		let query = "SELECT create_user_basic_credentials($1, $2, $3)";
 		let stmt = self.db_client.prepare(query).await.unwrap();
-		match self.db_client.execute(&stmt, &[&name, &email, &password_hash]).await {
-			Ok(_) => Ok("<secret token>".into()), // TODO
+		match self.db_client.query_one(&stmt, &[&name, &email, &password_hash]).await {
+			Ok(r) => Ok(self.new_jwt(&r.get(0)).await?),
 			Err(_) => Err(()) // TODO error?
 		}
 	}
@@ -62,6 +68,18 @@ impl ShoplistDbAuth {
 }
 
 impl ShoplistDbAuth {
+	async fn new_jwt(&self, user_id: &Uuid) -> Result<String, ()> {
+		let token = self.jwt.new_jwt(user_id);
+		let token_str: String = self.jwt.encode(&token)?;
+		println!("New token for {}: {}", user_id, &token_str);
+		let query = "SELECT create_credentials($1, $2, to_timestamp($3)::timestamp)";
+		let stmt = self.db_client.prepare(query).await.unwrap();
+		self.db_client.execute(&stmt, &[
+			user_id, &token_str, &(token.expiration() as f64)
+		]).await.map_err(|_| ())?;
+		Ok(token_str)
+	}
+
 	fn validate_password(&self, password: String, password_hash: String) -> bool {
 		let argon2 = Argon2::default();
 		let password_hash = match PasswordHash::new(&password_hash) {
