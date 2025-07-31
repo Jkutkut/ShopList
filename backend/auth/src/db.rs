@@ -30,15 +30,15 @@ impl ShoplistDbAuth {
 		let credentials = self.get_user_credentials(&username).await.ok_or(())?;
 		let ok = self.validate_password(password.clone(), credentials.password);
 		println!("Password ok: {}", ok);
-		Ok(format!("OK: {}", ok)) // TODO
+		Ok("<secret token>".into()) // TODO
 	}
 
-	pub async fn register_user_basic_login(&self, name: String, email: String, password: String) -> Result<(), ()> {
+	pub async fn register_user_basic_login(&self, name: String, email: String, password: String) -> Result<String, ()> {
 		let password_hash = self.encrypt_password(password);
 		let query = "SELECT create_user_basic_credentials($1, $2, $3)";
 		let stmt = self.db_client.prepare(query).await.unwrap();
 		match self.db_client.execute(&stmt, &[&name, &email, &password_hash]).await {
-			Ok(_) => Ok(()),
+			Ok(_) => Ok("<secret token>".into()), // TODO
 			Err(_) => Err(()) // TODO error?
 		}
 	}

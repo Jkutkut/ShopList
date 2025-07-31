@@ -7,6 +7,7 @@ use rocket::serde::json::Json;
 
 mod cors;
 mod route_error;
+mod api_auth_response;
 
 #[get("/")]
 fn ping() -> Json<&'static str> {
@@ -16,7 +17,6 @@ fn ping() -> Json<&'static str> {
 mod login {
 	use rocket::serde::json::Json;
 	use rocket::post;
-	use rocket::http::{Cookie, CookieJar};
 	use model::ApiBasicCredentials;
 
 	use crate::route_error::{InvalidResponse, invalid_api};
@@ -25,12 +25,12 @@ mod login {
 		AuthResponse,
 		LoginRequest,
 	};
+	use crate::api_auth_response::ApiAuthResponse;
 
 	#[post("/user/login/basic", data = "<credentials>")]
 	pub async fn basic(
 		credentials: Json<ApiBasicCredentials>,
-		cookies: &CookieJar<'_>,
-	) -> Result<Json<String>, InvalidResponse> {
+	) -> Result<ApiAuthResponse<AuthResponse>, InvalidResponse> {
 		println!("Credentials: {:?}", credentials);
 
 		let mut auth_grpc_client = AuthServiceClient::connect("http://shoplist-auth:50051").await.unwrap();
@@ -44,15 +44,7 @@ mod login {
 			return Err(invalid_api(&format!("GRPC error: {:?}", e)));
 		}
 		let response: AuthResponse = response.unwrap().into_inner();
-
-		cookies.add_private(Cookie::new("bearer", response.token.clone()));
-
-		println!("Response: {:#?}", response);
-
-		Err(invalid_api(&format!(
-			"WIP: Not implemented. response: {:#?}",
-			response
-		)))
+		Ok(ApiAuthResponse::new(response.token.clone(), response))
 	}
 }
 
@@ -160,9 +152,9 @@ impl<'r> FromRequest<'r> for User {
 	type Error = ();
 
 	async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
-		match req.cookies().get_private("bearer") {
-			Some(cookie) => request::Outcome::Success(User {
-				token: cookie.value().to_string(),
+		match req.headers().get_one("Authorization") {
+			Some(token) => request::Outcome::Success(User { // TODO
+				token: token.to_string(),
 			}),
 			_ => request::Outcome::Error((rocket::http::Status::Unauthorized, ())),
 		}

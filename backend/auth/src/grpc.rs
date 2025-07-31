@@ -47,9 +47,7 @@ impl AuthService for Auth {
 		let RegisterBasicUserRequest { name, email, password } = request.into_inner();
 		println!("Register request from {:?}: {}", addr, &email);
 		match self.db.register_user_basic_login(name, email, password).await {
-			Ok(token) => Ok(Response::new(AuthResponse {
-				token: "token".to_string()
-			})),
+			Ok(token) => Ok(Response::new(AuthResponse {token})),
 			Err(_) => Err(Status::unauthenticated("Invalid credentials"))
 		}
 	}
