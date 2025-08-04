@@ -23,8 +23,7 @@ services:
       context: ./valkey/
       dockerfile: Dockerfile
       target: release
-    entrypoint: valkey-server
-    command: /usr/local/etc/valkey/valkey.conf
+    restart: always
     volumes:
       - shoplist-valkey-data:/data
     ports:

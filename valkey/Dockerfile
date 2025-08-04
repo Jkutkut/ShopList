@@ -1,7 +1,3 @@
-FROM valkey/valkey:8.1.3-alpine3.22 as release
-
-COPY valkey.conf /usr/local/etc/valkey/valkey.conf
-
+FROM valkey/valkey-bundle:8.1-alpine as release
 WORKDIR /data
-
-# CMD set by compose
+COPY ./valkey.conf /usr/local/etc/valkey/valkey.conf

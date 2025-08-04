@@ -32,7 +32,7 @@ run_valkey_controller:
 	docker run -it --rm \
 		--name shoplist-valkey-controller \
 		--network shoplist_shoplist-db-network \
-		shoplist-valkey\
+		shoplist-valkey \
 		valkey-cli -h shoplist-valkey
 
 # ########   Docker Compose   ########
