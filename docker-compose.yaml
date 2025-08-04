@@ -20,7 +20,7 @@ services:
     container_name: shoplist-valkey
     hostname: shoplist-valkey
     build:
-      context: ./valkey/
+      context: ./db/valkey/
       dockerfile: Dockerfile
       target: release
     restart: always
