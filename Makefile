@@ -28,6 +28,13 @@ run_db_controler:
 delete_db_controler:
 	docker rm -f ${DB_CONTROLER_NAME}
 
+run_valkey_controller:
+	docker run -it --rm \
+		--name shoplist-valkey-controller \
+		--network shoplist_shoplist-db-network \
+		shoplist-valkey\
+		valkey-cli -h shoplist-valkey
+
 # ########   Docker Compose   ########
 PROJECTS = api auth db nginx
 

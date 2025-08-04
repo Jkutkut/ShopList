@@ -16,6 +16,21 @@ services:
       - "5432"
     networks:
       - shoplist-db-network
+  valkey:
+    container_name: shoplist-valkey
+    hostname: shoplist-valkey
+    build:
+      context: ./valkey/
+      dockerfile: Dockerfile
+      target: release
+    entrypoint: valkey-server
+    command: /usr/local/etc/valkey/valkey.conf
+    volumes:
+      - shoplist-valkey-data:/data
+    ports:
+      - "6379"
+    networks:
+      - shoplist-db-network
   auth:
     container_name: shoplist-auth
     hostname: shoplist-auth
@@ -48,6 +63,7 @@ services:
       - "80:80"
 volumes:
   db_data:
+  shoplist-valkey-data:
 networks:
   shoplist-db-network:
     driver: bridge
