@@ -62,7 +62,7 @@ $(PROJECTS:%=clean_%): clean_%:
 
 fclean:
 	@echo "${TITLE}Cleaning Shoplist...${NC}"
-	docker-compose down
+	docker-compose down -t 2
 	@echo " - ${TITLE}Shoplist${NC}: ${LGREEN}OK${NC}"
 
 .PHONY: all re build clean fclean run remove stop

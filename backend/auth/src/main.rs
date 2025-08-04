@@ -34,21 +34,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		}
 	};
 
-	tokio::spawn(async move {
-		if let Err(e) = connection.await {
-			eprintln!("connection error: {}", e);
-			eprintln!("Stopping the server...");
-			std::process::exit(1);
-		}
-	});
-
 	let client = db::ShoplistDbAuth::new(client, JWTHandler::new(&jwt_secret));
 	let auth_server = AuthServiceServer::new(Auth::new(client));
 	let addr = "0.0.0.0:50051".parse().unwrap();
 	println!("Auth server listening on {addr}");
+
 	Server::builder()
 		.add_service(auth_server)
-		.serve(addr)
+		.serve_with_shutdown(addr, async {
+			tokio::select! {
+				_ = tokio::signal::ctrl_c() => {
+					eprintln!("Received signal to end execution");
+				},
+				r = connection => {
+					eprintln!("DB connection closed");
+					if let Err(e) = r {
+						eprintln!("connection error: {}", e);
+					}
+				},
+			};
+			println!("Shutting down...");
+		})
 		.await?;
 
 	Ok(())
