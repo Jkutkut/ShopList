@@ -21,7 +21,7 @@ run_db_controler:
 		-p ${DB_CONTROLER_PORT}:80 \
 		-e PGADMIN_DEFAULT_EMAIL="${DB_CONTROLER_EMAIL}" \
 		-e PGADMIN_DEFAULT_PASSWORD="${DB_CONTROLER_PASSWORD}" \
-		--network "shoplist_shoplist-db-network" \
+		--network "shoplist_db-network" \
 		dpage/pgadmin4
 	open http://localhost:${DB_CONTROLER_PORT}
 
@@ -31,7 +31,7 @@ delete_db_controler:
 run_valkey_controller:
 	docker run -it --rm \
 		--name shoplist-valkey-controller \
-		--network shoplist_shoplist-db-network \
+		--network shoplist_db-network \
 		shoplist-valkey \
 		valkey-cli -h shoplist-valkey
 

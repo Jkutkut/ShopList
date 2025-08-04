@@ -15,7 +15,7 @@ services:
     ports:
       - "5432"
     networks:
-      - shoplist-db-network
+      - db-network
   valkey:
     container_name: shoplist-valkey
     hostname: shoplist-valkey
@@ -29,15 +29,15 @@ services:
     ports:
       - "6379"
     networks:
-      - shoplist-db-network
+      - db-network
   auth:
     container_name: shoplist-auth
     hostname: shoplist-auth
     ports:
       - "50051"
     networks:
-      - shoplist-db-network
-      - shoplist-auth-network
+      - db-network
+      - auth-network
     depends_on:
       - db
   api:
@@ -46,8 +46,8 @@ services:
     ports:
       - "80"
     networks:
-      - shoplist-auth-network
-      - shoplist-api-network
+      - auth-network
+      - api-network
     depends_on:
       - auth
   nginx:
@@ -57,16 +57,16 @@ services:
       dockerfile: Dockerfile
     restart: always
     networks:
-      - shoplist-api-network
+      - api-network
     ports:
       - "80:80"
 volumes:
   db_data:
   shoplist-valkey-data:
 networks:
-  shoplist-db-network:
+  db-network:
     driver: bridge
-  shoplist-auth-network:
+  auth-network:
     driver: bridge
-  shoplist-api-network:
+  api-network:
     driver: bridge
