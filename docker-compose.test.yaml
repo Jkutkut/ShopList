@@ -1,0 +1,29 @@
+services:
+  db:
+    container_name: shoplist-db-test
+    hostname: shoplist-db
+    networks:
+      - db-network-test
+  auth:
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+      target: builder
+    environment:
+      ENV_PATH: "/shoplist/.env"
+    volumes:
+      - cargo_registy:/root/.cargo/registry
+      - .:/shoplist
+    working_dir: /shoplist/backend
+    entrypoint: cargo
+    command: watch -- cargo test -p auth
+    networks:
+      - db-network-test
+      - auth-network-test
+volumes:
+  cargo_registy:
+networks:
+  db-network-test:
+    driver: bridge
+  auth-network-test:
+    driver: bridge

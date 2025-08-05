@@ -17,6 +17,8 @@ use db::ShoplistDbAuth;
 
 mod db;
 mod grpc;
+#[cfg(test)]
+mod tests;
 
 fn env_var_or_error(var: &str, error_msg: &str) -> Result<String, Error> {
 	match std::env::var(var) {

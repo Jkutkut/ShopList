@@ -52,8 +52,10 @@ $(PROJECTS:%=terminal_%): terminal_%:
 
 # $(PROJECTS:%=build_%):
 # $(PROJECTS:%=run_%):
-# $(PROJECTS:%=test_%):
 # $(PROJECTS:%=doc_%):
+
+$(PROJECTS:%=test_%): test_%:
+	docker compose -f docker-compose.yaml -f docker-compose.test.yaml up $*
 
 $(PROJECTS:%=clean_%): clean_%:
 	@echo "${TITLE}Shutting down ${YELLOW}$*${NC}..."
