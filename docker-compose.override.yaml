@@ -4,6 +4,8 @@ services:
       context: ./backend/
       dockerfile: Dockerfile
       target: builder
+    environment:
+      ENV_PATH: "../.env"
     volumes:
       - cargo_registy:/root/.cargo/registry
       - .:/shoplist

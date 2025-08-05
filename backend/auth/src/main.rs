@@ -10,9 +10,10 @@ use model::jwt::JWTHandler;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-	dotenv::from_path(
-		std::env::var("ENV_PATH").unwrap_or("../.env".to_string())
-	).ok();
+	let env_path = std::env::var("ENV_PATH");
+	if let Ok(env_path) = env_path {
+		dotenv::from_path(env_path).ok();
+	}
 
 	let jwt_secret = std::env::var("JWT_SECRET")
 		.expect("JWT_SECRET not defined as environment variable or in .env file");
