@@ -8,6 +8,13 @@ use model::grpc::auth::auth_service_server::AuthServiceServer;
 use grpc::Auth;
 use model::jwt::JWTHandler;
 
+fn env_var_or_error(var: &str, error_msg: &str) -> Result<String, std::io::Error> {
+	match std::env::var(var) {
+		Ok(var) => Ok(var),
+		Err(_) => Err(std::io::Error::new(std::io::ErrorKind::Other, error_msg)),
+	}
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let env_path = std::env::var("ENV_PATH");
@@ -15,15 +22,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		dotenv::from_path(env_path).ok();
 	}
 
-	let jwt_secret = std::env::var("JWT_SECRET")
-		.expect("JWT_SECRET not defined as environment variable or in .env file");
+	let jwt_secret = env_var_or_error("JWT_SECRET", "JWT_SECRET not defined as environment variable or in .env file")?;
 
 	let db_properties = format!(
 		"host={} port={} dbname={} user={} password={}",
 		"shoplist-db", "5432",
-		std::env::var("DB_NAME").expect("DB_NAME not defined as environment variable or in .env file"),
-		std::env::var("DB_USER").expect("DB_USER not defined as environment variable or in .env file"),
-		std::env::var("DB_USER_PASSWORD").expect("DB_USER_PASSWORD not defined as environment variable or in .env file")
+		env_var_or_error("DB_NAME", "DB_NAME not defined as environment variable or in .env file")?,
+		env_var_or_error("DB_USER", "DB_USER not defined as environment variable or in .env file")?,
+		env_var_or_error("DB_USER_PASSWORD", "DB_USER_PASSWORD not defined as environment variable or in .env file")?
 	);
 
 	let (client, connection) = match tokio_postgres::connect(&db_properties, NoTls).await {
