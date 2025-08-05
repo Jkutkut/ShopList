@@ -1,29 +1,36 @@
 use tonic::transport::Server;
-use tokio_postgres::NoTls;
-
-mod db;
-mod grpc;
+use tokio_postgres::{
+	NoTls,
+	Connection, Client,
+	Socket,
+	tls::NoTlsStream,
+};
+use std::io::{
+	Error,
+	ErrorKind,
+};
 
 use model::grpc::auth::auth_service_server::AuthServiceServer;
 use grpc::Auth;
 use model::jwt::JWTHandler;
+use db::ShoplistDbAuth;
 
-fn env_var_or_error(var: &str, error_msg: &str) -> Result<String, std::io::Error> {
+mod db;
+mod grpc;
+
+fn env_var_or_error(var: &str, error_msg: &str) -> Result<String, Error> {
 	match std::env::var(var) {
 		Ok(var) => Ok(var),
-		Err(_) => Err(std::io::Error::new(std::io::ErrorKind::Other, error_msg)),
+		Err(_) => Err(Error::new(ErrorKind::Other, error_msg)),
 	}
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-	let env_path = std::env::var("ENV_PATH");
-	if let Ok(env_path) = env_path {
-		dotenv::from_path(env_path).ok();
-	}
+struct Main {
+	server: AuthServiceServer<Auth>,
+	db_connection: Connection<Socket, NoTlsStream>
+}
 
-	let jwt_secret = env_var_or_error("JWT_SECRET", "JWT_SECRET not defined as environment variable or in .env file")?;
-
+async fn connect_to_db() -> Result<(Client, Connection<Socket, NoTlsStream>), Error> {
 	let db_properties = format!(
 		"host={} port={} dbname={} user={} password={}",
 		"shoplist-db", "5432",
@@ -31,29 +38,39 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		env_var_or_error("DB_USER", "DB_USER not defined as environment variable or in .env file")?,
 		env_var_or_error("DB_USER_PASSWORD", "DB_USER_PASSWORD not defined as environment variable or in .env file")?
 	);
+	tokio_postgres::connect(&db_properties, NoTls).await
+		.map_err(|_| Error::new(
+			ErrorKind::Other,
+			"Not able to connect with DB. Is the DB running?"
+		))
+}
 
-	let (client, connection) = match tokio_postgres::connect(&db_properties, NoTls).await {
-		Ok((client, connection)) => (client, connection),
-		Err(e) => {
-			eprintln!("Not able to connect with DB:\n{}", e);
-			eprintln!("Is the DB running?");
-			std::process::exit(1);
-		}
-	};
+async fn main_builder() -> Result<Main, Error> {
+	let env_path = std::env::var("ENV_PATH");
+	if let Ok(env_path) = env_path {
+		dotenv::from_path(env_path).ok();
+	}
 
-	let client = db::ShoplistDbAuth::new(client, JWTHandler::new(&jwt_secret));
-	let auth_server = AuthServiceServer::new(Auth::new(client));
+	let jwt_secret = env_var_or_error("JWT_SECRET", "JWT_SECRET not defined as environment variable or in .env file")?;
+	let (db_client, db_connection) = connect_to_db().await?;
+	let client = ShoplistDbAuth::new(db_client, JWTHandler::new(&jwt_secret));
+	let server = AuthServiceServer::new(Auth::new(client));
+	Ok(Main { server, db_connection })
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let addr = "0.0.0.0:50051".parse().unwrap();
+	let main = main_builder().await?;
 	println!("Auth server listening on {addr}");
-
 	Server::builder()
-		.add_service(auth_server)
+		.add_service(main.server)
 		.serve_with_shutdown(addr, async {
 			tokio::select! {
 				_ = tokio::signal::ctrl_c() => {
 					eprintln!("Received signal to end execution");
 				},
-				r = connection => {
+				r = main.db_connection => {
 					eprintln!("DB connection closed");
 					if let Err(e) = r {
 						eprintln!("connection error: {}", e);
@@ -61,8 +78,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 				},
 			};
 			println!("Shutting down...");
-		})
-		.await?;
-
+		}).await?;
 	Ok(())
 }
