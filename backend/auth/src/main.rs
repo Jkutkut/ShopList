@@ -51,7 +51,7 @@ async fn main_builder() -> Result<Main, Error> {
 		dotenv::from_path(env_path).ok();
 	}
 
-	let jwt_secret = env_var_or_error("JWT_SECRET", "JWT_SECRET not defined as environment variable or in .env file")?;
+	let jwt_secret = env_var_or_error("AUTH_JWT_SECRET", "AUTH_JWT_SECRET not defined as environment variable or in .env file")?;
 	let (db_client, db_connection) = connect_to_db().await?;
 	let client = ShoplistDbAuth::new(db_client, JWTHandler::new(&jwt_secret));
 	let server = AuthServiceServer::new(Auth::new(client));
