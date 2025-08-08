@@ -47,15 +47,20 @@ async fn connect_to_db() -> Result<(Client, Connection<Socket, NoTlsStream>), Er
 		))
 }
 
+async fn db_handler() -> Result<(ShoplistDbAuth, Connection<Socket, NoTlsStream>), Error> {
+	let jwt_secret = env_var_or_error("AUTH_JWT_SECRET", "AUTH_JWT_SECRET not defined as environment variable or in .env file")?;
+	let (db_client, db_connection) = connect_to_db().await?;
+	let client = ShoplistDbAuth::new(db_client, JWTHandler::new(&jwt_secret));
+	Ok((client, db_connection))
+}
+
 async fn main_builder() -> Result<Main, Error> {
 	let env_path = std::env::var("ENV_PATH");
 	if let Ok(env_path) = env_path {
 		dotenv::from_path(env_path).ok();
 	}
 
-	let jwt_secret = env_var_or_error("AUTH_JWT_SECRET", "AUTH_JWT_SECRET not defined as environment variable or in .env file")?;
-	let (db_client, db_connection) = connect_to_db().await?;
-	let client = ShoplistDbAuth::new(db_client, JWTHandler::new(&jwt_secret));
+	let (client, db_connection) = db_handler().await?;
 	let server = AuthServiceServer::new(Auth::new(client));
 	Ok(Main { server, db_connection })
 }
