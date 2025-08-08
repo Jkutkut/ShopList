@@ -1,4 +1,7 @@
 services:
+  db:
+    volumes:
+      - db_data:/var/lib/postgresql/data
   auth:
     build:
       context: ./backend/

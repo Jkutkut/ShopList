@@ -36,35 +36,45 @@ run_valkey_controller:
 		valkey-cli -h shoplist-valkey
 
 # ########   Docker Compose   ########
+ENVS = dev
+GENERIC_ENV = dev
 PROJECTS = api auth db nginx
 
-logs:
-	@echo "${TITLE}Monitoring ${YELLOW}all ${TITLE}logs...${NC}"
-	docker-compose logs -f
+$(ENVS:%=up_%): up_%:
+	@echo "${TITLE}Starting ENV ${YELLOW}$*${NC}..."
+	docker compose -f docker-compose.yaml -f docker-compose.$*.yaml up
+
+$(ENVS:%=up_d_%): up_d_%:
+	@echo "${TITLE}Starting ENV ${YELLOW}$*${NC}..."
+	docker compose -f docker-compose.yaml -f docker-compose.$*.yaml up -d
+
+$(ENVS:%=down_%): down_%:
+	@echo "${TITLE}Shutting down ENV ${YELLOW}$*${NC}..."
+	docker compose -f docker-compose.yaml -f docker-compose.$*.yaml down
+
+$(ENVS:%=logs_%): logs_%:
+	@echo "${TITLE}Monitoring logs in ${YELLOW}$*${NC}..."
+	docker compose -f docker-compose.yaml -f docker-compose.$*.yaml logs -f
 
 $(PROJECTS:%=logs_%): logs_%:
 	@echo "${TITLE}Monitoring logs in ${YELLOW}$*${NC}..."
-	docker-compose logs -f $*
+	docker compose -f docker-compose.yaml -f docker-compose.${GENERIC_ENV}.yaml logs -f $*
 
 $(PROJECTS:%=terminal_%): terminal_%:
 	@echo "${TITLE}Running terminal in ${YELLOW}$*${NC}..."
-	docker-compose exec $* sh
+	docker compose -f docker-compose.yaml -f docker-compose.${GENERIC_ENV}.yaml exec $* sh
 
 # $(PROJECTS:%=build_%):
-# $(PROJECTS:%=run_%):
 # $(PROJECTS:%=doc_%):
-
-$(PROJECTS:%=test_%): test_%:
-	docker compose -f docker-compose.yaml -f docker-compose.test.yaml up $*
 
 $(PROJECTS:%=clean_%): clean_%:
 	@echo "${TITLE}Shutting down ${YELLOW}$*${NC}..."
-	docker-compose rm -s -v $*
+	docker compose -f docker-compose.yaml -f docker-compose.${GENERIC_ENV}.yaml rm -s -v $*
 	@echo " - ${TITLE}${YELLOW}$*${NC} down and removed${NC}: ${LGREEN}OK${NC}"
 
 fclean:
 	@echo "${TITLE}Cleaning Shoplist...${NC}"
-	docker-compose down -t 2
+	docker-compose -f docker-compose.yaml -f docker-compose.${GENERIC_ENV}.yaml down -t 2
 	@echo " - ${TITLE}Shoplist${NC}: ${LGREEN}OK${NC}"
 
 .PHONY: all re build clean fclean run remove stop
