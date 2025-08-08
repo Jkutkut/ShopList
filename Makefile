@@ -36,7 +36,7 @@ run_valkey_controller:
 		valkey-cli -h shoplist-valkey
 
 # ########   Docker Compose   ########
-ENVS = dev
+ENVS = dev test
 GENERIC_ENV = dev
 PROJECTS = api auth db nginx
 
@@ -66,6 +66,9 @@ $(PROJECTS:%=terminal_%): terminal_%:
 
 # $(PROJECTS:%=build_%):
 # $(PROJECTS:%=doc_%):
+
+$(PROJECTS:%=test_%): test_%:
+	docker compose -f docker-compose.yaml -f docker-compose.test.yaml up $*
 
 $(PROJECTS:%=clean_%): clean_%:
 	@echo "${TITLE}Shutting down ${YELLOW}$*${NC}..."

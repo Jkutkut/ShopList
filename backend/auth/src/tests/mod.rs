@@ -1,4 +1,6 @@
 use crate::*;
+#[allow(unused_imports)]
+use macro_test::*;
 
 // The tests require a valid .env file configured
 // and the ENV_PATH defined as an environment variable
@@ -49,50 +51,54 @@ async fn test_env_var(env_var: &TestEnvVar<'_>) {
 
 #[tokio::test]
 async fn test_main() {
-	dotenv::from_path(
-		std::env::var("ENV_PATH").unwrap()
-	).ok();
-	unsafe {
-		std::env::remove_var("ENV_PATH");
-	}
-	for env_var in ENV {
-		test_env_var(env_var).await;
-	}
-	assert!(main_builder().await.is_ok());
+	tokio::spawn(async {
+		dotenv::from_path(
+			std::env::var("ENV_PATH").unwrap()
+		).ok();
+		unsafe {
+			std::env::remove_var("ENV_PATH");
+		}
+		for env_var in ENV {
+			test_env_var(env_var).await;
+		}
+		assert!(main_builder().await.is_ok());
+	}).await.unwrap();
 }
 
-#[test]
-fn env_variable_test() {
-	let env_path = std::env::var("ENV_PATH").unwrap();
-	println!("ENV_PATH: {}\n", &env_path);
-	#[allow(deprecated)]
-	let env = dotenv::from_path_iter(&env_path).unwrap().map(|k| {
-		let (k, v) = k.unwrap();
-		println!("{}={}", k, v);
-		k
-	})
-	.filter(|env_var|
-		env_var.starts_with("AUTH_") ||
-		(env_var.starts_with("DB_") && !env_var.starts_with("DB_CONTROLER_"))
-	)
-	.collect::<Vec<String>>();
-	let not_in_env = ENV.iter()
-		.filter(|env_var| !env.contains(&env_var.name.to_string()))
-		.collect::<Vec<_>>();
-	let not_in_tests = env.iter().filter(|env_var| {
-		for test_env_var in ENV {
-			if test_env_var.name == env_var.as_str() {
-				return false;
+#[tokio::test]
+async fn env_variable_test() {
+	tokio::spawn(async {
+		let env_path = std::env::var("ENV_PATH").unwrap();
+		println!("ENV_PATH: {}\n", &env_path);
+		#[allow(deprecated)]
+		let env = dotenv::from_path_iter(&env_path).unwrap().map(|k| {
+			let (k, v) = k.unwrap();
+			println!("{}={}", k, v);
+			k
+		})
+		.filter(|env_var|
+			env_var.starts_with("AUTH_") ||
+			(env_var.starts_with("DB_") && !env_var.starts_with("DB_CONTROLER_"))
+		)
+		.collect::<Vec<String>>();
+		let not_in_env = ENV.iter()
+			.filter(|env_var| !env.contains(&env_var.name.to_string()))
+			.collect::<Vec<_>>();
+		let not_in_tests = env.iter().filter(|env_var| {
+			for test_env_var in ENV {
+				if test_env_var.name == env_var.as_str() {
+					return false;
+				}
 			}
+			true
+		}).collect::<Vec<_>>();
+		if not_in_env.is_empty() && not_in_tests.is_empty() {
+			println!("All env vars found");
+			return;
 		}
-		true
-	}).collect::<Vec<_>>();
-	if not_in_env.is_empty() && not_in_tests.is_empty() {
-		println!("All env vars found");
-		return;
-	}
-	println!("Env variables do not align between tests and current environment:");
-	println!("Not in ENV: {:?}", not_in_env);
-	println!("Not in tests: {:?}\n", not_in_tests);
-	assert!(false);
+		println!("Env variables do not align between tests and current environment:");
+		println!("Not in ENV: {:?}", not_in_env);
+		println!("Not in tests: {:?}\n", not_in_tests);
+		assert!(false);
+	}).await.unwrap();
 }

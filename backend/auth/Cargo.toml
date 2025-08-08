@@ -1,6 +1,6 @@
 [package]
 name = "auth"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2024"
 
 [dependencies]
@@ -12,3 +12,6 @@ dotenv = "0.15.0"
 uuid = { version = "1.17.0", features = [ "v4"] }
 argon2 = "0.5.3"
 rand_core = { version = "0.6.4", features = ["getrandom"] }
+
+[dev-dependencies]
+macro_test = { git = "https://github.com/jkutkut/rust-macro-test", tag = "v2.1.0" }
