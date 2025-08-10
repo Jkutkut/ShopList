@@ -5,7 +5,7 @@ use model::grpc::auth::{
 	auth_service_server::{
 		AuthService,
 	},
-	AuthResponse,
+	UserToken,
 	LoginRequest,
 	RegisterBasicUserRequest,
 	DeleteUserRequest,
@@ -27,12 +27,12 @@ impl AuthService for Auth {
 	async fn basic_login(
 		&self,
 		request: Request<LoginRequest>,
-	) -> Result<Response<AuthResponse>, Status> {
+	) -> Result<Response<UserToken>, Status> {
 		let addr = request.remote_addr().unwrap();
 		let LoginRequest { username, password } = request.into_inner();
 		println!("Login request from {:?}: {:?}", addr, &username);
 		match self.db.basic_login(username, password).await {
-			Ok(token) => Ok(Response::new(AuthResponse {
+			Ok(token) => Ok(Response::new(UserToken {
 				token
 			})),
 			Err(_) => Err(Status::unauthenticated("Invalid credentials"))
@@ -42,12 +42,12 @@ impl AuthService for Auth {
 	async fn register_user_basic_login(
 		&self,
 		request: Request<RegisterBasicUserRequest>,
-	) -> Result<Response<AuthResponse>, Status> {
+	) -> Result<Response<UserToken>, Status> {
 		let addr = request.remote_addr().unwrap();
 		let RegisterBasicUserRequest { name, email, password } = request.into_inner();
 		println!("Register request from {:?}: {}", addr, &email);
 		match self.db.register_user_basic_login(name, email, password).await {
-			Ok(token) => Ok(Response::new(AuthResponse {token})),
+			Ok(token) => Ok(Response::new(UserToken {token})),
 			Err(_) => Err(Status::unauthenticated("Invalid credentials"))
 		}
 	}

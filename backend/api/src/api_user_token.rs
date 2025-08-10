@@ -5,16 +5,16 @@ use rocket::Request;
 use serde::Serialize;
 
 #[derive(Debug)]
-pub struct ApiAuthResponse<T: Serialize> {
+pub struct ApiUserToken<T: Serialize> {
 	token: String,
 	response: T
 }
 
-impl<T> ApiAuthResponse<T>
+impl<T> ApiUserToken<T>
 where
 	T: Serialize,
 {
-	pub fn new(token: String, response: T) -> ApiAuthResponse<T> {
+	pub fn new(token: String, response: T) -> ApiUserToken<T> {
 		Self {
 			token,
 			response
@@ -23,7 +23,7 @@ where
 }
 
 #[rocket::async_trait]
-impl<'r, T> Responder<'r, 'static> for ApiAuthResponse<T>
+impl<'r, T> Responder<'r, 'static> for ApiUserToken<T>
 where
 	T: Serialize,
 {

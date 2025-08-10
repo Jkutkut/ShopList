@@ -7,7 +7,7 @@ use rocket::serde::json::Json;
 
 mod cors;
 mod route_error;
-mod api_auth_response;
+mod api_user_token;
 
 #[get("/")]
 fn ping() -> Json<&'static str> {
@@ -22,15 +22,15 @@ mod login {
 	use crate::route_error::{InvalidResponse, invalid_api};
 	use model::grpc::auth::{
 		auth_service_client::AuthServiceClient,
-		AuthResponse,
+		UserToken,
 		LoginRequest,
 	};
-	use crate::api_auth_response::ApiAuthResponse;
+	use crate::api_user_token::ApiUserToken;
 
 	#[post("/user/login/basic", data = "<credentials>")]
 	pub async fn basic(
 		credentials: Json<ApiBasicCredentials>,
-	) -> Result<ApiAuthResponse<AuthResponse>, InvalidResponse> {
+	) -> Result<ApiUserToken<UserToken>, InvalidResponse> {
 		println!("Credentials: {:?}", credentials);
 
 		let mut auth_grpc_client = AuthServiceClient::connect("http://shoplist-auth:50051").await.unwrap();
@@ -43,8 +43,8 @@ mod login {
 		if let Err(e) = response {
 			return Err(invalid_api(&format!("GRPC error: {:?}", e)));
 		}
-		let response: AuthResponse = response.unwrap().into_inner();
-		Ok(ApiAuthResponse::new(response.token.clone(), response))
+		let response: UserToken = response.unwrap().into_inner();
+		Ok(ApiUserToken::new(response.token.clone(), response))
 	}
 }
 
@@ -56,7 +56,7 @@ mod register {
 	use crate::route_error::{InvalidResponse, invalid_api};
 	use model::grpc::auth::{
 		auth_service_client::AuthServiceClient,
-		AuthResponse,
+		UserToken,
 		RegisterBasicUserRequest,
 	};
 	use model::ApiRegisterBasicCredentials;
@@ -79,7 +79,7 @@ mod register {
 		if let Err(e) = response {
 			return Err(invalid_api(&format!("GRPC error: {:?}", e)));
 		}
-		let response: AuthResponse = response.unwrap().into_inner();
+		let response: UserToken = response.unwrap().into_inner();
 
 		cookies.add_private(Cookie::new("bearer", response.token.clone()));
 

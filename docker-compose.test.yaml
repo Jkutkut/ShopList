@@ -6,6 +6,7 @@ services:
       - db-network-test
   auth:
     container_name: shoplist-auth-test
+    hostname: shoplist-auth-test
     build:
       context: ./backend/
       dockerfile: Dockerfile
