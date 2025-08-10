@@ -1,10 +1,20 @@
 services:
-  db:
+  db-test:
     container_name: shoplist-db-test
     hostname: shoplist-db-test
+    image: postgres:17.5
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_USER_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432"
     networks:
       - db-network-test
-  auth:
+  auth-test:
     container_name: shoplist-auth-test
     hostname: shoplist-auth-test
     build:
@@ -13,6 +23,7 @@ services:
       target: builder
     environment:
       DB_HOST: "shoplist-db-test"
+      DB_PORT: "5432"
       ENV_PATH: "/shoplist/.env.test"
     volumes:
       - cargo_registy:/root/.cargo/registry
@@ -20,6 +31,10 @@ services:
     working_dir: /shoplist/backend
     entrypoint: cargo
     command: watch -- cargo test -p auth -- --test-threads=1
+    ports:
+      - "50051"
+    depends_on:
+      - db-test
     networks:
       - db-network-test
       - auth-network-test

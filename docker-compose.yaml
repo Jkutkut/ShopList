@@ -24,8 +24,6 @@ services:
     ports:
       - "6379"
   auth:
-    container_name: shoplist-auth
-    hostname: shoplist-auth
     environment:
       DB_HOST: "shoplist-db"
       DB_PORT: "5432"
@@ -34,8 +32,6 @@ services:
     depends_on:
       - db
   api:
-    container_name: shoplist-api
-    hostname: shoplist-api
     ports:
       - "80"
     depends_on:
@@ -49,5 +45,4 @@ services:
     ports:
       - "80:80"
 volumes:
-  db_data:
   shoplist-valkey-data:

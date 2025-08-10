@@ -1,5 +1,7 @@
 services:
   db:
+    container_name: shoplist-db
+    hostname: shoplist-db
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
@@ -8,6 +10,8 @@ services:
     networks:
       - db-network
   auth:
+    container_name: shoplist-auth
+    hostname: shoplist-auth
     build:
       context: ./backend/
       dockerfile: Dockerfile
@@ -24,6 +28,8 @@ services:
       - db-network
       - auth-network
   api:
+    container_name: shoplist-api
+    hostname: shoplist-api
     build:
       context: ./backend/
       dockerfile: Dockerfile
@@ -44,6 +50,7 @@ services:
     networks:
       - api-network
 volumes:
+  db_data:
   cargo_registy:
 networks:
   db-network:
