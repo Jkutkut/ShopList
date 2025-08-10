@@ -18,7 +18,7 @@ services:
       - .:/shoplist
     working_dir: /shoplist/backend
     entrypoint: cargo
-    command: watch -- cargo test -p auth
+    command: watch -- cargo test -p auth -- --test-threads=1
     networks:
       - db-network-test
       - auth-network-test

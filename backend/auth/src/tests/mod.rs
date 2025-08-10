@@ -19,6 +19,8 @@ impl TestEnvVar<'_> {
 }
 
 static ENV: &[TestEnvVar] = &[
+	TestEnvVar { name: "DB_HOST" },
+	TestEnvVar { name: "DB_PORT" },
 	TestEnvVar { name: "AUTH_JWT_SECRET" },
 	TestEnvVar { name: "DB_NAME" },
 	TestEnvVar { name: "DB_USER" },
@@ -52,7 +54,6 @@ async fn test_env_var(env_var: &TestEnvVar<'_>) {
 }
 
 #[tokio::test]
-#[ignore] // TODO logic is modifying env vars in all tests!
 async fn test_main() {
 	tokio::spawn(async {
 		dotenv::from_path(
@@ -69,7 +70,6 @@ async fn test_main() {
 }
 
 #[tokio::test]
-#[ignore] // TODO logic is modifying env vars in all tests!
 async fn env_variable_test() {
 	tokio::spawn(async {
 		let env_path = std::env::var("ENV_PATH").unwrap();
@@ -86,6 +86,7 @@ async fn env_variable_test() {
 		)
 		.collect::<Vec<String>>();
 		let not_in_env = ENV.iter()
+			.filter(|env_var| env_var.name != "DB_HOST" && env_var.name != "DB_PORT")
 			.filter(|env_var| !env.contains(&env_var.name.to_string()))
 			.collect::<Vec<_>>();
 		let not_in_tests = env.iter().filter(|env_var| {
