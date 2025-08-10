@@ -1,10 +1,11 @@
 services:
   db:
     container_name: shoplist-db-test
-    hostname: shoplist-db
+    hostname: shoplist-db-test
     networks:
       - db-network-test
   auth:
+    container_name: shoplist-auth-test
     build:
       context: ./backend/
       dockerfile: Dockerfile

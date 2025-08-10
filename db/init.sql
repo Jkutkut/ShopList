@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  name text NOT NULL,
+  name text NOT NULL UNIQUE,
   image text,
   created_at timestamp DEFAULT now() NOT NULL,
   updated_at timestamp DEFAULT now() NOT NULL

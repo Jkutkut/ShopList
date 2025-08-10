@@ -2,6 +2,11 @@ services:
   db:
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - db-network
+  valkey:
+    networks:
+      - db-network
   auth:
     build:
       context: ./backend/
@@ -15,6 +20,9 @@ services:
     working_dir: /shoplist/backend
     entrypoint: cargo
     command: watch -- cargo run -p auth
+    networks:
+      - db-network
+      - auth-network
   api:
     build:
       context: ./backend/
@@ -29,5 +37,18 @@ services:
       ROCKET_SECRET_KEY: ${ROCKET_SECRET_KEY}
     entrypoint: cargo
     command: watch -- cargo run -p api
+    networks:
+      - auth-network
+      - api-network
+  nginx:
+    networks:
+      - api-network
 volumes:
   cargo_registy:
+networks:
+  db-network:
+    driver: bridge
+  auth-network:
+    driver: bridge
+  api-network:
+    driver: bridge

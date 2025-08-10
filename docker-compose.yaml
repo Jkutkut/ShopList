@@ -13,8 +13,6 @@ services:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432"
-    networks:
-      - db-network
   valkey:
     container_name: shoplist-valkey
     hostname: shoplist-valkey
@@ -27,16 +25,11 @@ services:
       - shoplist-valkey-data:/data
     ports:
       - "6379"
-    networks:
-      - db-network
   auth:
     container_name: shoplist-auth
     hostname: shoplist-auth
     ports:
       - "50051"
-    networks:
-      - db-network
-      - auth-network
     depends_on:
       - db
   api:
@@ -44,9 +37,6 @@ services:
     hostname: shoplist-api
     ports:
       - "80"
-    networks:
-      - auth-network
-      - api-network
     depends_on:
       - auth
   nginx:
@@ -55,17 +45,8 @@ services:
       context: ./router/
       dockerfile: Dockerfile
     restart: always
-    networks:
-      - api-network
     ports:
       - "80:80"
 volumes:
   db_data:
   shoplist-valkey-data:
-networks:
-  db-network:
-    driver: bridge
-  auth-network:
-    driver: bridge
-  api-network:
-    driver: bridge

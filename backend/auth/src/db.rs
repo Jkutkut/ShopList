@@ -1,4 +1,6 @@
-use tokio_postgres::Client;
+use tokio_postgres::{
+	Client,
+};
 use uuid::Uuid;
 use argon2::{
 	password_hash::{
@@ -10,16 +12,18 @@ use argon2::{
 	PasswordVerifier,
 };
 use tonic::Status;
-use model::jwt::JWTHandler;
-
-pub struct ShoplistDbAuth {
-	db_client: Client,
-	jwt: JWTHandler
-}
-
 use model::{
+	jwt::JWTHandler,
 	BasicLogin,
 };
+
+pub struct ShoplistDbAuth {
+	#[cfg(not(test))]
+	db_client: Client,
+	#[cfg(test)]
+	pub db_client: Client,
+	jwt: JWTHandler
+}
 
 impl ShoplistDbAuth {
 	pub fn new(db_client: Client, jwt: JWTHandler) -> Self {
@@ -32,8 +36,8 @@ impl ShoplistDbAuth {
 	// TODO logout_everyone
 	// TODO logout_user_everywhere
 
-	pub async fn basic_login(&self, username: String, password: String) -> Result<String, ()> {
-		let credentials = self.get_user_credentials(&username).await.ok_or(())?;
+	pub async fn basic_login(&self, email: String, password: String) -> Result<String, ()> {
+		let credentials = self.get_user_credentials(&email).await.ok_or(())?;
 		let ok = self.validate_password(password.clone(), credentials.password);
 		println!("Password ok: {}", ok);
 		Ok(self.new_jwt(&credentials.user_id).await?)
@@ -96,10 +100,10 @@ impl ShoplistDbAuth {
 		hash.to_string()
 	}
 
-	async fn get_user_credentials(&self, username: &str) -> Option<BasicLogin> {
+	async fn get_user_credentials(&self, email: &str) -> Option<BasicLogin> {
 		let query = "SELECT id, user_id, email, password FROM basic_login WHERE email = $1";
 		let stmt = self.db_client.prepare(query).await.unwrap();
-		match self.db_client.query(&stmt, &[&username]).await {
+		match self.db_client.query(&stmt, &[&email]).await {
 			Ok(rows) if rows.is_empty() => return None,
 			Ok(rows) if rows.len() == 1 => Some(BasicLogin {
 				id: rows[0].get(0),
