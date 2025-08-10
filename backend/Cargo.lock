@@ -163,9 +163,10 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "auth"
-version = "0.8.2"
+version = "0.9.0"
 dependencies = [
  "argon2",
+ "chrono",
  "dotenv",
  "macro_test",
  "model",
@@ -1442,6 +1443,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613283563cd90e1dfc3518d548caee47e0e725455ed619881f5cf21f36de4b48"
 dependencies = [
  "bytes",
+ "chrono",
  "fallible-iterator",
  "postgres-protocol",
  "uuid",

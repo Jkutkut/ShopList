@@ -6,6 +6,7 @@ use model::grpc::auth::{
 		AuthService,
 	},
 	UserToken,
+	User,
 	LoginRequest,
 	RegisterBasicUserRequest,
 	DeleteUserRequest,
@@ -65,5 +66,12 @@ impl AuthService for Auth {
 		};
 		self.db.delete_user(&user_id, &user_id).await?;
 		Ok(Response::new(Empty {}))
+	}
+
+	async fn me(
+		&self,
+		request: Request<UserToken>,
+	) -> Result<Response<User>, Status> {
+		Ok(Response::new(self.db.me(&request.into_inner().token).await?))
 	}
 }

@@ -15,6 +15,7 @@ use tonic::Status;
 use model::{
 	jwt::JWTHandler,
 	BasicLogin,
+	grpc::auth::User,
 };
 
 pub struct ShoplistDbAuth {
@@ -67,6 +68,29 @@ impl ShoplistDbAuth {
 		match self.db_client.execute(&stmt, &[&user_id]).await {
 			Ok(r) if r == 1 => Ok(()),
 			_ => Err(Status::not_found("User not found"))
+		}
+	}
+
+	pub async fn me(&self, token: &str) -> Result<User, Status> {
+		let query = "SELECT
+			u.id, u.name,
+			u.created_at, u.updated_at,
+			(SELECT true FROM superusers WHERE user_id = u.id) IS NOT NULL AS is_superuser,
+			u.image
+		FROM users u JOIN credentials c
+		ON u.id = c.user_id
+		WHERE c.token = $1";
+		let stmt = self.db_client.prepare(query).await.unwrap();
+		match self.db_client.query_one(&stmt, &[&token]).await {
+			Ok(r) => Ok(User {
+				uuid: r.get::<'_, usize, Uuid>(0).to_string(),
+				name: r.get(1),
+				created_at: r.get::<'_, usize, chrono::NaiveDateTime>(2).to_string(),
+				updated_at: r.get::<'_, usize, chrono::NaiveDateTime>(3).to_string(),
+				is_superuser: r.get::<'_, usize, bool>(4),
+				image: r.get::<'_, usize, Option<String>>(5)
+			}),
+			Err(_) => Err(Status::unauthenticated("Invalid token"))
 		}
 	}
 }

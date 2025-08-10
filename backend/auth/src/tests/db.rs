@@ -50,6 +50,14 @@ async fn db_test() {
 	let token = r.unwrap();
 	assert!(!token.is_empty(), "Token should not be empty");
 
+	println!("Obtaining user form token...");
+	let me = test.db.me(&token).await;
+	assert!(me.is_ok(), "Me should succeed");
+	let me = me.unwrap();
+	println!("Me: {:?}", me);
+	assert!(me.name == user, "User should be {}", user);
+	assert!(!me.is_superuser, "User should not be superuser");
+
 	println!("Register again should fail...");
 	assert!(test.db.register_user_basic_login(
 		user.into(), email.into(), password.into()
@@ -84,4 +92,8 @@ async fn db_test() {
 	assert!(test.db.basic_login(
 		email.into(), password.into()
 	).await.is_err(), "Login should fail (User deleted)");
+
+	println!("Me should not work anymore...");
+	assert!(test.db.me(&token).await.is_err(), "Me should fail (User deleted)");
+	assert!(test.db.me(&token2).await.is_err(), "Me should fail (User deleted)");
 }

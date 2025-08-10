@@ -6,6 +6,7 @@ service AuthService {
   rpc BasicLogin(LoginRequest) returns (UserToken);
   rpc RegisterUserBasicLogin(RegisterBasicUserRequest) returns (UserToken);
   rpc DeleteUser(DeleteUserRequest) returns (Empty);
+  rpc Me(UserToken) returns (User);
 }
 
 message LoginRequest {
@@ -28,3 +29,12 @@ message DeleteUserRequest {
 }
 
 message Empty {}
+
+message User {
+  string uuid = 1;
+  string name = 2;
+  string createdAt = 3;
+  string updatedAt = 4;
+  bool isSuperuser = 5;
+  optional string image = 6;
+}
