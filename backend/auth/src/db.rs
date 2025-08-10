@@ -72,6 +72,7 @@ impl ShoplistDbAuth {
 	}
 
 	pub async fn me(&self, token: &str) -> Result<User, Status> {
+		println!("me request with token");
 		let query = "SELECT
 			u.id, u.name,
 			u.created_at, u.updated_at,

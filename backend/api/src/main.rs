@@ -51,8 +51,8 @@ mod login {
 mod register {
 	use rocket::serde::json::Json;
 	use rocket::post;
-	use rocket::http::{Cookie, CookieJar};
 
+	use crate::api_user_token::ApiUserToken;
 	use crate::route_error::{InvalidResponse, invalid_api};
 	use model::grpc::auth::{
 		auth_service_client::AuthServiceClient,
@@ -64,8 +64,7 @@ mod register {
 	#[post("/register/basic", data = "<credentials>")]
 	pub async fn basic(
 		credentials: Json<ApiRegisterBasicCredentials>,
-		cookies: &CookieJar<'_>,
-	) -> Result<Json<String>, InvalidResponse> {
+	) -> Result<ApiUserToken<UserToken>, InvalidResponse> {
 		println!("Credentials: {:?}", credentials);
 
 		let mut auth_grpc_client = AuthServiceClient::connect("http://shoplist-auth:50051").await.unwrap();
@@ -80,15 +79,7 @@ mod register {
 			return Err(invalid_api(&format!("GRPC error: {:?}", e)));
 		}
 		let response: UserToken = response.unwrap().into_inner();
-
-		cookies.add_private(Cookie::new("bearer", response.token.clone()));
-
-		println!("Response: {:#?}", response);
-
-		Err(invalid_api(&format!(
-			"WIP: Not implemented. response: {:#?}",
-			response
-		)))
+		Ok(ApiUserToken::new(response.token.clone(), response))
 	}
 }
 
@@ -136,47 +127,78 @@ mod user {
 	}
 }
 
-use rocket::{
-	Request,
-	request,
-	request::FromRequest,
-};
+use me::User; // TODO refactor
+mod me {
+	use rocket::{
+		get,
+		Request,
+		request,
+		request::FromRequest,
+		serde::json::Json,
+	};
+	use model::grpc::auth::{
+		auth_service_client::AuthServiceClient,
+		UserToken,
+	};
+	use model::UuidWrapper;
 
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
-struct User {
-	token: String,
-}
+	#[derive(Debug, serde::Serialize, serde::Deserialize)]
+	pub struct User {
+		uuid: UuidWrapper,
+		name: String,
+		created_at: String,
+		updated_at: String,
+		is_superuser: bool,
+		image: Option<String>
+	}
 
-#[rocket::async_trait]
-impl<'r> FromRequest<'r> for User {
-	type Error = ();
+	#[rocket::async_trait]
+	impl<'r> FromRequest<'r> for User {
+		type Error = ();
 
-	async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
-		match req.headers().get_one("Authorization") {
-			Some(token) => request::Outcome::Success(User { // TODO
-				token: token.to_string(),
-			}),
-			_ => request::Outcome::Error((rocket::http::Status::Unauthorized, ())),
+		async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
+			let token = match req.headers().get_one("Authorization") {
+				Some(token) => token.split_once("Bearer ").unwrap().1.to_string(),
+				_ => return request::Outcome::Error((rocket::http::Status::Unauthorized, ())),
+			};
+			println!("Token: {}", token);
+			let mut auth_grpc_client = AuthServiceClient::connect("http://shoplist-auth:50051").await.unwrap();
+			let auth_request = tonic::Request::new(UserToken { token: token.clone() });
+			match auth_grpc_client.me(auth_request).await {
+				Ok(response) => {
+					let response = response.into_inner();
+					println!("Response: {:#?}", response);
+					request::Outcome::Success(Self { // TODO refactor
+						uuid: UuidWrapper::try_from(response.uuid.as_str()).unwrap(),
+						name: response.name,
+						created_at: response.created_at,
+						updated_at: response.updated_at,
+						is_superuser: response.is_superuser,
+						image: response.image
+					})
+				}
+				Err(_) => request::Outcome::Error((rocket::http::Status::Unauthorized, ())),
+			}
 		}
 	}
-}
 
-#[get("/me")]
-fn me(user: User) -> Json<User> {
-	println!("User: {:#?}", &user);
-	Json(user)
+	#[get("/user/me")]
+	pub fn me(user: User) -> Json<User> {
+		println!("User: {:#?}", &user);
+		Json(user)
+	}
 }
 
 #[launch]
 async fn rocket() -> Rocket<Build> {
 	rocket::build()
 		.attach(cors::CORS).mount("/", routes![cors::options])
-		// .manage(auth_grpc_client)
+		// .manage(auth_grpc_client) // TODO
 		.mount("/api", routes![
 			ping,
 		])
 		.mount("/api/v1", routes![
-			me,
+			me::me,
 			login::basic,
 			register::basic,
 			user::delete_user
@@ -187,8 +209,4 @@ async fn rocket() -> Rocket<Build> {
 			route_error::not_found,
 			route_error::internal_server_error,
 		])
-		// .mount("/", routes![ping, cors::options])
-		// .mount("/", rocket::fs::FileServer::from(PUBLIC_DIR))
-		// .mount("/api/v1", api::get_v1_routes())
-		// .register("/api", catchers![route_error::api_not_implemented])
 }
