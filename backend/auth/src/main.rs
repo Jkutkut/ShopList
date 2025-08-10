@@ -35,11 +35,13 @@ struct Main {
 async fn connect_to_db() -> Result<(Client, Connection<Socket, NoTlsStream>), Error> {
 	let db_properties = format!(
 		"host={} port={} dbname={} user={} password={}",
-		"shoplist-db", "5432",
+		env_var_or_error("DB_HOST", "DB_HOST not defined as environment variable or in .env file")?,
+		env_var_or_error("DB_PORT", "DB_PORT not defined as environment variable or in .env file")?,
 		env_var_or_error("DB_NAME", "DB_NAME not defined as environment variable or in .env file")?,
 		env_var_or_error("DB_USER", "DB_USER not defined as environment variable or in .env file")?,
 		env_var_or_error("DB_USER_PASSWORD", "DB_USER_PASSWORD not defined as environment variable or in .env file")?
 	);
+	println!("Connecting to db... Config: {}", &db_properties);
 	tokio_postgres::connect(&db_properties, NoTls).await
 		.map_err(|_| Error::new(
 			ErrorKind::Other,

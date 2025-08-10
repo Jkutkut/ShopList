@@ -10,7 +10,7 @@ services:
       dockerfile: Dockerfile
       target: builder
     environment:
-      ENV_PATH: "/shoplist/.env"
+      ENV_PATH: "/shoplist/.env.test"
     volumes:
       - cargo_registy:/root/.cargo/registry
       - .:/shoplist
