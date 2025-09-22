@@ -1,23 +1,27 @@
-## Front:
-### Home: `/`
-### Login: `/login`
-### Registration: `/signup`
-### Team selector: `/teams`
+# Home: `/`
+## `no-auth` Login: `/login`
+## `no-auth` Registration: `/signup`
+## Team selector: `/teams`
 - Create
 - Select
-### Team creator: `/new`
-### Team dashboard: `/<team>/`
-- Edit
-- Users
-- Add List
-- Lists selector
-- Products
-### Team editor: `/<team>/edit`
+## Team creator: `/new`
+## Team dashboard: `/<team>/`
+- Config
+- Security: Users, Roles
+- Apps:
+  - Lists
+  - Marvin
+  - Inventory
+### Team configuration: `/<team>/config`
 - Manage name, description, icon
 - Delete team
-### Team editor: `/<team>/users`
-- Manage users
-### Product browser: `/<team>/products`
+### Team security: `/<team>/security`
+- Add users
+- Remove users
+- Manage roles
+# Apps: `/<team>/<app>`
+
+## Product app: `/<team>/products`
 - Add
 - Edit
 - Delete (Also from lists)
@@ -25,18 +29,25 @@
 - Name
 - Description
 - Icon
-- Image
+- Images
+- Tags
 ### Product editor: `/<team>/products/<product>`
-### List creator: `/<team>/new`
-### List dashboard: `/<team>/<list>`
-- Edit
-- Create view
-- Views selector
-### List editor: `/<team>/<list>/edit`
-### View: `/<team>/<list>/<view>`
-- Edit
-### View creator: `/<team>/<list>/new`
-### View editor: `/<team>/<list>/<view>/edit`
+
+## List app: `/<team>/lists`
+- Create
+- Manage
+### List: `/<team>/lists/<list>`
+- Create category
+- Manage categories
+- Delete category
+- Add product to category
+- Manage product
+- Remove product from category
+
+## Tag app: `/<team>/tags`
+- Create
+- Manage
+- Delete
 
 ## Ideas:
 - Accessibility

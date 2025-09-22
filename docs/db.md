@@ -91,6 +91,20 @@ classDiagram
     lists "1" -- "*" list_products : contains
     list_products "*" -- "1" products : is in
 
+
+    class list_categories {
+        id
+        list_id
+        name
+        created_at
+        created_by
+        updated_at
+        updated_by
+    }
+
+    list_categories "0,1" -- "*" list_products : categorizes
+    list_categories "*" -- "1" lists : defines-categories
+
     class products {
         id
         team_id
@@ -110,14 +124,6 @@ classDiagram
     products "1" -- "*" generic_products : is generic
     generic_products "*" -- "1" products : is brand
 
-    class categories {
-        id
-        team_id
-        name
-    }
-
-    categories "1" -- "*" products : categorizes
-
     class tags {
         id
         team_id
@@ -133,7 +139,6 @@ classDiagram
     product_tags "*" -- "1" products : has tags
     product_tags "*" -- "1" tags : has tags
     tags "*" -- "1" teams: defines
-    categories "*" -- "1" teams : defines
 
     class product_identifiers {
         id
