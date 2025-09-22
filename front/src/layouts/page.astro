@@ -1,4 +1,6 @@
 ---
+import "../styles/global.css";
+import Navbar from '../components/navbar.astro'
 const {
     title, description,
 } = Astro.props;
@@ -13,6 +15,11 @@ const {
         <title>{title}</title>
     </head>
     <body>
+        <Navbar mobileTitle={title} options={[
+            { name: 'Home', url: '/' },
+            { name: 'Login', url: '/login' },
+            { name: 'Register', url: '/register' },
+        ]} />
         <slot />
     </body>
 </html>
