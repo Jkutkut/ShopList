@@ -11,7 +11,7 @@ info:
   license:
     name: GPL 3.0
     url: https://github.com/jkutkut/shoplist/blob/main/LICENSE
-  version: 1.2.0
+  version: 1.3.0
 servers:
   - url: http://localhost/api
 paths:
@@ -220,6 +220,89 @@ components:
           $ref: '#/components/schemas/created_at'
         updated_at:
           $ref: '#/components/schemas/updated_at'
+    role:
+      type: string
+      description: Role of the user in the team
+      example: admin
+    user_team_roles:
+      type: array
+      items:
+        type: object
+        properties:
+          team:
+            $ref: '#/components/schemas/team'
+          role:
+            $ref: '#/components/schemas/role'
+    tag:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/uuid'
+        name:
+          $ref: '#/components/schemas/name'
+    product_obj:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/uuid'
+        team_id:
+          $ref: '#/components/schemas/uuid'
+        name:
+          $ref: '#/components/schemas/name'
+        description:
+          $ref: '#/components/schemas/description'
+        image:
+          $ref: '#/components/schemas/image'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/tag'
+    product_metadata:
+      type: object
+      properties:
+        generic:
+          $ref: '#/components/schemas/product_obj'
+          required: false
+        brands:
+          type: array
+          items:
+            $ref: '#/components/schemas/product_obj'
+        identifiers:
+          type: array
+          items:
+            description: identifier that can be used to identify a product
+            type: string
+    product:
+      allOf:
+        - $ref: '#/components/schemas/product_obj'
+        - $ref: '#/components/schemas/metadata'
+        - $ref: '#/components/schemas/product_metadata'
+    list:
+      allOf:
+        - type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/uuid'
+            team_id:
+              $ref: '#/components/schemas/uuid'
+            name:
+              $ref: '#/components/schemas/name'
+            description:
+              $ref: '#/components/schemas/description'
+            image:
+              $ref: '#/components/schemas/image'
+        - $ref: '#/components/schemas/metadata'
+    category:
+      allOf:
+        - type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/uuid'
+            list_id:
+              $ref: '#/components/schemas/uuid'
+            name:
+              $ref: '#/components/schemas/name'
+        - $ref: '#/components/schemas/metadata'
   securitySchemes:
     bearerAuth:
       type: http
