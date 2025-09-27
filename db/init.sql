@@ -69,7 +69,7 @@ BEGIN
     INSERT INTO superusers (user_id) VALUES (user_id);
 END $$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS create_credential(credentials.user_id%TYPE, credentials.expires_at%TYPE);
+DROP FUNCTION IF EXISTS create_credentials(credentials.user_id%TYPE, credentials.token%TYPE, credentials.expires_at%TYPE);
 
 CREATE FUNCTION create_credentials(
     user_id credentials.user_id%TYPE,
