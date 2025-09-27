@@ -2,6 +2,17 @@
 DROP TABLE IF EXISTS basic_login;
 DROP TABLE IF EXISTS credentials;
 DROP TABLE IF EXISTS superusers;
+DROP TABLE IF EXISTS user_roles;
+DROP TABLE IF EXISTS roles;
+DROP TABLE IF EXISTS product_identifiers;
+DROP TABLE IF EXISTS generic_products;
+DROP TABLE IF EXISTS product_tags;
+DROP TABLE IF EXISTS list_products;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS tags;
+DROP TABLE IF EXISTS list_categories;
+DROP TABLE IF EXISTS lists;
+DROP TABLE IF EXISTS teams;
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
@@ -42,6 +53,142 @@ CREATE TABLE basic_login (
 
   CONSTRAINT basic_login_email_unique UNIQUE (email),
   FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
+CREATE TABLE roles (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  name text NOT NULL UNIQUE
+);
+
+CREATE TABLE user_roles (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid NOT NULL,
+  role_id uuid NOT NULL,
+  -- team_id uuid NOT NULL,
+
+  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
+  -- FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE
+);
+
+CREATE TABLE teams (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  name text NOT NULL UNIQUE,
+  description text,
+  image text,
+  created_at timestamp DEFAULT now() NOT NULL,
+  created_by uuid,
+  updated_at timestamp DEFAULT now() NOT NULL,
+  updated_by uuid,
+  FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL,
+  FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE SET NULL
+);
+
+CREATE TABLE products (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  team_id uuid NOT NULL,
+  name text NOT NULL,
+  description text,
+  image text,
+  created_at timestamp DEFAULT now() NOT NULL,
+  created_by uuid,
+  updated_at timestamp DEFAULT now() NOT NULL,
+  updated_by uuid,
+
+  FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL,
+  FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE SET NULL
+);
+
+CREATE TABLE product_identifiers (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  product_id uuid NOT NULL,
+  identifier text NOT NULL,
+
+  CONSTRAINT product_identifiers_unique UNIQUE (product_id, identifier),
+  FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
+);
+
+CREATE TABLE generic_products (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  brand_product_id uuid NOT NULL,
+  generic_product_id uuid NOT NULL,
+
+  CONSTRAINT generic_products_unique UNIQUE (brand_product_id, generic_product_id),
+  FOREIGN KEY (brand_product_id) REFERENCES products (id) ON DELETE CASCADE,
+  FOREIGN KEY (generic_product_id) REFERENCES products (id) ON DELETE CASCADE
+);
+
+CREATE TABLE tags (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  name text NOT NULL,
+  team_id uuid NOT NULL,
+
+  CONSTRAINT tags_unique UNIQUE (name, team_id),
+  FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE
+);
+
+CREATE TABLE product_tags (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  product_id uuid NOT NULL,
+  tag_id uuid NOT NULL,
+
+  CONSTRAINT product_tags_unique UNIQUE (product_id, tag_id),
+  FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
+  FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE
+);
+
+CREATE TABLE lists (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  team_id uuid NOT NULL,
+  name text NOT NULL,
+  description text,
+  image text,
+  created_at timestamp DEFAULT now() NOT NULL,
+  created_by uuid,
+  updated_at timestamp DEFAULT now() NOT NULL,
+  updated_by uuid,
+
+  CONSTRAINT lists_unique UNIQUE (team_id, name),
+  FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL,
+  FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE SET NULL
+);
+
+CREATE TABLE list_categories (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  list_id uuid NOT NULL,
+  name text NOT NULL,
+  created_at timestamp DEFAULT now() NOT NULL,
+  created_by uuid,
+  updated_at timestamp DEFAULT now() NOT NULL,
+  updated_by uuid,
+
+  CONSTRAINT list_categories_unique UNIQUE (list_id, name),
+  FOREIGN KEY (list_id) REFERENCES lists (id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL,
+  FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE SET NULL
+);
+
+CREATE TABLE list_products (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  list_id uuid NOT NULL,
+  product_id uuid NOT NULL,
+  index integer, -- TODO
+  quantity integer,
+  unit text,
+  created_at timestamp DEFAULT now() NOT NULL,
+  created_by uuid,
+  updated_at timestamp DEFAULT now() NOT NULL,
+  updated_by uuid,
+
+  CONSTRAINT list_products_unique UNIQUE (list_id, product_id),
+  CONSTRAINT list_products_index_positive CHECK (index >= 0),
+  CONSTRAINT list_products_quantity_positive CHECK (quantity > 0),
+  FOREIGN KEY (list_id) REFERENCES lists (id) ON DELETE CASCADE,
+  FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL,
+  FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE SET NULL
 );
 
 -- ____________ Functions ____________
