@@ -11,7 +11,7 @@ info:
   license:
     name: GPL 3.0
     url: https://github.com/jkutkut/shoplist/blob/main/LICENSE
-  version: 1.4.0
+  version: 1.5.0
 servers:
   - url: http://localhost/api
 paths:
@@ -182,9 +182,82 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/result'
-  # /v1/user/create:
-  # /v1/user/logout:
-  # /v1/user/logout/all:
+  /v1/user/logout:
+    post:
+      summary: Logout current user
+      description: Logout current user by invalidating the current JWT token
+      tags:
+        - user
+        - logged_user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout success
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/user/logout/{user_id}:
+    post:
+      summary: Logout user by user ID
+      description: Logout user by invalidating all JWT tokens for the given user ID
+      tags:
+        - user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: Logout success
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/user/logout/everyone:
+    post:
+      summary: Logout all users
+      description: Logout all users by invalidating all JWT tokens
+      tags:
+        - user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout success
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
 
   /v1/team:
     post:
