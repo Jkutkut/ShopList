@@ -11,14 +11,48 @@ info:
   license:
     name: GPL 3.0
     url: https://github.com/jkutkut/shoplist/blob/main/LICENSE
-  version: 1.3.0
+  version: 1.4.0
 servers:
   - url: http://localhost/api
 paths:
   /v1/user/{user_id}:
+    get:
+      summary: Get user info
+      description: Get user info by user ID
+      tags:
+        - user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: User info returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
     delete:
       summary: Delete user
       description: Delete user
+      tags:
+        - user
       security:
         - bearerAuth: []
       parameters:
@@ -46,6 +80,9 @@ paths:
     post:
       summary: Register user with username and password
       description: Register user with basic authentication and return JWT token
+      tags:
+        - user
+        - credentials
       requestBody:
         required: true
         content:
@@ -83,6 +120,9 @@ paths:
     post:
       summary: Login user with username and password
       description: Login user with basic authentication and return JWT token
+      tags:
+        - user
+        - credentials
       requestBody:
         required: true
         content:
@@ -114,10 +154,1219 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/result'
+  /v1/user/me:
+    get:
+      summary: Get current user info
+      description: Get current user info based on JWT token
+      tags:
+        - user
+        - logged_user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user info returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
   # /v1/user/create:
   # /v1/user/logout:
   # /v1/user/logout/all:
 
+  /v1/team:
+    post:
+      summary: Create team
+      description: Create a new team
+      tags:
+        - team
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  $ref: '#/components/schemas/name'
+                description:
+                  $ref: '#/components/schemas/description'
+                image:
+                  $ref: '#/components/schemas/image'
+      responses:
+        '200':
+          description: Team created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/team'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/team/{team_id}:
+    put:
+      summary: Update team
+      description: Update a team by team ID
+      tags:
+        - team
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  $ref: '#/components/schemas/name'
+                description:
+                  $ref: '#/components/schemas/description'
+                image:
+                  $ref: '#/components/schemas/image'
+      responses:
+        '200':
+          description: Team updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/team'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+    delete:
+      summary: Delete team
+      description: Delete a team by team ID
+      tags:
+        - team
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: Team deleted
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/team/roles:
+    get:
+      summary: Get user team roles
+      description: Get all teams and roles of the current user
+      tags:
+        - user
+        - logged_user
+        - team
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User team roles returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user_team_roles'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/team/{team_id}/members:
+    get:
+      summary: Get team members
+      description: Get all members of a team by team ID
+      tags:
+        - team
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: Team members returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    user:
+                      $ref: '#/components/schemas/user'
+                    role:
+                      $ref: '#/components/schemas/role'
+    put:
+      summary: Add or update team members
+      description: Add or update members of a team by team ID
+      tags:
+        - team
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  user_id:
+                    $ref: '#/components/schemas/uuid'
+                  role:
+                    $ref: '#/components/schemas/role'
+      responses:
+        '200':
+          description: Team member added
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/team/{team_id}/member/{user_id}:
+    delete:
+      summary: Remove team member
+      description: Remove a member from a team by team ID
+      tags:
+        - team
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: Team member removed
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  
+  /v1/team/{team_id}/tags:
+    get:
+      summary: Get team tags
+      description: Get all tags of a team by team ID
+      tags:
+        - team
+        - tag
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: Team tags returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/tag'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+    post:
+      summary: Create team tags
+      description: Create tags for a team by team ID
+      tags:
+        - team
+        - tag
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    $ref: '#/components/schemas/name'
+      responses:
+        '200':
+          description: Team tags created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/tag'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/tag/{tag_id}:
+    delete:
+      summary: Delete team tag
+      description: Delete a tag from a team by team ID and tag ID
+      tags:
+        - tag
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tag_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: Team tag deleted
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team or tag not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+
+  /v1/team/{team_id}/products:
+    get:
+      summary: Get team products
+      description: Get all products of a team by team ID with pagination
+      tags:
+        - team
+        - product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Team products returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/product'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/team/{team_id}/product:
+    post:
+      summary: Create team product
+      description: Create a new product for a team by team ID
+      tags:
+        - team
+        - product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/product'
+      responses:
+        '200':
+          description: Team product created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/product'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/product/{product_id}:
+    put:
+      summary: Update team product
+      description: Update a product of a team by team ID and product ID
+      tags:
+        - product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/product'
+      responses:
+        '200':
+          description: Team product updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/product'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team or product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+    delete:
+      summary: Delete team product
+      description: Delete a product from a team by team ID and product ID
+      tags:
+        - product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: Team product deleted
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team or product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/product/{product_id}/tags:
+    post:
+      summary: Add tags to product
+      description: Add tags to a product by product ID
+      tags:
+        - product
+        - tag
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  tag_id:
+                    $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: Tags added to product
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Product or tag not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/product/{product_id}/tag/{tag_id}:
+    delete:
+      summary: Remove tag from product
+      description: Remove a tag from a product by product ID and tag ID
+      tags:
+        - product
+        - tag
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+        - name: tag_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: Tag removed from product
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Product or tag not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+
+  /v1/team/{team_id}/lists:
+    get:
+      summary: Get team lists
+      description: Get all lists of a team by team ID
+      tags:
+        - team
+        - list
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: Team lists returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/list'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/team/{team_id}/list:
+    post:
+      summary: Create team list
+      description: Create a new list for a team by team ID
+      tags:
+        - team
+        - list
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  $ref: '#/components/schemas/name'
+                description:
+                  $ref: '#/components/schemas/description'
+                image:
+                  $ref: '#/components/schemas/image'
+      responses:
+        '200':
+          description: Team list created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/list'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/list/{list_id}:
+    put:
+      summary: Update team list
+      description: Update a list of a team by team ID and list ID
+      tags:
+        - list
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: list_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  $ref: '#/components/schemas/name'
+                description:
+                  $ref: '#/components/schemas/description'
+                image:
+                  $ref: '#/components/schemas/image'
+      responses:
+        '200':
+          description: Team list updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/list'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team or list not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+    delete:
+      summary: Delete team list
+      description: Delete a list from a team by team ID and list ID
+      tags:
+        - list
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: list_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: Team list deleted
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team or list not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+
+  /v1/list/{list_id}/categories:
+    get:
+      summary: Get list categories
+      description: Get all categories of a list by list ID
+      tags:
+        - list
+        - category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: list_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: List categories returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/category'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: List not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/list/{list_id}/category:
+    post:
+      summary: Create list categories
+      description: Create categories for a list by list ID
+      tags:
+        - list
+        - category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: list_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    $ref: '#/components/schemas/name'
+      responses:
+        '200':
+          description: List categories created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/category'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: List not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/category/{category_id}:
+    put:
+      summary: Update list category
+      description: Update a category of a list by list ID and category ID
+      tags:
+        - category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: category_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  $ref: '#/components/schemas/name'
+      responses:
+        '200':
+          description: List category updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/category'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: List or category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+    delete:
+      summary: Delete list category
+      description: Delete a category from a list by list ID and category ID
+      tags:
+        - category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: category_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: List category deleted
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: Team or product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+
+  /v1/list/{list_id}/products:
+    get:
+      summary: Get list products
+      description: Get all products of a list by list
+      tags:
+        - list
+        - product
+        - list_product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: list_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: List products returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/list_product'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: List not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+  /v1/list/{list_id}/products/{product_id}:
+    put:
+      summary: Add or update product in list
+      description: Add or update a product in a list by list ID and product ID
+      tags:
+        - list
+        - product
+        - list_product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: list_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category_id:
+                  $ref: '#/components/schemas/uuid'
+                amount:
+                  type: integer
+                  format: int32
+                  minimum: 1
+                  default: 1
+                units:
+                  type: string
+                  example: euros
+      responses:
+        '200':
+          description: Product added or updated in list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/list_product'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: List or product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+    delete:
+      summary: Remove product from list
+      description: Remove a product from a list by list ID and product ID
+      tags:
+        - list
+        - product
+        - list_product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: list_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: Product removed from list
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+        '404':
+          description: List or product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
 components:
   # TODO: add minLength and maxLength
   schemas:
@@ -182,6 +1431,7 @@ components:
           $ref: '#/components/schemas/created_at'
         updated_at:
           $ref: '#/components/schemas/updated_at'
+    # v1 --------------------------------------------------
     result:
       type: object
       properties:
@@ -303,6 +1553,21 @@ components:
             name:
               $ref: '#/components/schemas/name'
         - $ref: '#/components/schemas/metadata'
+    list_product:
+      type: object
+      properties:
+        product_id:
+          $ref: '#/components/schemas/uuid'
+        category_id:
+          $ref: '#/components/schemas/uuid'
+        amount:
+          type: integer
+          format: int32
+          minimum: 1
+          default: 1
+        units:
+          type: string
+          example: euros
   securitySchemes:
     bearerAuth:
       type: http
