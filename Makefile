@@ -22,6 +22,7 @@ run_db_controler:
 		-e PGADMIN_DEFAULT_EMAIL="${DB_CONTROLER_EMAIL}" \
 		-e PGADMIN_DEFAULT_PASSWORD="${DB_CONTROLER_PASSWORD}" \
 		--network "shoplist_db-network" \
+		-v db_controller_data:/var/lib/pgadmin \
 		dpage/pgadmin4
 	open http://localhost:${DB_CONTROLER_PORT}
 
