@@ -154,3 +154,5 @@ classDiagram
 
 
 ```
+
+Note: `created_by` and `updated_by` are not represented as a relation between users and the tables this metadata is in. This was done to simplify the model.
