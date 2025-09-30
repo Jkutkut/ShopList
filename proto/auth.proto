@@ -7,6 +7,7 @@ service AuthService {
   rpc RegisterUserBasicLogin(RegisterBasicUserRequest) returns (UserToken);
   rpc DeleteUser(DeleteUserRequest) returns (Empty);
   rpc Me(UserToken) returns (User);
+  rpc Logout(UserToken) returns (Empty);
 }
 
 message LoginRequest {

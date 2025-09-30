@@ -94,6 +94,16 @@ impl ShoplistDbAuth {
 			Err(_) => Err(Status::unauthenticated("Invalid token"))
 		}
 	}
+
+	pub async fn logout(&self, token: &str) -> Result<(), Status> {
+		println!("logout request with token: {}", token);
+		let query = "DELETE FROM credentials WHERE token = $1";
+		let stmt = self.db_client.prepare(query).await.unwrap();
+		match self.db_client.execute(&stmt, &[&token.to_string()]).await {
+			Ok(r) if r <= 1 => Ok(()),
+			_ => Err(Status::unauthenticated("Invalid token"))
+		}
+	}
 }
 
 impl ShoplistDbAuth {

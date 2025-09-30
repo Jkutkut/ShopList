@@ -11,6 +11,7 @@ use model::grpc::auth::{
 	RegisterBasicUserRequest,
 	DeleteUserRequest,
 	Empty,
+	LogoutUserRequest,
 };
 
 pub struct Auth {
@@ -73,5 +74,13 @@ impl AuthService for Auth {
 		request: Request<UserToken>,
 	) -> Result<Response<User>, Status> {
 		Ok(Response::new(self.db.me(&request.into_inner().token).await?))
+	}
+
+	async fn logout(
+		&self,
+		request: Request<UserToken>,
+	) -> Result<Response<Empty>, Status> {
+		self.db.logout(&request.into_inner().token).await?;
+		Ok(Response::new(Empty {}))
 	}
 }
