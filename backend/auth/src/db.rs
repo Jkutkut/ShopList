@@ -80,7 +80,7 @@ impl ShoplistDbAuth {
 			u.image
 		FROM users u JOIN credentials c
 		ON u.id = c.user_id
-		WHERE c.token = $1";
+		WHERE c.token = $1 AND c.expires_at > now()";
 		let stmt = self.db_client.prepare(query).await.unwrap();
 		match self.db_client.query_one(&stmt, &[&token]).await {
 			Ok(r) => Ok(User {
