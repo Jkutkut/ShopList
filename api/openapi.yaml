@@ -258,6 +258,51 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/result'
+  /v1/user/superuser/{user_id}:
+    post:
+      summary: Set user as superuser
+      description: Set user as superuser by user ID. Requires superuser permissions.
+      tags:
+        - user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: User set as superuser
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
+    delete:
+      summary: Remove superuser from user
+      description: Remove superuser from user by user ID. Requires superuser permissions.
+      tags:
+        - user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
+      responses:
+        '200':
+          description: Superuser removed from user
+        '401':
+          description: Invalid credentials, user not found, not enough permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/result'
 
   /v1/team:
     post:
