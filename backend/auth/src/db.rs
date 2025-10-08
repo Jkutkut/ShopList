@@ -17,6 +17,7 @@ use model::{
 	BasicLogin,
 	grpc::auth::User,
 };
+use log::*;
 
 pub struct ShoplistDbAuth {
 	#[cfg(not(test))]
@@ -38,9 +39,11 @@ impl ShoplistDbAuth {
 	// TODO logout_user_everywhere
 
 	pub async fn basic_login(&self, email: String, password: String) -> Result<String, ()> {
+		info!("Login with email: {}", email);
+		debug!("Password: {}", password);
 		let credentials = self.get_user_credentials(&email).await.ok_or(())?;
 		let ok = self.validate_password(password.clone(), credentials.password);
-		println!("Password ok: {}", ok);
+		info!("Password ok: {}", ok);
 		Ok(self.new_jwt(&credentials.user_id).await?)
 	}
 
@@ -50,29 +53,43 @@ impl ShoplistDbAuth {
 		let stmt = self.db_client.prepare(query).await.unwrap();
 		match self.db_client.query_one(&stmt, &[&name, &email, &password_hash]).await {
 			Ok(r) => Ok(self.new_jwt(&r.get(0)).await?),
-			Err(_) => Err(()) // TODO error?
+			Err(e) => {
+				warn!("Error creating user: {}", e);
+				Err(())
+			}
 		}
 	}
 
 	pub async fn delete_user(&self, auth_user_id: &Uuid, user_id: &Uuid) -> Result<(), Status> {
+		info!("Delete user {} by being logged in as {}", user_id, auth_user_id);
 		if user_id != auth_user_id {
 			let query = "SELECT user_id FROM superusers WHERE user_id = $1";
 			let stmt = self.db_client.prepare(query).await.unwrap();
 			match self.db_client.query_one(&stmt, &[&auth_user_id]).await {
 				Ok(_) => (),
-				Err(_) => return Err(Status::permission_denied("Invalid credentials"))
+				Err(e) => {
+					warn!("Error deleting user: {}", e);
+					return Err(Status::permission_denied("Invalid credentials"))
+				}
 			};
+			debug!("User {} is a superuser", auth_user_id);
 		}
 		let query = "DELETE FROM basic_login WHERE user_id = $1";
 		let stmt = self.db_client.prepare(query).await.unwrap();
 		match self.db_client.execute(&stmt, &[&user_id]).await {
-			Ok(r) if r == 1 => Ok(()),
-			_ => Err(Status::not_found("User not found"))
+			Ok(r) if r == 1 => {
+				info!("Deleted user {}", user_id);
+				Ok(())
+			},
+			e => {
+				error!("Error deleting user: {:?}", e);
+				Err(Status::not_found("User not found"))
+			}
 		}
 	}
 
 	pub async fn me(&self, token: &str) -> Result<User, Status> {
-		println!("me request with token");
+		info!("me request with token");
 		let query = "SELECT
 			u.id, u.name,
 			u.created_at, u.updated_at,
@@ -83,71 +100,104 @@ impl ShoplistDbAuth {
 		WHERE c.token = $1 AND c.expires_at > now()";
 		let stmt = self.db_client.prepare(query).await.unwrap();
 		match self.db_client.query_one(&stmt, &[&token]).await {
-			Ok(r) => Ok(User {
-				uuid: r.get::<'_, usize, Uuid>(0).to_string(),
-				name: r.get(1),
-				created_at: r.get::<'_, usize, chrono::NaiveDateTime>(2).to_string(),
-				updated_at: r.get::<'_, usize, chrono::NaiveDateTime>(3).to_string(),
-				is_superuser: r.get::<'_, usize, bool>(4),
-				image: r.get::<'_, usize, Option<String>>(5)
-			}),
-			Err(_) => Err(Status::unauthenticated("Invalid token"))
+			Ok(r) => {
+				let user = User {
+					uuid: r.get::<'_, usize, Uuid>(0).to_string(),
+					name: r.get(1),
+					created_at: r.get::<'_, usize, chrono::NaiveDateTime>(2).to_string(),
+					updated_at: r.get::<'_, usize, chrono::NaiveDateTime>(3).to_string(),
+					is_superuser: r.get::<'_, usize, bool>(4),
+					image: r.get::<'_, usize, Option<String>>(5)
+				};
+				debug!("User: {:#?}", user);
+				Ok(user)
+			},
+			Err(e) => {
+				error!("Error getting user: {:?}", e);
+				Err(Status::unauthenticated("Invalid token"))
+			}
 		}
 	}
 
 	pub async fn logout(&self, token: &str) -> Result<(), Status> {
-		println!("logout request with token: {}", token);
+		info!("logout request with token: {}", token);
 		let query = "DELETE FROM credentials WHERE token = $1";
 		let stmt = self.db_client.prepare(query).await.unwrap();
 		match self.db_client.execute(&stmt, &[&token.to_string()]).await {
-			Ok(r) if r <= 1 => Ok(()),
-			_ => Err(Status::unauthenticated("Invalid token"))
+			Ok(r) if r <= 1 => {
+				debug!("Logged out user");
+				Ok(())
+			},
+			e => {
+				error!("Error logging out: {:?}", e);
+				Err(Status::unauthenticated("Invalid token"))
+			}
 		}
 	}
 }
 
 impl ShoplistDbAuth {
 	async fn new_jwt(&self, user_id: &Uuid) -> Result<String, ()> {
+		info!("New JWT for user: {}", user_id);
 		let token = self.jwt.new_jwt(user_id);
 		let token_str: String = self.jwt.encode(&token)?;
-		println!("New token for {}: {}", user_id, &token_str);
+		info!("New token for {}: {}", user_id, &token_str);
 		let query = "SELECT create_credentials($1, $2, to_timestamp($3)::timestamp)";
 		let stmt = self.db_client.prepare(query).await.unwrap();
 		self.db_client.execute(&stmt, &[
 			user_id, &token_str, &(token.expiration() as f64)
 		]).await.map_err(|_| ())?;
+		debug!("Created credentials for user {}: {}", user_id, &token_str);
 		Ok(token_str)
 	}
 
 	fn validate_password(&self, password: String, password_hash: String) -> bool {
+		debug!("Validating password");
 		let argon2 = Argon2::default();
 		let password_hash = match PasswordHash::new(&password_hash) {
 			Ok(hash) => hash,
 			Err(_) => return false
 		};
-		argon2.verify_password(password.as_bytes(), &password_hash).is_ok()
+		let result = argon2.verify_password(password.as_bytes(), &password_hash).is_ok();
+		debug!("Password valid: {}", result);
+		result
 	}
 
 	fn encrypt_password(&self, password: String) -> String {
+		debug!("Encrypting password");
 		let salt = SaltString::generate(&mut OsRng);
 		let argon2 = Argon2::default();
 		let hash = argon2.hash_password(password.as_bytes(), &salt).unwrap();
-		hash.to_string()
+		let hash = hash.to_string();
+		debug!("Password encrypted: {}", &hash);
+		hash
 	}
 
 	async fn get_user_credentials(&self, email: &str) -> Option<BasicLogin> {
+		info!("Getting user credentials for email: {}", email);
 		let query = "SELECT id, user_id, email, password FROM basic_login WHERE email = $1";
 		let stmt = self.db_client.prepare(query).await.unwrap();
 		match self.db_client.query(&stmt, &[&email]).await {
-			Ok(rows) if rows.is_empty() => return None,
-			Ok(rows) if rows.len() == 1 => Some(BasicLogin {
-				id: rows[0].get(0),
-				user_id: rows[0].get(1),
-				email: rows[0].get(2),
-				password: rows[0].get(3),
-			}),
+			Ok(rows) if rows.is_empty() => {
+				info!("User not found");
+				return None
+			},
+			Ok(rows) if rows.len() == 1 => {
+				let login = BasicLogin {
+					id: rows[0].get(0),
+					user_id: rows[0].get(1),
+					email: rows[0].get(2),
+					password: rows[0].get(3),
+				};
+				info!("User found");
+				debug!("User found: {}", login.user_id);
+				Some(login)
+			},
 			Ok(_) => unreachable!(),
-			Err(_) => return None
+			Err(e) => {
+				error!("Error getting user credentials: {}", e);
+				return None
+			}
 		}
 	}
 }

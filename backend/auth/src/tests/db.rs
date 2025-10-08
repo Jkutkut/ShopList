@@ -5,6 +5,10 @@ struct Test {
 }
 
 async fn setup() -> Test {
+	let _ = env_logger::Builder::from_env(
+		env_logger::Env::default()
+			.default_filter_or("auth=debug")
+	).try_init();
 	println!("Loading env vars from .env file");
 	dotenv::from_path(std::env::var("ENV_PATH")
 		.expect("ENV_PATH not defined as environment variable or in .env file")

@@ -25,6 +25,7 @@ services:
       DB_HOST: "shoplist-db-test"
       DB_PORT: "5432"
       ENV_PATH: "/shoplist/.env.test"
+      RUST_LOG: "auth=debug,warn"
     volumes:
       - cargo_registy:/root/.cargo/registry
       - .:/shoplist
