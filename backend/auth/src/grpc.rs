@@ -100,4 +100,17 @@ impl AuthService for Auth {
 		self.db.logout(&request.into_inner().token).await?;
 		Ok(Response::new(Empty {}))
 	}
+
+	async fn logout_user(
+		&self,
+		request: Request<LogoutUserRequest>,
+	) -> Result<Response<Empty>, Status> {
+		let request = request.into_inner();
+		let user_id: Uuid = match request.user_id.parse() {
+			Ok(id) => id,
+			Err(_) => return Err(Status::invalid_argument("Invalid user_id"))
+		};
+		self.db.logout_user(&request.token, &user_id).await?;
+		Ok(Response::new(Empty {}))
+	}
 }

@@ -9,6 +9,7 @@ service AuthService {
   rpc DeleteUser(DeleteUserRequest) returns (Empty);
   rpc Me(UserToken) returns (User);
   rpc Logout(UserToken) returns (Empty);
+  rpc LogoutUser(LogoutUserRequest) returns (Empty);
 }
 
 message LoginRequest {
@@ -34,6 +35,11 @@ message BasicChangePasswordRequest {
 
 message DeleteUserRequest {
   string userId = 1;
+}
+
+message LogoutUserRequest {
+  string userId = 1;
+  string token = 2;
 }
 
 message Empty {}

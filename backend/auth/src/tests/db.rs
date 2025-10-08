@@ -214,3 +214,58 @@ async fn db_test_change_password() {
 		email_base.to_string() + "1@marvin.com", new_password.to_string() + "superuser"
 	).await.is_ok(), "Login should succeed (Password changed by superuser)");
 }
+
+#[tokio::test]
+#[ntest::timeout(2000)]
+async fn db_test_logout_user() {
+	let test = setup().await;
+	
+	let user = "marvin_db_test_logout_user";
+	let password = "marvin-password";
+	let email = "marvin-db_test_logout_user@marvin.com";
+
+	let super_user = "marvin_db_test_logout_user_superuser";
+	let super_password = "marvin-password";
+	let super_email = "marvin-db_test_logout_user_superuser@marvin.com";
+
+	ensure_users_deleted(&test, &[user, super_user]).await;
+
+	info!("Registering users...");
+	let (_, super_token) = create_superuser_basic_credentials(&test, super_user, super_email, super_password).await;
+	let token = create_user_basic_credentials(&test, user, email, password).await;
+
+	let user_obj = test.db.me(&token).await;
+	assert!(user_obj.is_ok(), "User info should succeed");
+	let user_obj = user_obj.unwrap();
+
+	let user_uuid: Uuid = user_obj.uuid.parse().unwrap();
+
+	assert!(test.db.logout_user(
+		&token,
+		&user_uuid
+	).await.is_ok(), "User should be able to logout itself");
+	assert!(test.db.me(&token).await.is_err(), "Me should fail (User logged out)");
+	assert!(test.db.logout_user(
+		&token,
+		&user_uuid
+	).await.is_err(), "User should not be able to logout itself again with invalid token");
+
+	let token = test.db.basic_login(
+		email.to_string(), password.to_string()
+	).await.unwrap();
+
+	assert!(test.db.logout_user(
+		&super_token,
+		&user_uuid
+	).await.is_ok(), "Superuser should be able to logout user");
+	assert!(test.db.me(&token).await.is_err(), "Me should fail (User logged out)");
+	assert!(test.db.me(&super_token).await.is_ok(), "Me should succeed (Superuser logged in)");
+	let super_id: Uuid = test.db.me(&super_token).await.unwrap().uuid.parse().unwrap();
+	assert!(test.db.logout_user(
+		&super_token,
+		&super_id
+	).await.is_ok(), "Superuser should be able to logout itself");
+	assert!(test.db.me(&super_token).await.is_err(), "Me should fail (Superuser logged out)");
+
+	ensure_users_deleted(&test, &[user, super_user]).await;
+}

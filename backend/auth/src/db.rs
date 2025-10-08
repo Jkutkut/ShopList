@@ -35,9 +35,6 @@ impl ShoplistDbAuth {
 		}
 	}
 
-	// TODO logout_everyone
-	// TODO logout_user_everywhere
-
 	pub async fn basic_login(&self, email: String, password: String) -> Result<String, ()> {
 		info!("Login with email: {}", email);
 		debug!("Password: {}", password);
@@ -161,6 +158,30 @@ impl ShoplistDbAuth {
 			Ok(r) if r <= 1 => {
 				debug!("Logged out user");
 				Ok(())
+			},
+			e => {
+				error!("Error logging out: {:?}", e);
+				Err(Status::unauthenticated("Invalid token"))
+			}
+		}
+	}
+
+	pub async fn logout_user(&self, auth_token: &str, user_id: &Uuid) -> Result<(), Status> {
+		info!("logout_user request with auth_token: {}, user_id: {}", auth_token, user_id);
+		if !self.can_modify_user(user_id, auth_token).await {
+			warn!("Invalid credentials to logout user");
+			return Err(Status::permission_denied("Invalid credentials"));
+		}
+		let query = "DELETE FROM credentials WHERE user_id = $1";
+		let stmt = self.db_client.prepare(query).await.unwrap();
+		match self.db_client.execute(&stmt, &[&user_id]).await {
+			Ok(r) if r >= 1 => {
+				info!("User {} logged out", user_id);
+				Ok(())
+			},
+			Ok(r) if r == 0 => {
+				warn!("User {} not logged in", user_id);
+				Err(Status::not_found("User not found"))
 			},
 			e => {
 				error!("Error logging out: {:?}", e);
