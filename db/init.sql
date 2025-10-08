@@ -219,15 +219,22 @@ END $$ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS create_credentials(credentials.user_id%TYPE, credentials.token%TYPE, credentials.expires_at%TYPE);
 
 CREATE FUNCTION create_credentials(
-    user_id credentials.user_id%TYPE,
-    token credentials.token%TYPE,
+    usr_id credentials.user_id%TYPE,
+    tkn credentials.token%TYPE,
     expires_at credentials.expires_at%TYPE
 ) RETURNS credentials.id%TYPE
 AS $$
 DECLARE
     credential_id credentials.id%TYPE;
 BEGIN
-    INSERT INTO credentials (user_id, token, expires_at) VALUES (user_id, token, expires_at) RETURNING id INTO credential_id;
+    SELECT id INTO credential_id
+    FROM credentials
+    WHERE usr_id = user_id AND tkn = token
+    LIMIT 1;
+    IF FOUND THEN
+        RETURN credential_id;
+    END IF;
+    INSERT INTO credentials (user_id, token, expires_at) VALUES (usr_id, tkn, expires_at) RETURNING id INTO credential_id;
     RETURN credential_id;
 END $$ LANGUAGE plpgsql;
 

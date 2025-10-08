@@ -42,9 +42,16 @@ impl ShoplistDbAuth {
 		info!("Login with email: {}", email);
 		debug!("Password: {}", password);
 		let credentials = self.get_user_credentials(&email).await.ok_or(())?;
-		let ok = self.validate_password(password.clone(), credentials.password);
-		info!("Password ok: {}", ok);
-		Ok(self.new_jwt(&credentials.user_id).await?)
+		match self.validate_password(password.clone(), credentials.password) {
+			true => {
+				info!("Password ok");
+				Ok(self.new_jwt(&credentials.user_id).await?)
+			},
+			false => {
+				info!("Password not ok");
+				Err(())
+			}
+		}
 	}
 
 	pub async fn register_user_basic_login(&self, name: String, email: String, password: String) -> Result<String, ()> {
@@ -141,14 +148,21 @@ impl ShoplistDbAuth {
 		info!("New JWT for user: {}", user_id);
 		let token = self.jwt.new_jwt(user_id);
 		let token_str: String = self.jwt.encode(&token)?;
-		info!("New token for {}: {}", user_id, &token_str);
+		debug!("New token for {}: {}", user_id, &token_str);
 		let query = "SELECT create_credentials($1, $2, to_timestamp($3)::timestamp)";
 		let stmt = self.db_client.prepare(query).await.unwrap();
-		self.db_client.execute(&stmt, &[
+		match self.db_client.execute(&stmt, &[
 			user_id, &token_str, &(token.expiration() as f64)
-		]).await.map_err(|_| ())?;
-		debug!("Created credentials for user {}: {}", user_id, &token_str);
-		Ok(token_str)
+		]).await {
+			Ok(r) if r == 1 => {
+				debug!("Created credentials for user {}: credential_id {}", user_id, r);
+				Ok(token_str)
+			},
+			e => {
+				error!("Error creating credentials: {:?}", e);
+				Err(())
+			}
+		}
 	}
 
 	fn validate_password(&self, password: String, password_hash: String) -> bool {
@@ -189,8 +203,7 @@ impl ShoplistDbAuth {
 					email: rows[0].get(2),
 					password: rows[0].get(3),
 				};
-				info!("User found");
-				debug!("User found: {}", login.user_id);
+				info!("User found: {}", login.user_id);
 				Some(login)
 			},
 			Ok(_) => unreachable!(),
