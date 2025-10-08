@@ -5,6 +5,7 @@ package auth;
 service AuthService {
   rpc BasicLogin(LoginRequest) returns (UserToken);
   rpc RegisterUserBasicLogin(RegisterBasicUserRequest) returns (UserToken);
+  rpc BasicChangePassword(BasicChangePasswordRequest) returns (Empty);
   rpc DeleteUser(DeleteUserRequest) returns (Empty);
   rpc Me(UserToken) returns (User);
   rpc Logout(UserToken) returns (Empty);
@@ -23,6 +24,12 @@ message RegisterBasicUserRequest {
   string name = 1;
   string email = 2;
   string password = 3;
+}
+
+message BasicChangePasswordRequest {
+  string token = 1;
+  string userId = 2;
+  string newPassword = 3;
 }
 
 message DeleteUserRequest {

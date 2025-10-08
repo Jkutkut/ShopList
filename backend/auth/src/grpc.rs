@@ -12,7 +12,9 @@ use model::grpc::auth::{
 	DeleteUserRequest,
 	Empty,
 	LogoutUserRequest,
+	BasicChangePasswordRequest,
 };
+use log::*;
 
 pub struct Auth {
 	db: ShoplistDbAuth
@@ -32,7 +34,7 @@ impl AuthService for Auth {
 	) -> Result<Response<UserToken>, Status> {
 		let addr = request.remote_addr().unwrap();
 		let LoginRequest { username, password } = request.into_inner();
-		println!("Login request from {:?}: {:?}", addr, &username);
+		info!("Login request from {:?}: {:?}", addr, &username);
 		match self.db.basic_login(username, password).await {
 			Ok(token) => Ok(Response::new(UserToken {
 				token
@@ -47,11 +49,26 @@ impl AuthService for Auth {
 	) -> Result<Response<UserToken>, Status> {
 		let addr = request.remote_addr().unwrap();
 		let RegisterBasicUserRequest { name, email, password } = request.into_inner();
-		println!("Register request from {:?}: {}", addr, &email);
+		info!("Register request from {:?}: {}", addr, &email);
 		match self.db.register_user_basic_login(name, email, password).await {
 			Ok(token) => Ok(Response::new(UserToken {token})),
 			Err(_) => Err(Status::unauthenticated("Invalid credentials"))
 		}
+	}
+
+	async fn basic_change_password(
+		&self,
+		request: Request<BasicChangePasswordRequest>,
+	) -> Result<Response<Empty>, Status> {
+		let addr = request.remote_addr().unwrap();
+		let BasicChangePasswordRequest { token, user_id, new_password } = request.into_inner();
+		info!("Change password request from {:?}: {}", addr, &user_id);
+		let user_id: Uuid = match user_id.parse() {
+			Ok(id) => id,
+			Err(_) => return Err(Status::invalid_argument("Invalid user_id"))
+		};
+		self.db.basic_change_password(token, &user_id, new_password).await?;
+		Ok(Response::new(Empty {}))
 	}
 
 	async fn delete_user(
@@ -60,7 +77,7 @@ impl AuthService for Auth {
 	) -> Result<Response<Empty>, Status> { // TODO protect
 		let addr = request.remote_addr().unwrap();
 		let DeleteUserRequest { user_id } = request.into_inner();
-		println!("Delete request from {:?}: {}", addr, &user_id);
+		info!("Delete request from {:?}: {}", addr, &user_id);
 		let user_id: Uuid = match user_id.parse() {
 			Ok(id) => id,
 			Err(_) => return Err(Status::invalid_argument("Invalid user_id"))

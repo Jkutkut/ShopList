@@ -67,6 +67,33 @@ impl ShoplistDbAuth {
 		}
 	}
 
+	pub async fn basic_change_password(&self, token: String, user_id: &Uuid, password: String) -> Result<(), Status> {
+		info!("Change password for user: {}", user_id);
+		if !self.can_modify_user(user_id, &token).await {
+			warn!("Invalid credentials to change password");
+			return Err(Status::permission_denied("Invalid credentials"));
+		}
+		let password_hash = self.encrypt_password(password);
+		let query = "UPDATE basic_login SET password = $1 WHERE user_id = $2";
+		let stmt = self.db_client.prepare(query).await.unwrap();
+		match self.db_client.execute(&stmt, &[&password_hash, &user_id]).await {
+			Ok(r) if r == 1 => {
+				info!("Password changed for user: {}", user_id);
+				Ok(())
+			},
+			Ok(r) if r == 0 => {
+				warn!("User not found");
+				Err(Status::not_found("User not found"))
+			},
+			Ok(_) => unreachable!(),
+			Err(e) => {
+				warn!("Error changing password");
+				debug!("Error: {}", e);
+				Err(Status::unauthenticated("Invalid credentials"))
+			}
+		}
+	}
+
 	pub async fn delete_user(&self, auth_user_id: &Uuid, user_id: &Uuid) -> Result<(), Status> {
 		info!("Delete user {} by being logged in as {}", user_id, auth_user_id);
 		if user_id != auth_user_id {
@@ -210,6 +237,29 @@ impl ShoplistDbAuth {
 			Err(e) => {
 				error!("Error getting user credentials: {}", e);
 				return None
+			}
+		}
+	}
+
+	async fn can_modify_user(&self, user_id: &Uuid, token: &str) -> bool {
+		info!("Checking if can modify user: {}", user_id);
+		let query = "SELECT EXISTS (
+			SELECT 1 FROM credentials WHERE user_id = $1 AND token = $2 AND expires_at > now()
+		) OR EXISTS (
+			SELECT 1 FROM credentials, superusers
+			WHERE credentials.token = $2 AND credentials.expires_at > now() AND credentials.user_id = superusers.user_id
+		);";
+		let stmt = self.db_client.prepare(query).await.unwrap();
+		match self.db_client.query_one(&stmt, &[&user_id, &token]).await {
+			Ok(r) => {
+				debug!("Can modify user: {:?}", r);
+				let r = r.get::<'_, usize, bool>(0);
+				info!("Can modify user: {:?}", r);
+				r
+			},
+			Err(e) => {
+				error!("Error checking if can modify user: {:?}", e);
+				false
 			}
 		}
 	}

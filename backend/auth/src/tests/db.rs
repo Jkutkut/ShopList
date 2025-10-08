@@ -8,27 +8,28 @@ async fn setup() -> Test {
 	let _ = env_logger::Builder::from_env(
 		env_logger::Env::default()
 			.default_filter_or("auth=debug")
-	).try_init();
-	println!("Loading env vars from .env file");
+	).is_test(true).format_timestamp(None).try_init();
+	info!("Loading env vars from .env file");
 	dotenv::from_path(std::env::var("ENV_PATH")
 		.expect("ENV_PATH not defined as environment variable or in .env file")
 	).unwrap();
-	println!("Connecting to db...");
+	info!("Connecting to db...");
 	let (client, db_connection) = db_handler().await.unwrap();
 	tokio::spawn(async move {
 		if let Err(e) = db_connection.await {
-			eprintln!("connection error: {}", e);
-			eprintln!("Stopping the server...");
+			error!("connection error: {}", e);
+			error!("Stopping the server...");
 			std::process::exit(1);
 		}
 	});
-	println!("Setup complete");
+	info!("Setup complete");
 	Test {
 		db: client,
 	}
 }
 
 async fn ensure_users_deleted(test: &Test, names: &[&str]) {
+	info!("ensure_users_deleted({:?})", names);
 	let query = "DELETE FROM users where name = $1";
 	let stmt = test.db.db_client.prepare(query).await.unwrap();
 	for user in names {
@@ -46,9 +47,21 @@ async fn create_user_basic_credentials(test: &Test, name: &str, email: &str, pas
 	token
 }
 
+#[allow(dead_code)]
+async fn create_superuser_basic_credentials(test: &Test, name: &str, email: &str, password: &str) -> (User, String) {
+	let super_token = create_user_basic_credentials(&test, name, email, password).await;
+	let super_user = test.db.me(&super_token).await.unwrap();
+	let super_user_uuid: Uuid = super_user.uuid.parse().unwrap();
+	let query = "SELECT set_superuser($1);";
+	let stmt = test.db.db_client.prepare(query).await.unwrap();
+	test.db.db_client.execute(&stmt, &[&super_user_uuid]).await.unwrap();
+	(super_user, super_token)
+}
+
 #[tokio::test]
 #[ntest::timeout(4000)]
 async fn db_test() {
+	info!("Running test db_test...");
 	let test = setup().await;
 
 	let user = "marvin_db_test";
@@ -57,38 +70,38 @@ async fn db_test() {
 
 	ensure_users_deleted(&test, &[user]).await;
 
-	println!("invalid login attempt...");
+	info!("invalid login attempt...");
 	assert!(test.db.basic_login(
 		email.into(), password.into()
 	).await.is_err(), "Login should fail (No user)");
 
-	println!("Registering user...");
+	info!("Registering user...");
 	let token = create_user_basic_credentials(&test, user, email, password).await;
 
-	println!("Obtaining user form token...");
+	info!("Obtaining user form token...");
 	let me = test.db.me(&token).await;
 	assert!(me.is_ok(), "Me should succeed");
 	let me = me.unwrap();
-	println!("Me: {:?}", me);
+	info!("Me: {:?}", me);
 	assert!(me.name == user, "User should be {}", user);
 	assert!(!me.is_superuser, "User should not be superuser");
 
-	println!("Register again should fail...");
+	info!("Register again should fail...");
 	assert!(test.db.register_user_basic_login(
 		user.into(), email.into(), password.into()
 	).await.is_err(), "Register should fail (User already exists)");
 
-	println!("Register with same email should fail...");
+	info!("Register with same email should fail...");
 	assert!(test.db.register_user_basic_login(
 		user.to_string() + "2", email.into(), password.into()
 	).await.is_err(), "Register should fail (User already exists 2)");
 
-	println!("Register with same name should fail...");
+	info!("Register with same name should fail...");
 	assert!(test.db.register_user_basic_login(
 		user.into(), "other-email".to_string() + email, password.into()
 	).await.is_err(), "Register should fail (User already exists 3)");
 
-	println!("Logging in again...");
+	info!("Logging in again...");
 	let r = test.db.basic_login(
 		email.into(), password.into()
 	).await;
@@ -103,12 +116,12 @@ async fn db_test() {
 	let stmt = test.db.db_client.prepare(query).await.unwrap();
 	assert!(test.db.db_client.execute(&stmt, &[&token]).await.is_ok(), "Delete user should succeed");
 
-	println!("Logging in again after deletion...");
+	info!("Logging in again after deletion...");
 	assert!(test.db.basic_login(
 		email.into(), password.into()
 	).await.is_err(), "Login should fail (User deleted)");
 
-	println!("Me should not work anymore...");
+	info!("Me should not work anymore...");
 	assert!(test.db.me(&token).await.is_err(), "Me should fail (User deleted)");
 	assert!(test.db.me(&token2).await.is_err(), "Me should fail (User deleted)");
 }
@@ -118,22 +131,86 @@ async fn db_test() {
 async fn db_test_logout() {
 	let test = setup().await;
 
-	// let super_user = "marvin_superuser_test";
-	// let super_password = "marvin-password";
-	// let super_email = "marvin-superuser_test@marvin.com";
-
 	let user = "marvin_db_test_logout";
 	let password = "marvin-password";
 	let email = "marvin-db_test_logout@marvin.com";
 
 	ensure_users_deleted(&test, &[user]).await;
 
-	println!("Registering users...");
-	// let (super_user, super_user_token) = create_superuser_basic_credentials(&test, super_user, super_email, super_password).await;
+	info!("Registering users...");
 	let token = create_user_basic_credentials(&test, user, email, password).await;
 
 	// Logout
 	assert!(test.db.me(&token).await.is_ok(), "Me should succeed");
 	test.db.logout(&token).await.unwrap();
 	assert!(test.db.me(&token).await.is_err(), "Me should fail (User logged out)");
+}
+
+#[tokio::test]
+#[ntest::timeout(4000)]
+async fn db_test_change_password() {
+	let test = setup().await;
+
+	let password = "marvin-password";
+	let user_base = "db_test_change_password_";
+	let email_base = "marvin-db_test_change_password_";
+	let new_password = "new-password";
+
+	ensure_users_deleted(&test, &[
+		&(user_base.to_string() + "1"),
+		&(user_base.to_string() + "2"),
+		&(user_base.to_string() + "superuser"),
+	]).await;
+
+	info!("Registering users...");
+	let (_, super_user_token) = create_superuser_basic_credentials(
+		&test,
+		&(user_base.to_string() + "superuser"),
+		&(email_base.to_string() + "superuser@marvin.com"),
+		"superuser-password"
+	).await;
+	let user1_token = create_user_basic_credentials(
+		&test,
+		&(user_base.to_string() + "1"),
+		&(email_base.to_string() + "1@marvin.com"),
+		password
+	).await;
+	let user1 = test.db.me(&user1_token).await.unwrap();
+	let user1_uuid: Uuid = user1.uuid.parse().unwrap();
+	let user2_token = create_user_basic_credentials(
+		&test,
+		&(user_base.to_string() + "2"),
+		&(email_base.to_string() + "2@marvin.com"),
+		password
+	).await;
+
+	assert!(test.db.basic_login(
+		email_base.to_string() + "1@marvin.com", password.to_string()
+	).await.is_ok(), "Login should succeed");
+	assert!(test.db.basic_change_password(
+		user2_token, &user1_uuid, new_password.to_string()
+	).await.is_err(), "Other users should not be able to change password");
+	assert!(test.db.basic_login(
+		email_base.to_string() + "1@marvin.com", password.to_string()
+	).await.is_ok(), "Login should still succeed");
+
+	assert!(test.db.basic_change_password(
+		user1_token, &user1_uuid, new_password.to_string()
+	).await.is_ok(), "Each user can change their own password");
+	assert!(test.db.basic_login(
+		email_base.to_string() + "1@marvin.com", password.to_string()
+	).await.is_err(), "Login should fail (Password changed)");
+	assert!(test.db.basic_login(
+		email_base.to_string() + "1@marvin.com", new_password.to_string()
+	).await.is_ok(), "Login should succeed (Password changed)");
+
+	assert!(test.db.basic_change_password(
+		super_user_token, &user1_uuid, new_password.to_string() + "superuser"
+	).await.is_ok(), "Superuser can change password");
+	assert!(test.db.basic_login(
+		email_base.to_string() + "1@marvin.com", new_password.to_string()
+	).await.is_err(), "Login should fail (Password changed by superuser)");
+	assert!(test.db.basic_login(
+		email_base.to_string() + "1@marvin.com", new_password.to_string() + "superuser"
+	).await.is_ok(), "Login should succeed (Password changed by superuser)");
 }
