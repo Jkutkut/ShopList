@@ -60,7 +60,7 @@ $(ENVS:%=logs_%): logs_%:
 
 $(PROJECTS:%=logs_%): logs_%:
 	@echo "${TITLE}Monitoring logs in ${YELLOW}$*${NC}..."
-	docker compose -f docker-compose.yaml -f docker-compose.${GENERIC_ENV}.yaml logs -f $*
+	docker compose -f docker-compose.yaml -f docker-compose.${GENERIC_ENV}.yaml logs --no-log-prefix -f $*
 
 $(PROJECTS:%=terminal_%): terminal_%:
 	@echo "${TITLE}Running terminal in ${YELLOW}$*${NC}..."
@@ -76,7 +76,7 @@ $(TEST_PROJECTS:%=test_d_%): test_d_%:
 	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml up -d $*-test
 
 $(TEST_PROJECTS:%=test_logs_%): test_logs_%:
-	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml logs -f $*-test
+	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml logs --no-log-prefix -f $*-test
 
 $(PROJECTS:%=clean_%): clean_%:
 	@echo "${TITLE}Shutting down ${YELLOW}$*${NC}..."
