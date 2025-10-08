@@ -78,6 +78,9 @@ $(TEST_PROJECTS:%=test_d_%): test_d_%:
 $(TEST_PROJECTS:%=test_logs_%): test_logs_%:
 	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml logs --no-log-prefix -f $*-test
 
+down_test:
+	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml down
+
 $(PROJECTS:%=clean_%): clean_%:
 	@echo "${TITLE}Shutting down ${YELLOW}$*${NC}..."
 	docker compose -f docker-compose.yaml -f docker-compose.${GENERIC_ENV}.yaml rm -s -v $*
