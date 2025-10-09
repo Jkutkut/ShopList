@@ -113,4 +113,12 @@ impl AuthService for Auth {
 		self.db.logout_user(&request.token, &user_id).await?;
 		Ok(Response::new(Empty {}))
 	}
+
+	async fn logout_everyone(
+		&self,
+		request: Request<UserToken>,
+	) -> Result<Response<Empty>, Status> {
+		self.db.logout_everyone(&request.into_inner().token).await?;
+		Ok(Response::new(Empty {}))
+	}
 }

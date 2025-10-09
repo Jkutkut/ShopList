@@ -10,6 +10,7 @@ service AuthService {
   rpc Me(UserToken) returns (User);
   rpc Logout(UserToken) returns (Empty);
   rpc LogoutUser(LogoutUserRequest) returns (Empty);
+  rpc LogoutEveryone(UserToken) returns (Empty);
 }
 
 message LoginRequest {

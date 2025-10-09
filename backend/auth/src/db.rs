@@ -189,6 +189,26 @@ impl ShoplistDbAuth {
 			}
 		}
 	}
+
+	pub async fn logout_everyone(&self, token: &str) -> Result<(), Status> {
+		if !self.is_superuser(token).await {
+			warn!("Invalid credentials to logout everyone");
+			return Err(Status::permission_denied("Invalid credentials"));
+		}
+		info!("logout_everyone request with token: {}", token);
+		let query = "DELETE FROM credentials";
+		let stmt = self.db_client.prepare(query).await.unwrap();
+		match self.db_client.execute(&stmt, &[]).await {
+			Ok(r) => {
+				info!("Logged out {} users", r);
+				Ok(())
+			},
+			e => {
+				error!("Error logging out: {:?}", e);
+				Err(Status::unauthenticated("Invalid token"))
+			}
+		}
+	}
 }
 
 impl ShoplistDbAuth {
@@ -280,6 +300,27 @@ impl ShoplistDbAuth {
 			},
 			Err(e) => {
 				error!("Error checking if can modify user: {:?}", e);
+				false
+			}
+		}
+	}
+
+	async fn is_superuser(&self, token: &str) -> bool {
+		info!("Checking if is superuser");
+		let query = "SELECT EXISTS (
+			SELECT 1 FROM credentials, superusers
+			WHERE credentials.token = $1 AND credentials.expires_at > now() AND credentials.user_id = superusers.user_id
+		);";
+		let stmt = self.db_client.prepare(query).await.unwrap();
+		match self.db_client.query_one(&stmt, &[&token]).await {
+			Ok(r) => {
+				debug!("Is superuser: {:?}", r);
+				let r = r.get::<'_, usize, bool>(0);
+				info!("Is superuser: {:?}", r);
+				r
+			},
+			Err(e) => {
+				error!("Error checking if is superuser: {:?}", e);
 				false
 			}
 		}

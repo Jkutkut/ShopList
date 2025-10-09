@@ -269,3 +269,45 @@ async fn db_test_logout_user() {
 
 	ensure_users_deleted(&test, &[user, super_user]).await;
 }
+
+#[tokio::test]
+#[ntest::timeout(5000)]
+async fn db_test_logout_everyone() {
+	let test = setup().await;
+
+	let mut users = Vec::new();
+	for i in 0..10 {
+		let user = format!("marvin_db_test_logout_everyone_{}", i);
+		ensure_users_deleted(&test, &[&user]).await;
+		let password = "marvin-password";
+		let email = format!("marvin-db_test_logout_everyone_{}@marvin.com", i);
+
+		let user = create_user_basic_credentials(&test, &user, &email, password).await;
+		users.push(user);
+	}
+
+	let super_user = "marvin_db_test_logout_everyone_superuser";
+	ensure_users_deleted(&test, &[super_user]).await;
+	let super_password = "marvin-password";
+	let super_email = "marvin-db_test_logout_everyone_superuser@marvin.com";
+
+	let (_, super_token) = create_superuser_basic_credentials(&test, super_user, super_email, super_password).await;
+
+	for i in 0..10 {
+		assert!(test.db.me(&users[i]).await.is_ok(), "Me should succeed");
+	}
+	assert!(test.db.logout_everyone(&users[0]).await.is_err(), "Normal users should not be able to logout everyone");
+	for i in 0..10 {
+		assert!(test.db.me(&users[i]).await.is_ok(), "Me should succeed");
+	}
+	assert!(test.db.logout_everyone(&super_token).await.is_ok(), "Superuser should be able to logout everyone");
+	for i in 0..10 {
+		assert!(test.db.me(&users[i]).await.is_err(), "Me should fail (User logged out)");
+	}
+	assert!(test.db.me(&super_token).await.is_err(), "Me should fail (Superuser logged out)");
+
+	users.push(super_token);
+	let users = users.iter().map(|x| x.as_ref()).collect::<Vec<&str>>();
+
+	ensure_users_deleted(&test, &users).await;
+}
