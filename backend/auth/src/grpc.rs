@@ -121,4 +121,13 @@ impl AuthService for Auth {
 		self.db.logout_everyone(&request.into_inner().token).await?;
 		Ok(Response::new(Empty {}))
 	}
+
+	async fn refresh_token(
+		&self,
+		request: Request<UserToken>,
+	) -> Result<Response<UserToken>, Status> {
+		Ok(Response::new(UserToken {
+			token: self.db.refresh_token(&request.into_inner().token).await?
+		}))
+	}
 }

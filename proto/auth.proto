@@ -11,6 +11,7 @@ service AuthService {
   rpc Logout(UserToken) returns (Empty);
   rpc LogoutUser(LogoutUserRequest) returns (Empty);
   rpc LogoutEveryone(UserToken) returns (Empty);
+  rpc RefreshToken(UserToken) returns (UserToken);
 }
 
 message LoginRequest {

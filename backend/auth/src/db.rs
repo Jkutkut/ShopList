@@ -209,6 +209,26 @@ impl ShoplistDbAuth {
 			}
 		}
 	}
+
+	pub async fn refresh_token(&self, token: &str) -> Result<String, Status> {
+		info!("refresh_token request with token: {}", token);
+		let user_id = match self.get_user_id(token).await {
+			Ok(user_id) => user_id,
+			Err(e) => {
+				error!("Error refreshing token: {:?}", e);
+				return Err(Status::unauthenticated("Invalid token"));
+			}
+		};
+		let token = match self.new_jwt(&user_id).await {
+			Ok(token) => token,
+			Err(e) => {
+				error!("Error refreshing token: {:?}", e);
+				return Err(Status::internal("Internal error"));
+			}
+		};
+		info!("Refreshed token for user: {}", user_id);
+		Ok(token)
+	}
 }
 
 impl ShoplistDbAuth {
@@ -322,6 +342,23 @@ impl ShoplistDbAuth {
 			Err(e) => {
 				error!("Error checking if is superuser: {:?}", e);
 				false
+			}
+		}
+	}
+
+	async fn get_user_id(&self, token: &str) -> Result<Uuid, ()> {
+		info!("Getting user id for token: {}", token);
+		let query = "SELECT user_id FROM credentials WHERE token = $1 AND expires_at > now()";
+		let stmt = self.db_client.prepare(query).await.unwrap();
+		match self.db_client.query_one(&stmt, &[&token]).await {
+			Ok(r) => {
+				let user_id = r.get::<'_, usize, Uuid>(0);
+				debug!("User id: {}", &user_id);
+				Ok(user_id)
+			},
+			Err(e) => {
+				error!("Error getting user id: {:?}", e);
+				Err(())
 			}
 		}
 	}
