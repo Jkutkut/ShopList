@@ -1,0 +1,19 @@
+---
+import Page from "./page.astro";
+
+const {
+    title, description,
+    options = [
+        { name: 'Home', url: '/' },
+        { name: 'Login', url: '/login' },
+        { name: 'Register', url: '/register' },
+    ],
+} = Astro.props;
+---
+<Page
+    title={title}
+    description={description}
+    options={options}
+>
+    <slot />
+</Page>
