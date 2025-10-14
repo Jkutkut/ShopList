@@ -1,0 +1,73 @@
+---
+import Page from "./page.astro";
+
+const pages = import.meta.glob('/src/pages/**/*.astro', { eager: true });
+
+const pageIndex = Object.entries(pages).map(([path, module]) => {
+  const url = path
+    .replace('/src/pages', '')
+    .replace(/index\.astro$/, '')
+    .replace(/\.astro$/, '');
+  return {
+    url: url === '' ? '/' : url,
+  };
+});
+pageIndex.sort((a, b) => a.url.localeCompare(b.url));
+
+const dynamicTerms: Set<string> = new Set();
+pageIndex.forEach(page => {
+  const matches = page.url.match(/\[([^\]]+)\]/g);
+  if (matches) {
+    matches.forEach(match => dynamicTerms.add(match));
+  }
+});
+
+
+const previousPageUrl = Astro.request.url.split('/').slice(0, -1).join('/') || '/';
+---
+<Page
+  title={Astro.request.url}
+  description="Debug page for Astro context"
+  options={[
+    { name: 'Back', url: previousPageUrl },
+    { name: 'Home', url: '/' },
+  ]}
+>
+
+  <slot />
+
+  <div id="debug-console" style="background: #eeeeee0c; padding: 0.5rem 2rem;">
+    <pre>params: {JSON.stringify(Astro.params, null, 2)}</pre>
+    <pre>request: {JSON.stringify(Astro.request, null, 2)}</pre>
+    <pre>props: {JSON.stringify(Astro.props, null, 2)}</pre>
+    <pre>dynamic terms: {JSON.stringify(Array.from(dynamicTerms), null, 2)}</pre>
+    <pre>pages: {JSON.stringify(pageIndex.map(page => page.url), null, 2)}</pre>
+  </div>
+</Page>
+
+<script>
+  const debugConsole = document.getElementById("debug-console");
+  console.log("Press Ctrl+Q or Cmd+Q to toggle debug console");
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "q" && (event.ctrlKey || event.metaKey)) {
+      debugConsole?.classList.toggle("expanded");
+      localStorage.setItem("debugConsoleExpanded", debugConsole?.classList.contains("expanded") ? "true" : "false");
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const expanded = localStorage.getItem("debugConsoleExpanded") || "true";
+    if (expanded === "true") {
+      debugConsole?.classList.add("expanded");
+    }
+    else {
+      debugConsole?.classList.remove("expanded");
+    }
+  });
+</script>
+
+<style>
+  #debug-console:not(.expanded) {
+    display: none;
+  }
+</style>
