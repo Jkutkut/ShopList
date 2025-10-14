@@ -39,7 +39,7 @@ run_valkey_controller:
 # ########   Docker Compose   ########
 ENVS = dev
 GENERIC_ENV = dev
-PROJECTS = api auth db nginx
+PROJECTS = api auth db front nginx
 TEST_PROJECTS = auth
 
 $(ENVS:%=up_%): up_%:

@@ -46,6 +46,18 @@ services:
     networks:
       - auth-network
       - api-network
+  front:
+    container_name: shoplist-front
+    hostname: shoplist-front
+    image: node:20
+    volumes:
+      - .:/shoplist
+    working_dir: /shoplist/front
+    command: npm run dev
+    ports:
+      - "4321:4321"
+    networks:
+      - api-network
   nginx:
     networks:
       - api-network
