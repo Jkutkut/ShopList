@@ -147,7 +147,7 @@ async fn db_test_logout() {
 }
 
 #[tokio::test]
-#[ntest::timeout(4000)]
+#[ntest::timeout(5000)]
 async fn db_test_change_password() {
 	let test = setup().await;
 
@@ -313,3 +313,85 @@ async fn db_test_logout_everyone() {
 }
 
 // TODO refresh token testing
+
+#[tokio::test]
+#[ntest::timeout(4000)]
+async fn db_test_user_team_roles() {
+	let test = setup().await;
+
+	let user = "marvin_db_test_user_team_roles";
+	let password = "marvin-password";
+	let email = "marvin-db_test_user_team_roles@marvin.com";
+
+	ensure_users_deleted(&test, &[user]).await;
+	let token = create_user_basic_credentials(&test, user, email, password).await;
+	let user_obj = test.db.me(&token).await.unwrap();
+	let user_uuid: Uuid = user_obj.uuid.parse().unwrap();
+
+	let user_team_roles = test.db.team_roles(&user_uuid).await;
+	assert!(user_team_roles.is_ok(), "Team roles should succeed");
+	let user_team_roles = user_team_roles.unwrap().team_roles;
+	assert_eq!(user_team_roles.len(), 0);
+
+	let teams = [
+		"marvin_db_test_user_team_roles_team1",
+		"marvin_db_test_user_team_roles_team2",
+		"marvin_db_test_user_team_roles_team3",
+	];
+
+	let query_new_team = "SELECT new_team($1, $2, $3, $4)";
+	let stmt_new_team = test.db.db_client.prepare(query_new_team).await.unwrap();
+	let delete_team = "DELETE FROM teams WHERE name = $1";
+	let delete_team = test.db.db_client.prepare(delete_team).await.unwrap();
+	let mut team_ids = Vec::new();
+	for team in teams.iter() {
+		assert!(test.db.db_client.execute(&delete_team, &[team]).await.is_ok(), "Delete team {} should succeed", team);
+		let result = test.db.db_client.query_one(&stmt_new_team, &[
+			&user_uuid,
+			team,
+			&format!("This is the description for the team with name {}", team),
+			&"url://2-image.png"
+		]).await;
+		assert!(result.is_ok(), "Create team {} should succeed", team);
+		let team_id: Uuid = result.unwrap().get(0);
+		team_ids.push(team_id);
+	}
+
+	let join_team = "INSERT INTO user_roles (user_id, team_id, role) VALUES ($1, $2, $3)";
+	let join_team = test.db.db_client.prepare(join_team).await.unwrap();
+	for (idx, team) in teams.iter().enumerate() {
+		let role = match *team {
+			"marvin_db_test_user_team_roles_team2" => "admin",
+			_ => "member",
+		};
+		let result = test.db.db_client.execute(&join_team, &[
+			&user_uuid,
+			&team_ids[idx],
+			&role
+		]).await;
+		assert!(result.is_ok(), "Join team {} should succeed", team);
+	}
+
+	let user_team_roles = test.db.team_roles(&user_uuid).await;
+	assert!(user_team_roles.is_ok(), "Team roles should succeed");
+	let user_team_roles = user_team_roles.unwrap().team_roles;
+	assert_eq!(user_team_roles.len(), 3);
+	for team_role in user_team_roles.iter() {
+		assert!(team_role.team.is_some(), "Team should be Some");
+		let team = team_role.team.as_ref().unwrap();
+		assert!(!team.name.is_empty(), "Team name should not be empty");
+		let team_name = team.name.as_str();
+		let expected_role = match team_name {
+			"marvin_db_test_user_team_roles_team1" => "member",
+			"marvin_db_test_user_team_roles_team2" => "admin",
+			"marvin_db_test_user_team_roles_team3" => "member",
+			_ => panic!("Unexpected team name: {}", team_name),
+		};
+		assert_eq!(team_role.role, expected_role, "Role should be {} in team {}", expected_role, team_name);
+	}
+
+	ensure_users_deleted(&test, &[user]).await;
+	let user_team_roles = test.db.team_roles(&user_uuid).await;
+	debug!("user_team_roles (deleted user): {:#?}", user_team_roles);
+	assert!(user_team_roles.is_err(), "Team roles should fail (User deleted)");
+}

@@ -13,6 +13,8 @@ use model::grpc::auth::{
 	Empty,
 	LogoutUserRequest,
 	BasicChangePasswordRequest,
+	UserTeamRoles,
+	UserId,
 };
 use log::*;
 
@@ -129,5 +131,16 @@ impl AuthService for Auth {
 		Ok(Response::new(UserToken {
 			token: self.db.refresh_token(&request.into_inner().token).await?
 		}))
+	}
+
+	async fn team_roles(
+		&self,
+		request: Request<UserId>,
+	) -> Result<Response<UserTeamRoles>, Status> {
+		let user_id: Uuid = match request.into_inner().id.parse() {
+			Ok(id) => id,
+			Err(_) => return Err(Status::invalid_argument("Invalid user_id"))
+		};
+		Ok(Response::new(self.db.team_roles(&user_id).await?))
 	}
 }

@@ -15,7 +15,12 @@ use tonic::Status;
 use model::{
 	jwt::JWTHandler,
 	BasicLogin,
-	grpc::auth::User,
+	grpc::auth::{
+		User,
+		Team,
+		TeamRole,
+		UserTeamRoles,
+	}
 };
 use log::*;
 
@@ -228,6 +233,47 @@ impl ShoplistDbAuth {
 		};
 		info!("Refreshed token for user: {}", user_id);
 		Ok(token)
+	}
+
+	pub async fn team_roles(&self, user_id: &Uuid) -> Result<UserTeamRoles, Status> {
+		info!("team_roles request with user_id: {}", user_id);
+		let query = "SELECT * FROM team_roles($1);";
+		let stmt = self.db_client.prepare(query).await.unwrap();
+		let rows = match self.db_client.query(&stmt, &[&user_id]).await {
+			Ok(rows) => rows,
+			Err(e) => {
+				if e.to_string().contains("not exists") {
+					return Err(Status::not_found("User not found"));
+				}
+				error!("Error getting user roles: {}", e);
+				return Err(Status::internal("Internal error"));
+			}
+		};
+		let mut team_roles = Vec::new();
+		for row in rows {
+			let uuid: Uuid = row.get(1);
+			let created_at: chrono::NaiveDateTime = row.get(5);
+			let created_by: Uuid = row.get(6);
+			let updated_at: chrono::NaiveDateTime = row.get(7);
+			let updated_by: Uuid = row.get(8);
+			let team = Team {
+				uuid: uuid.to_string(),
+				name: row.get(2),
+				description: row.get(3),
+				image: row.get(4),
+				created_at: created_at.to_string(),
+				created_by: created_by.to_string(),
+				updated_at: updated_at.to_string(),
+				updated_by: updated_by.to_string(),
+			};
+			let role = TeamRole {
+				role: row.get(0),
+				team: Some(team)
+			};
+			debug!("User role: {:#?}", role);
+			team_roles.push(role);
+		}
+		Ok(UserTeamRoles { team_roles })
 	}
 }
 

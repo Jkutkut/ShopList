@@ -12,6 +12,7 @@ service AuthService {
   rpc LogoutUser(LogoutUserRequest) returns (Empty);
   rpc LogoutEveryone(UserToken) returns (Empty);
   rpc RefreshToken(UserToken) returns (UserToken);
+  rpc TeamRoles(UserId) returns (UserTeamRoles);
 }
 
 message LoginRequest {
@@ -44,6 +45,10 @@ message LogoutUserRequest {
   string token = 2;
 }
 
+message UserId {
+  string id = 1;
+}
+
 message Empty {}
 
 message User {
@@ -53,4 +58,24 @@ message User {
   string updatedAt = 4;
   bool isSuperuser = 5;
   optional string image = 6;
+}
+
+message Team {
+  string uuid = 1;
+  string name = 2;
+  string description = 3;
+  string image = 4;
+  string createdAt = 5;
+  string createdBy = 6;
+  string updatedAt = 7;
+  string updatedBy = 8;
+}
+
+message TeamRole {
+  string role = 1;
+  Team team = 2;
+}
+
+message UserTeamRoles {
+  repeated TeamRole teamRoles = 1;
 }

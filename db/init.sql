@@ -251,3 +251,56 @@ AS $$
 BEGIN
     DELETE FROM credentials WHERE credentials.user_id = usr_id;
 END $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS new_team(users.id%TYPE, teams.name%TYPE, teams.description%TYPE, teams.image%TYPE);
+
+CREATE FUNCTION new_team(
+    creator users.id%TYPE,
+    name teams.name%TYPE,
+    description teams.description%TYPE,
+    image teams.image%TYPE
+) RETURNS teams.id%TYPE
+AS $$
+DECLARE
+    team_id teams.id%TYPE;
+BEGIN
+    INSERT INTO teams (name, description, image, created_by, updated_by)
+        VALUES (name, description, image, creator, creator)
+        RETURNING id INTO team_id;
+    RETURN team_id;
+END $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS team_roles(users.id%TYPE);
+
+CREATE FUNCTION team_roles(
+    usr_id users.id%TYPE
+) RETURNS TABLE (
+    role_name roles.name%TYPE,
+    team_id teams.id%TYPE,
+    team_name teams.name%TYPE,
+    team_description teams.description%TYPE,
+    team_image teams.image%TYPE,
+    team_created_at teams.created_at%TYPE,
+    team_created_by teams.created_by%TYPE,
+    team_updated_at teams.updated_at%TYPE,
+    team_updated_by teams.updated_by%TYPE
+)
+AS $$
+DECLARE
+    user_exists BOOLEAN;
+BEGIN
+    SELECT EXISTS(SELECT 1 FROM users WHERE id = usr_id) INTO user_exists;
+    IF NOT user_exists THEN
+        RAISE EXCEPTION 'User does not exist';
+    END IF;
+    RETURN QUERY
+    SELECT
+        ur.role,
+        t.id, t.name,
+        t.description, t.image,
+        t.created_at, t.created_by,
+        t.updated_at, t.updated_by
+    FROM user_roles ur
+        JOIN teams t ON ur.team_id = t.id
+    WHERE ur.user_id = usr_id;
+END $$ LANGUAGE plpgsql;
