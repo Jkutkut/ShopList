@@ -1,6 +1,10 @@
 ---
 import Page from "./page.astro";
 
+const {
+  options
+} = Astro.props;
+
 const pages = import.meta.glob('/src/pages/**/*.astro', { eager: true });
 
 const pageIndex = Object.entries(pages).map(([path, module]) => {
@@ -30,7 +34,7 @@ const previousPageUrl = Astro.request.url.split('/').slice(0, -1).join('/') || '
   description="Debug page for Astro context"
   options={[
     { name: 'Back', url: previousPageUrl },
-    { name: 'Home', url: '/' },
+    ...options || []
   ]}
 >
 

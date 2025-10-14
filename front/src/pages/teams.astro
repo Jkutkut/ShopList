@@ -1,0 +1,76 @@
+---
+import Debug from "../layouts/debug.astro";
+import { TEAM_ROLES } from "../mockup";
+
+const options = [
+  { name: 'Profile', url: '' },
+  { name: 'Logout', url: '' },
+];
+---
+
+<Debug options={options}>
+<h1>Select a team or create one</h1>
+<div>
+  {TEAM_ROLES.map(teamRole => (
+    <a href={teamRole.team.id}>
+      <div class="team-card">
+        {teamRole.team.name &&
+          <h2>{teamRole.team.name}</h2>
+        }
+        {teamRole.team.image &&
+          <img src={teamRole.team.image} alt={teamRole.team.name} />
+        }
+        {teamRole.team.description && 
+          <p>{teamRole.team.description}</p>
+        }
+        <div class={"role role-" + teamRole.role}>{teamRole.role}</div>
+      </div>
+    </a>
+  ))}
+</div>
+</Debug>
+
+<style>
+  h1 {
+    margin: 1rem;
+    padding: 1rem;
+  }
+
+  .team-card {
+    --img-size: 128px;
+
+    margin: 1rem;
+    padding: 1rem;
+    border: 2px solid var(--border);
+    border-radius: 0.5rem;
+
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .team-card h2 {
+    width: calc(100% - var(--img-size) - 1rem);
+    height: 2rem;
+    margin-right: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .team-card img {
+    aspect-ratio: 1 / 1;
+    max-width: 100%;
+    width: 128px;
+    height: auto;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .team-card .role {
+    margin-left: auto;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 2px solid var(--border);
+    font-weight: bold;
+    text-transform: capitalize;
+  }
+</style>
