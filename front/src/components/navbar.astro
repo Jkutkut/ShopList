@@ -1,6 +1,12 @@
 ---
 import ThemeToggle from './themeToggle.astro';
-const { mobileTitle, options } = Astro.props;
+
+interface Props {
+    mobileTitle: string;
+    options: { name: string; url: string }[];
+}
+
+const { mobileTitle, options }: Props = Astro.props;
 ---
 <header>
     <nav class="col">
