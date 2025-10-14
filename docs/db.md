@@ -44,20 +44,14 @@ classDiagram
 
     users "1" -- "0,1" superusers : is
 
-    class roles {
-        id
-        name
-    }
-
     class user_roles {
         id
         user_id
-        role_id
+        role
         team_id
     }
 
     users "*" -- "*" user_roles : is allowed
-    roles "1" -- "*" user_roles : describes
     teams "1" -- "*" user_roles : has
     users "1" -- "1" credentials : authenticates
 

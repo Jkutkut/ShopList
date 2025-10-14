@@ -3,7 +3,6 @@ DROP TABLE IF EXISTS basic_login;
 DROP TABLE IF EXISTS credentials;
 DROP TABLE IF EXISTS superusers;
 DROP TABLE IF EXISTS user_roles;
-DROP TABLE IF EXISTS roles;
 DROP TABLE IF EXISTS product_identifiers;
 DROP TABLE IF EXISTS generic_products;
 DROP TABLE IF EXISTS product_tags;
@@ -55,22 +54,6 @@ CREATE TABLE basic_login (
   FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
-CREATE TABLE roles (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  name text NOT NULL UNIQUE
-);
-
-CREATE TABLE user_roles (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id uuid NOT NULL,
-  role_id uuid NOT NULL,
-  -- team_id uuid NOT NULL,
-
-  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-  FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
-  -- FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE
-);
-
 CREATE TABLE teams (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   name text NOT NULL UNIQUE,
@@ -82,6 +65,19 @@ CREATE TABLE teams (
   updated_by uuid,
   FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL,
   FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE SET NULL
+);
+
+CREATE TABLE user_roles (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id uuid NOT NULL,
+  role TEXT NOT NULL,
+  team_id uuid NOT NULL,
+
+  CONSTRAINT user_roles_unique UNIQUE (user_id, team_id),
+  CONSTRAINT valid_role CHECK (role IN ('admin', 'member')),
+
+  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE
 );
 
 CREATE TABLE products (
