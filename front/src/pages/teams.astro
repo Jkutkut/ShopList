@@ -8,38 +8,42 @@ const options = [
 ];
 ---
 
-<Debug options={options}>
-<h1>Select a team or create one</h1>
-<div>
-  {TEAM_ROLES.map(teamRole => (
-    <a href={teamRole.team.id}>
-      <div class="team-card">
-        {teamRole.team.name &&
-          <h2>{teamRole.team.name}</h2>
-        }
-        {teamRole.team.image &&
-          <img src={teamRole.team.image} alt={teamRole.team.name} />
-        }
-        {teamRole.team.description && 
-          <p>{teamRole.team.description}</p>
-        }
-        <div class={"role role-" + teamRole.role}>{teamRole.role}</div>
-      </div>
-    </a>
-  ))}
-</div>
+<Debug
+  title="Shoplist - Teams"
+  description="Manage your teams and permissions"
+  options={options}
+>
+  <section>
+    <h1>Select a team or create one</h1>
+  </section>
+  <section class="col gap">
+    {TEAM_ROLES.map(teamRole => (
+      <a href={teamRole.team.id}>
+        <div class="team-card">
+          {teamRole.team.name &&
+            <h2>{teamRole.team.name}</h2>
+          }
+          {teamRole.team.image &&
+            <img src={teamRole.team.image} alt={teamRole.team.name} />
+          }
+          {teamRole.team.description &&
+            <p>{teamRole.team.description}</p>
+          }
+          <div class={"role role-" + teamRole.role}>{teamRole.role}</div>
+        </div>
+      </a>
+    ))}
+  </section>
+  <section>
+    <a href="/new" class="btn btn-primary">Create a new team</a>
+  </section>
 </Debug>
 
 <style>
-  h1 {
-    margin: 1rem;
-    padding: 1rem;
-  }
 
   .team-card {
     --img-size: 128px;
 
-    margin: 1rem;
     padding: 1rem;
     border: 2px solid var(--border);
     border-radius: 0.5rem;

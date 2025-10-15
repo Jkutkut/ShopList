@@ -2,6 +2,7 @@
 import Page from "./page.astro";
 
 const {
+  title, description,
   options
 } = Astro.props;
 
@@ -30,8 +31,8 @@ pageIndex.forEach(page => {
 const previousPageUrl = Astro.request.url.split('/').slice(0, -1).join('/') || '/';
 ---
 <Page
-  title={Astro.request.url}
-  description="Debug page for Astro context"
+  title={title || Astro.request.url}
+  description={description || "Debug page for Astro context"}
   options={[
     { name: 'Back', url: previousPageUrl },
     ...options || []
