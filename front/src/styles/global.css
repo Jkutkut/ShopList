@@ -37,6 +37,7 @@ body {
   --border: #444444;
   --accent: #444444;
   --danger: #dc3545;
+  --success: #28a745;
 
   --txt-color-btn: #e0e0e0;
   --txt-bg-p: #2c2c2c;
@@ -56,6 +57,7 @@ body.light {
   --border: #888888;
   --accent: #b0b0b0;
   --danger: #dc3545;
+  --success: #28a745;
 
   --txt-color-btn: #e0e0e0;
   --txt-bg-p: #007bff;
