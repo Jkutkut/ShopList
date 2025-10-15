@@ -1,0 +1,50 @@
+---
+import Debug from "../../layouts/debug.astro";
+import { OPTIONS } from "../../mockup";
+import { TEAMS, APPS } from "../../mockup";
+
+const { team_id } = Astro.params;
+
+const team = TEAMS.find(t => t.id === team_id);
+
+if (!team) {
+  return Astro.redirect('/teams', 302);
+}
+---
+
+<Debug
+  title={team.name}
+  description={team.description}
+  options={OPTIONS['team']}
+  icon={team.image}
+>
+  <section>
+    <h1 class="desktop-only">{team.name}</h1>
+    {team.description &&
+      <p>{team.description}</p>
+    }
+  </section>
+  <section class="col gap center">
+    {APPS.map(app => (
+      <a
+        class={`app-card btn btn-primary ${!app.enabled ? 'disabled' : ''}`}
+        href={app.enabled === false ? undefined : app.url}
+      >
+        {app.name}
+      </a>
+    ))}
+  </section>
+</Debug>
+
+<style>
+  .app-card {
+    display: flex;
+    justify-content: center;
+    width: calc(100% - 3rem);
+  }
+
+  .app-card.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+</style>

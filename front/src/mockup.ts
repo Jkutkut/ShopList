@@ -72,3 +72,17 @@ OPTIONS['teams'] = [
   { name: 'Profile', url: '/profile' },
   ...OPTIONS['logout'],
 ];
+OPTIONS['team'] = [
+  { name: 'Config team', url: './config' },
+  { name: 'Profile', url: '/profile' },
+  ...OPTIONS['logout'],
+];
+
+export const APPS = [
+  { name: 'Shopping Lists', url: './lists', enabled: false },
+  { name: 'Marvin', url: './marvin', enabled: false },
+  { name: 'Products', url: './products', enabled: false },
+  { name: 'Tags', url: './tags', enabled: false },
+  { name: 'Config', url: './config', enabled: false },
+  { name: 'Security', url: './security', enabled: false },
+];
