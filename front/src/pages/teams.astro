@@ -1,17 +1,11 @@
 ---
 import Debug from "../layouts/debug.astro";
-import { TEAM_ROLES } from "../mockup";
-
-const options = [
-  { name: 'Profile', url: '' },
-  { name: 'Logout', url: '' },
-];
+import { OPTIONS, TEAM_ROLES } from "../mockup";
 ---
-
 <Debug
-  title="Shoplist - Teams"
+  title="Teams"
   description="Manage your teams and permissions"
-  options={options}
+  options={OPTIONS['teams']}
 >
   <section>
     <h1>Select a team or create one</h1>

@@ -36,6 +36,7 @@ body {
   --txt-color-s: #b0b0b0;
   --border: #444444;
   --accent: #444444;
+  --danger: #dc3545;
 
   --txt-color-btn: #e0e0e0;
   --txt-bg-p: #2c2c2c;
@@ -54,6 +55,7 @@ body.light {
   --txt-color-s: #444444;
   --border: #888888;
   --accent: #b0b0b0;
+  --danger: #dc3545;
 
   --txt-color-btn: #e0e0e0;
   --txt-bg-p: #007bff;
@@ -149,6 +151,9 @@ a.submenu-link:hover {
 }
 .btn.btn-secondary {
   background: var(--txt-bg-s);
+}
+.btn.btn-danger {
+  background: var(--danger);
 }
 
 .full-w {

@@ -4,6 +4,9 @@
 ## Team selector: `/teams`
 - Create
 - Select
+## Profile: `/profile`
+- View profile
+- Edit profile
 ## Team creator: `/new`
 ## Team dashboard: `/<team>/`
 - Config

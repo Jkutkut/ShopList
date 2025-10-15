@@ -50,3 +50,27 @@ export const TEAM_ROLES = TEAMS.map((team, idx) => ({
   role: (idx === 1 ? "admin" : "member"),
   team: team
 }));
+
+export const USER = {
+  id: "user-a",
+  name: "Jkutkut",
+  email: "email@email.com",
+  image: IMAGES["1:1"],
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+};
+
+
+
+export const OPTIONS: { [key: string]: { name: string; url: string }[] } = {};
+OPTIONS['logout'] = [
+  { name: 'Logout', url: '' },
+];
+OPTIONS['profile'] = [
+  { name: 'Teams', url: '/teams' },
+  ...OPTIONS['logout'],
+];
+OPTIONS['teams'] = [
+  { name: 'Profile', url: '/profile' },
+  ...OPTIONS['logout'],
+];
