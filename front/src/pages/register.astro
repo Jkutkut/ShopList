@@ -1,10 +1,10 @@
 ---
+import RegisterForm from '../components/form/RegisterForm'
 import LandingPage from '../layouts/landingPage.astro'
 ---
 <LandingPage
-    title="Shoplist - Register"
-    description="Register into Shoplist"
+  title="Shoplist - Register"
+  description="Register into Shoplist"
 >
-    <h1>Register</h1>
-    <a href="/" aria-label="Go to the home page">Home</a>
+  <RegisterForm client:load />
 </LandingPage>
