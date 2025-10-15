@@ -60,8 +60,6 @@ export const USER = {
   updatedAt: new Date().toISOString(),
 };
 
-
-
 export const OPTIONS: { [key: string]: { name: string; url: string }[] } = {};
 OPTIONS['logout'] = [
   { name: 'Logout', url: '' },

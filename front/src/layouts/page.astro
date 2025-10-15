@@ -4,6 +4,7 @@ import Navbar from '../components/navbar.astro'
 const {
     title, description,
     options,
+    icon,
 } = Astro.props;
 ---
 <html lang="en">
@@ -16,7 +17,7 @@ const {
         {title && <title>Shoplist - {title}</title>}
     </head>
     <body>
-        <Navbar mobileTitle={title} options={options} />
+        <Navbar mobileTitle={title} options={options} icon={icon} />
         <slot />
     </body>
 </html>

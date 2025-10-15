@@ -1,141 +1,169 @@
 ---
-import ThemeToggle from './themeToggle.astro';
+import ThemeToggle from "./themeToggle.astro";
 
 interface Props {
-    mobileTitle: string;
-    options: { name: string; url: string }[];
+  mobileTitle: string;
+  options: { name: string; url: string }[];
+  icon?: string;
 }
 
-const { mobileTitle, options }: Props = Astro.props;
+const { mobileTitle, options, icon }: Props = Astro.props;
+options.forEach((option) => {
+  if (option.url.startsWith("./")) {
+    option.url = Astro.url.pathname + option.url.slice(1);
+  }
+});
 ---
+
 <header>
-    <nav class="col">
-        <div class="row">
-            <div id="desktop-nav-menu">
-                {options.map((option) => (
-                    <a href={option.url}>{option.name}</a>
-                ))}
+  <nav class="col">
+    <div class="row">
+      <div id="desktop-nav-menu">
+        {options.map((option) => <a href={option.url}>{option.name}</a>)}
+      </div>
+      <div id="mobile-nav-title">
+        {mobileTitle}
+      </div>
+      <div id="nav-right">
+        <ThemeToggle tabIndex={0} />
+        {
+          icon && (
+            <div id="desktop-nav-icon" class="center">
+              <img src={icon} alt={mobileTitle} />
             </div>
-            <div id="mobile-nav-title">
-                {mobileTitle}
-            </div>
-            <div id="nav-right">
-                <ThemeToggle tabIndex={0} />
-                <button id="mobile-nav-menu-toggle">
-                    <div></div>
-                    <div></div>
-                    <div></div>
-                </button>
-            </div>
-        </div>
-        <div id="mobile-nav-menu" class="hidden col">
-            {options.map((option) => (
-                <a href={option.url}>{option.name}</a>
-            ))}
-        </div>
-    </nav>
+            <a id="mobile-nav-menu-toggle">
+              <img src={icon} alt={mobileTitle} />
+            </a>
+          ) || (
+            <button id="mobile-nav-menu-toggle">
+              <div />
+              <div />
+              <div />
+            </button>
+          )
+        }
+      </div>
+    </div>
+    <div id="mobile-nav-menu" class="hidden col">
+      {options.map((option) => <a href={option.url}>{option.name}</a>)}
+    </div>
+  </nav>
 </header>
 
 <script>
-{
-    const mobileNavMenuToggle = document.getElementById("mobile-nav-menu-toggle");
+  {
+    const mobileNavMenuToggle = document.getElementById(
+      "mobile-nav-menu-toggle"
+    );
     const mobileNavMenu = document.getElementById("mobile-nav-menu");
     mobileNavMenuToggle?.addEventListener("click", () => {
-        mobileNavMenu?.classList.toggle("hidden");
-        if (!mobileNavMenu?.classList.contains("hidden")) {
-            mobileNavMenu?.focus();
-        }
+      mobileNavMenu?.classList.toggle("hidden");
+      if (!mobileNavMenu?.classList.contains("hidden")) {
+        mobileNavMenu?.focus();
+      }
     });
     mobileNavMenu?.addEventListener("focusout", () => {
-        const relatedTarget = event.relatedTarget;
-        if (!mobileNavMenu.contains(relatedTarget as Node)) {
-            mobileNavMenu?.classList.add("hidden");
-        }
+      const relatedTarget = event.relatedTarget;
+      if (!mobileNavMenu.contains(relatedTarget as Node)) {
+        mobileNavMenu?.classList.add("hidden");
+      }
     });
-}
+  }
 </script>
 
 <style>
-    nav  {
-        padding-right: 0.5rem;
-        padding-left: 0.5rem;
-        border-bottom: 2px solid var(--border);
-        padding: 1rem;
-    }
+  nav {
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+    border-bottom: 2px solid var(--border);
+    padding: 1rem;
+  }
 
-    nav > div.row {
-        width: 100%;
-    }
+  nav > div.row {
+    width: 100%;
+  }
 
+  #mobile-nav-title {
+    display: flex;
+    align-items: center;
+  }
+
+  #nav-right {
+    display: flex;
+    justify-content: end;
+    margin-left: auto;
+    margin-right: 0;
+    gap: 0.5rem;
+  }
+
+  #desktop-nav-menu {
+    display: none;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  #mobile-nav-menu {
+    gap: 0.5rem;
+    background: var(--txt-bg-s);
+    padding: 0.5rem;
+    margin-left: auto;
+    margin-right: 0;
+    justify-content: end;
+    min-width: 40%;
+
+    position: absolute;
+    top: calc(2rem + 2rem);
+    right: 0;
+  }
+
+  @media screen and (min-width: 600px) {
+    #mobile-nav-menu-toggle,
     #mobile-nav-title {
-        display: flex;
-        align-items: center;
+      display: none;
     }
-
-    #nav-right {
-        display: flex;
-        justify-content: end;
-        margin-left: auto;
-        margin-right: 0;
-        gap: 0.5rem;
-    }
-
     #desktop-nav-menu {
-        display: none;
-        gap: 1rem;
-        align-items: center;
+      display: flex;
     }
 
-    #mobile-nav-menu {
-        gap: 0.5rem;
-        background: var(--txt-bg-s);
-        padding: 0.5rem;
-        margin-left: auto;
-        margin-right: 0;
-        justify-content: end;
-        min-width: 40%;
-
-        position: absolute;
-        top: calc(2rem + 2rem);
-        right: 0;
+    #desktop-nav-icon {
+      display: flex;
     }
+  }
 
-    @media screen and (min-width: 600px) {
-        #mobile-nav-menu-toggle, #mobile-nav-title {
-            display: none;
-        }
-        #desktop-nav-menu {
-            display: flex;
-        }
-    }
-
-    @media screen and (max-width: 600px) {
-        #mobile-nav-menu-toggle {
-            display: flex;
-        }
-    }
-
+  @media screen and (max-width: 600px) {
     #mobile-nav-menu-toggle {
-        gap: 0.4rem;
-        flex-direction: column;
-        justify-content: center;
-        background: var(--txt-bg-s);
-        border: 0;
-        padding: 0.6rem;
-        border-radius: 0.25rem;
-        div {
-            width: 1.25rem;
-            height: 2px;
-            background: var(--txt-color-s);
-        }
-    }
-    #mobile-nav-menu-toggle:hover {
-        border: 2px solid var(--border);
-        padding: calc(0.6rem - 2px);
+      display: flex;
     }
 
-    .hidden {
-        display: none;
+    #desktop-nav-icon {
+      display: none;
     }
+  }
 
+  #mobile-nav-menu-toggle {
+    gap: 0.4rem;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--txt-bg-s);
+    border: 0;
+    padding: 0.6rem;
+    border-radius: 0.25rem;
+    div {
+      width: 1.25rem;
+      height: 2px;
+      background: var(--txt-color-s);
+    }
+  }
+  a#mobile-nav-menu-toggle {
+    padding: 0;
+    margin: 0;
+  }
+  #mobile-nav-menu-toggle img, #desktop-nav-icon img {
+    width: 2rem;
+    height: 2rem;
+    object-fit: cover;
+  }
+  .hidden {
+    display: none;
+  }
 </style>

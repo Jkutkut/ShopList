@@ -3,7 +3,8 @@ import Page from "./page.astro";
 
 const {
   title, description,
-  options
+  options,
+  icon,
 } = Astro.props;
 
 const pages = import.meta.glob('/src/pages/**/*.astro', { eager: true });
@@ -37,6 +38,7 @@ const previousPageUrl = Astro.request.url.split('/').slice(0, -1).join('/') || '
     { name: 'Back', url: previousPageUrl },
     ...options || []
   ]}
+  icon={icon}
 >
 
   <slot />

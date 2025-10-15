@@ -178,3 +178,9 @@ body:not(.light) img:not(.default) {
 .gap {
   gap: 1rem;
 }
+
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
