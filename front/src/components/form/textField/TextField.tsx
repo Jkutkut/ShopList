@@ -1,6 +1,7 @@
 import "../../../styles/form.css";
 import { useEffect, useState } from "react";
-import { DEFAULT_VALIDATION_TIMEOUT, FormValidationState, TextFieldType } from ".";
+import { DEFAULT_VALIDATION_TIMEOUT, FormValidationState, INFINITE_VALIDATION_TIMEOUT, TextFieldType } from ".";
+import ValidationFeedback from "../ValidationFeedback";
 
 interface Props {
     name: string;
@@ -29,32 +30,22 @@ const TextField = ({
     okMessage,
     errorMessage,
     okMessageTimeout = DEFAULT_VALIDATION_TIMEOUT,
-    errorMessageTimeout = DEFAULT_VALIDATION_TIMEOUT,
+    errorMessageTimeout = INFINITE_VALIDATION_TIMEOUT,
 }: Props) => {
     const [validationState, setValidationState] = useState<FormValidationState>(FormValidationState.NONE);
+    const [value, setValue] = useState(initialValue);
 
-    useEffect(() => {
-        if (!validate) return;
-
-        const result = validate(initialValue);
-        console.log(result);
-        setValidationState(result);
-
-        let timeout: NodeJS.Timeout;
-        if (result === FormValidationState.SUCCESS && okMessage) {
-            timeout = setTimeout(() => {
-                setValidationState(FormValidationState.NONE);
-            }, okMessageTimeout);
-        } else if (result === FormValidationState.ERROR && errorMessage) {
-            timeout = setTimeout(() => {
-                setValidationState(FormValidationState.NONE);
-            }, errorMessageTimeout);
+    const onChangeListener = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setValue(e.target.value);
+        if (validate) {
+            const result = validate(e.target.value);
+            setValidationState(result);
+            if (result !== FormValidationState.SUCCESS) {
+                return;
+            }
         }
-        
-        return () => {
-            if (timeout) clearTimeout(timeout);
-        };
-    }, [initialValue]);
+        onChange(e);
+    }
 
     return <div className="input-field">
         {label && <span className="input-field-text">{label}</span>}
@@ -63,19 +54,15 @@ const TextField = ({
             name={name}
             autoComplete={autocomplete}
             placeholder={placeholder}
-            value={initialValue}
-            onChange={onChange}
+            value={value}
+            onChange={onChangeListener}
         />
-        {okMessage && validationState === FormValidationState.SUCCESS &&
-            <div className="valid-feedback">
-                {okMessage}
-            </div>
-        }
-        {errorMessage && validationState === FormValidationState.ERROR &&
-            <div className="invalid-feedback">
-                {errorMessage}
-            </div>
-        }
+        <ValidationFeedback
+            isOn={validationState !== FormValidationState.NONE}
+            type={validationState === FormValidationState.SUCCESS ? "valid" : "invalid"}
+            message={validationState === FormValidationState.SUCCESS ? okMessage : errorMessage}
+            time={validationState === FormValidationState.SUCCESS ? okMessageTimeout : errorMessageTimeout}
+        />
     </div>;
 };
 

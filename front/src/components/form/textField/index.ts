@@ -14,7 +14,8 @@ enum FormValidationState {
     SUCCESS = 'success'
 }
 
-const DEFAULT_VALIDATION_TIMEOUT = 300;
+const DEFAULT_VALIDATION_TIMEOUT = 3000;
+const INFINITE_VALIDATION_TIMEOUT = -1;
 
 export { TextFieldType, FormValidationState };
-export { DEFAULT_VALIDATION_TIMEOUT };
+export { DEFAULT_VALIDATION_TIMEOUT, INFINITE_VALIDATION_TIMEOUT };
