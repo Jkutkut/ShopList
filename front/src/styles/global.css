@@ -179,8 +179,27 @@ body:not(.light) img:not(.default) {
   gap: 1rem;
 }
 
+.flex {
+  display: flex;
+}
+
+.align-center {
+  align-items: center;
+}
+
 .center {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+@media screen and (max-width: 600px) {
+  .desktop-only {
+    display: none;
+  }
+}
+@media screen and (min-width: 600px) {
+  .mobile-only {
+    display: none;
+  }
 }

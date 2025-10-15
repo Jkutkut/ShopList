@@ -18,24 +18,24 @@ options.forEach((option) => {
 <header>
   <nav class="col">
     <div class="row">
-      <div id="desktop-nav-menu">
+      <div class="desktop-only center gap">
         {options.map((option) => <a href={option.url}>{option.name}</a>)}
       </div>
-      <div id="mobile-nav-title">
+      <div class="mobile-only flex align-center">
         {mobileTitle}
       </div>
       <div id="nav-right">
         <ThemeToggle tabIndex={0} />
         {
           icon && (
-            <div id="desktop-nav-icon" class="center">
+            <div class="desktop-only center nav-icon">
               <img src={icon} alt={mobileTitle} />
             </div>
-            <a id="mobile-nav-menu-toggle">
+            <a id="mobile-nav-menu-toggle" class="mobile-only nav-icon">
               <img src={icon} alt={mobileTitle} />
             </a>
           ) || (
-            <button id="mobile-nav-menu-toggle">
+            <button id="mobile-nav-menu-toggle" class="mobile-only">
               <div />
               <div />
               <div />
@@ -83,23 +83,12 @@ options.forEach((option) => {
     width: 100%;
   }
 
-  #mobile-nav-title {
-    display: flex;
-    align-items: center;
-  }
-
   #nav-right {
     display: flex;
     justify-content: end;
     margin-left: auto;
     margin-right: 0;
     gap: 0.5rem;
-  }
-
-  #desktop-nav-menu {
-    display: none;
-    gap: 1rem;
-    align-items: center;
   }
 
   #mobile-nav-menu {
@@ -116,30 +105,6 @@ options.forEach((option) => {
     right: 0;
   }
 
-  @media screen and (min-width: 600px) {
-    #mobile-nav-menu-toggle,
-    #mobile-nav-title {
-      display: none;
-    }
-    #desktop-nav-menu {
-      display: flex;
-    }
-
-    #desktop-nav-icon {
-      display: flex;
-    }
-  }
-
-  @media screen and (max-width: 600px) {
-    #mobile-nav-menu-toggle {
-      display: flex;
-    }
-
-    #desktop-nav-icon {
-      display: none;
-    }
-  }
-
   #mobile-nav-menu-toggle {
     gap: 0.4rem;
     flex-direction: column;
@@ -148,21 +113,25 @@ options.forEach((option) => {
     border: 0;
     padding: 0.6rem;
     border-radius: 0.25rem;
+
     div {
       width: 1.25rem;
       height: 2px;
       background: var(--txt-color-s);
     }
   }
+
   a#mobile-nav-menu-toggle {
     padding: 0;
     margin: 0;
   }
-  #mobile-nav-menu-toggle img, #desktop-nav-icon img {
+
+  .nav-icon img {
     width: 2rem;
     height: 2rem;
     object-fit: cover;
   }
+
   .hidden {
     display: none;
   }
