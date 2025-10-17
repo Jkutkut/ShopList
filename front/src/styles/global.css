@@ -197,11 +197,11 @@ body:not(.light) img:not(.default) {
 
 @media screen and (max-width: 600px) {
   .desktop-only {
-    display: none;
+    display: none !important;
   }
 }
 @media screen and (min-width: 600px) {
   .mobile-only {
-    display: none;
+    display: none !important;
   }
 }

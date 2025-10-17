@@ -1,3 +1,14 @@
+.full-screen-form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.full-screen-form form {
+  max-width: 600px;
+  width: 100%;
+}
+
 .input-field input {
   background-color: var(--txt-bg-s);
   color: var(--txt-color-p);

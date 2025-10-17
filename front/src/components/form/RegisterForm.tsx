@@ -7,7 +7,7 @@ const RegisterForm = () => {
         email: "",
         password: ""
     });
-    return <section>
+    return <section className="full-screen-form">
         <form className="col gap">
             <h1>Register</h1>
             <TextField

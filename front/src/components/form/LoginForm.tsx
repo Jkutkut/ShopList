@@ -6,7 +6,7 @@ const LoginForm = () => {
         username: "",
         password: ""
     });
-    return <section>
+    return <section className="full-screen-form">
         <form className="col gap">
             <h1>Login</h1>
             <TextField
