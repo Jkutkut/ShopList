@@ -16,6 +16,7 @@ interface Props {
     errorMessage?: string;
     okMessageTimeout?: number;
     errorMessageTimeout?: number;
+    className?: string;
 }
 
 const TextField = ({
@@ -31,6 +32,7 @@ const TextField = ({
     errorMessage,
     okMessageTimeout = DEFAULT_VALIDATION_TIMEOUT,
     errorMessageTimeout = INFINITE_VALIDATION_TIMEOUT,
+    className,
 }: Props) => {
     const [validationState, setValidationState] = useState<FormValidationState>(FormValidationState.NONE);
     const [value, setValue] = useState(initialValue);
@@ -47,7 +49,7 @@ const TextField = ({
         onChange(e);
     }
 
-    return <div className="input-field">
+    return <div className={`input-field ${className}`}>
         {label && <span className="input-field-text">{label}</span>}
         <input
             type={type}
