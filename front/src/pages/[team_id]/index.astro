@@ -2,6 +2,7 @@
 import Debug from "../../layouts/debug.astro";
 import { OPTIONS } from "../../mockup";
 import { TEAMS, APPS } from "../../mockup";
+import { asUrl } from "../../utils";
 
 const { team_id } = Astro.params;
 
@@ -28,7 +29,7 @@ if (!team) {
     {APPS.map(app => (
       <a
         class={`app-card btn btn-primary ${!app.enabled ? 'disabled' : ''}`}
-        href={app.enabled === false ? undefined : app.url}
+        href={app.enabled === false ? undefined : asUrl(`./${app.url}`, Astro)}
       >
         {app.name}
       </a>

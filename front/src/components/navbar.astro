@@ -1,4 +1,5 @@
 ---
+import { asUrl } from "../utils";
 import ThemeToggle from "./themeToggle.astro";
 
 interface Props {
@@ -8,11 +9,7 @@ interface Props {
 }
 
 const { mobileTitle, options, icon }: Props = Astro.props;
-options.forEach((option) => {
-  if (option.url.startsWith("./")) {
-    option.url = Astro.url.pathname + option.url.slice(1);
-  }
-});
+options.forEach((option) => ({ ...option, url: asUrl(option.url, Astro) }));
 ---
 
 <header>
