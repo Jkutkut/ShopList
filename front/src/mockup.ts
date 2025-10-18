@@ -1,5 +1,6 @@
 export const IMAGES = {
-  "1:1": "/assets/blank.svg",
+  "1:1": "/assets/blank-1.1.svg",
+  "2:1": "/assets/blank-2.1.svg",
 }
 
 export const TEXT = {
