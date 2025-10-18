@@ -72,6 +72,7 @@ classDiagram
     class list_products {
         id
         list_id
+        category_id
         product_id
         index
         amount

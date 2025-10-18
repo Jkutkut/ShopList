@@ -169,9 +169,10 @@ CREATE TABLE list_categories (
 CREATE TABLE list_products (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   list_id uuid NOT NULL,
+  category_id uuid,
   product_id uuid NOT NULL,
   index integer, -- TODO
-  quantity integer,
+  amount float,
   unit text,
   created_at timestamp DEFAULT now() NOT NULL,
   created_by uuid,
@@ -180,8 +181,9 @@ CREATE TABLE list_products (
 
   CONSTRAINT list_products_unique UNIQUE (list_id, product_id),
   CONSTRAINT list_products_index_positive CHECK (index >= 0),
-  CONSTRAINT list_products_quantity_positive CHECK (quantity > 0),
+  CONSTRAINT list_products_amount_positive CHECK (amount >= 0),
   FOREIGN KEY (list_id) REFERENCES lists (id) ON DELETE CASCADE,
+  FOREIGN KEY (category_id) REFERENCES list_categories (id) ON DELETE SET NULL,
   FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
   FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL,
   FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE SET NULL
