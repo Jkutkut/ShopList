@@ -1,0 +1,18 @@
+.list-layout {
+    --product-img-size: 128px;
+}
+
+.list-layout .product .imgs img {
+    width: auto;
+    height: var(--product-img-size);
+    object-fit: cover;
+    border-radius: 0.5rem;
+}
+
+.list-layout .product .product-amount {
+    width: 128px;
+}
+
+.list-layout .product .product-unit {
+    width: 64px;
+}

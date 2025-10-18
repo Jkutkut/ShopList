@@ -194,6 +194,11 @@ OPTIONS['team'] = [
   ...OPTIONS['logout'],
 ];
 OPTIONS['lists'] = OPTIONS['teams'];
+OPTIONS['list'] = [
+  { name: 'Config list', url: './config' },
+  { name: 'Profile', url: '/profile' },
+  ...OPTIONS['logout'],
+];
 
 export const APPS = [
   { name: 'Shopping Lists', url: './lists', enabled: true },

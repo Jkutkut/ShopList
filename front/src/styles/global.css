@@ -163,6 +163,11 @@ a.submenu-link:hover {
   width: 100%;
 }
 
+.with-border {
+  border: 2px solid var(--border);
+  border-radius: 0.5rem;
+}
+
 body:not(.light) img:not(.default) {
   filter: invert(1);
 }
@@ -181,6 +186,10 @@ body:not(.light) img:not(.default) {
   gap: 1rem;
 }
 
+.half-gap {
+  gap: 0.5rem;
+}
+
 .flex {
   display: flex;
 }
@@ -193,6 +202,18 @@ body:not(.light) img:not(.default) {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.wrap {
+  flex-wrap: wrap;
+}
+
+.margin {
+  margin: 0.5rem;
+}
+
+.padding {
+  padding: 1rem;
 }
 
 .space-between {

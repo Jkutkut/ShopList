@@ -1,0 +1,18 @@
+---
+import Debug from "../../../layouts/debug.astro";
+import { OPTIONS } from "../../../mockup";
+import ListLayout from "../../../components/list/ListLayout";
+import "../../../styles/list.css"
+
+const { list } = Astro.params;
+
+---
+<Debug
+  title="Lists"
+  description="Manage your lists"
+  options={OPTIONS['list']}
+>
+  <ListLayout
+    id={list!}
+  />
+</Debug>
