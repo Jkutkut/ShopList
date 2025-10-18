@@ -194,7 +194,7 @@ OPTIONS['team'] = [
 ];
 
 export const APPS = [
-  { name: 'Shopping Lists', url: './lists', enabled: false },
+  { name: 'Shopping Lists', url: './lists', enabled: true },
   { name: 'Marvin', url: './marvin', enabled: false },
   { name: 'Products', url: './products', enabled: false },
   { name: 'Tags', url: './tags', enabled: false },

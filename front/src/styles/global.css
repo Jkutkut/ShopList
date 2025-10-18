@@ -195,6 +195,10 @@ body:not(.light) img:not(.default) {
   align-items: center;
 }
 
+.space-between {
+  justify-content: space-between;
+}
+
 @media screen and (max-width: 600px) {
   .desktop-only {
     display: none !important;
