@@ -44,11 +44,11 @@ TEST_PROJECTS = auth
 
 $(ENVS:%=up_%): up_%:
 	@echo "${TITLE}Starting ENV ${YELLOW}$*${NC}..."
-	docker compose -f docker-compose.yaml -f docker-compose.$*.yaml up
+	docker compose -f docker-compose.yaml -f docker-compose.$*.yaml up --build
 
 $(ENVS:%=up_d_%): up_d_%:
 	@echo "${TITLE}Starting ENV ${YELLOW}$*${NC}..."
-	docker compose -f docker-compose.yaml -f docker-compose.$*.yaml up -d
+	docker compose -f docker-compose.yaml -f docker-compose.$*.yaml up -d --build
 
 $(ENVS:%=down_%): down_%:
 	@echo "${TITLE}Shutting down ENV ${YELLOW}$*${NC}..."
