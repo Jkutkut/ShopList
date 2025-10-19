@@ -99,7 +99,7 @@ a {
   color: var(--txt-color-p);
   text-decoration: none;
 }
-a:hover {
+a:hover:not(.no-animation) {
   text-decoration: underline;
 }
 a.submenu-link {
@@ -143,7 +143,10 @@ a.submenu-link:hover {
   text-decoration: none;
   font-weight: bold;
 }
-.btn:hover {
+.btn.btn-small {
+  padding: 0.75rem 0.5rem;
+}
+.btn:hover:not(.no-animation) {
   border: 2px solid var(--border);
   padding: calc(0.75rem - 2px) calc(1.5rem - 2px);
   text-decoration: none;
@@ -214,6 +217,10 @@ body:not(.light) img:not(.default) {
 
 .padding {
   padding: 1rem;
+}
+
+.half-padding {
+  padding: 0.5rem;
 }
 
 .space-between {
