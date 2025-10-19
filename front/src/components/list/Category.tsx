@@ -1,7 +1,7 @@
 import { PRODUCTS } from "../../mockup";
 import Product from "./Product";
-import { TextField, TextFieldType } from "../form/textField";
 import useExpanded from "../../hooks/useExpanded";
+import AddProduct from "./AddProduct";
 
 interface Props {
     category?: any;
@@ -28,16 +28,7 @@ const Category = ({
         }
         {expanded && <>
             {productsList.length > 0 &&
-                <div className="row center">
-                    <TextField
-                        name="new-product"
-                        type={TextFieldType.TEXT}
-                        placeholder="Add a product"
-                        onChange={(...args) => console.log("onChange", args)}
-                        className="full-w margin"
-                    />
-                    <a href="" className="btn btn-primary margin">+</a>
-                </div>
+                <AddProduct />
             }
             <div className="products">
                 {productsList.map((p, idx) => (
@@ -51,16 +42,7 @@ const Category = ({
                     <p className="padding">No products</p>
                 }
             </div>
-            <div className="row center">
-                <TextField
-                    name="new-product"
-                    type={TextFieldType.TEXT}
-                    placeholder="Add a product"
-                    onChange={(...args) => console.log("onChange", args)}
-                    className="full-w margin"
-                />
-                <a href="" className="btn btn-primary margin">+</a>
-            </div>
+            <AddProduct />
         </>}
     </div>;
 };

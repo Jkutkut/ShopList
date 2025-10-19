@@ -211,6 +211,12 @@ body:not(.light) img:not(.default) {
   flex-wrap: wrap;
 }
 
+.no-wrap {
+  display: flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
 .margin {
   margin: 0.5rem;
 }
@@ -236,4 +242,11 @@ body:not(.light) img:not(.default) {
   .mobile-only {
     display: none !important;
   }
+}
+
+.overflow-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow-x: hidden;
 }

@@ -16,3 +16,24 @@
 .list-layout .product .product-unit {
     width: 64px;
 }
+
+.list-layout .addProduct > div {
+    position: relative;
+}
+
+.list-layout .addProduct .product-suggestions {
+    border-top: 0px solid var(--border);
+    padding-top: 0px;
+    margin-top: 0px;
+
+    background: var(--txt-bg-s);
+    position: absolute;
+    z-index: 100;
+
+    top: calc(44px);
+    left: 0;
+    right: 0;
+    max-height: 15rem;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}

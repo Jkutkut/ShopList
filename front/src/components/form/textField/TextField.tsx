@@ -11,6 +11,8 @@ interface Props {
     autocomplete?: string;
     initialValue?: string;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onInputFocus?: () => void;
+    onInputBlur?: () => void;
     validate?: (value: string) => FormValidationState;
     okMessage?: string;
     errorMessage?: string;
@@ -27,6 +29,8 @@ const TextField = ({
     autocomplete,
     initialValue = "",
     onChange,
+    onInputFocus,
+    onInputBlur,
     validate,
     okMessage,
     errorMessage,
@@ -58,6 +62,8 @@ const TextField = ({
             placeholder={placeholder}
             value={value}
             onChange={onChangeListener}
+            onFocus={onInputFocus}
+            onBlur={onInputBlur}
         />
         <ValidationFeedback
             isOn={validationState !== FormValidationState.NONE}
