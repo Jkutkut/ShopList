@@ -1,18 +1,27 @@
 ---
 import Debug from "../../../layouts/debug.astro";
-import { OPTIONS } from "../../../mockup";
+import { LIST_PRODUCTS, LISTS, OPTIONS } from "../../../mockup";
 import ListLayout from "../../../components/list/ListLayout";
 import "../../../styles/list.css"
+import { asUrl } from "../../../utils";
 
-const { list } = Astro.params;
+const { list: listParam } = Astro.params;
+
+const GO_BACK_URL = asUrl(`/${Astro.params.team_id}/lists`, Astro);
+if (!listParam) {
+  return Astro.redirect(GO_BACK_URL, 302);
+}
+if (!LIST_PRODUCTS.hasOwnProperty(listParam)) {
+  return Astro.redirect(GO_BACK_URL, 302);
+}
+const list_id: keyof typeof LIST_PRODUCTS = listParam as keyof typeof LIST_PRODUCTS;
+const list = LISTS.find((l) => l.id === list_id)!;
 
 ---
 <Debug
-  title="Lists"
-  description="Manage your lists"
+  title={list.name}
+  description=`Manage your list ${list.name}`
   options={OPTIONS['list']}
 >
-  <ListLayout
-    id={list!}
-  />
+  <ListLayout client:only id={list_id} />
 </Debug>
