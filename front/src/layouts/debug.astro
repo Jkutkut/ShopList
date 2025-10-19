@@ -77,4 +77,7 @@ const previousPageUrl = Astro.request.url.split('/').slice(0, -1).join('/') || '
   #debug-console:not(.expanded) {
     display: none;
   }
+  #debug-console {
+    overflow-x: scroll;
+  }
 </style>
