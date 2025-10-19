@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { TextField, TextFieldType } from "../form/textField";
-import { PRODUCTS } from "../../mockup";
+import { ACTION, PRODUCTS } from "../../mockup";
 
 const SUGGEST_AFTER = 300;
 
@@ -63,7 +63,7 @@ const AddProduct = ({
                     </div>
                 }
             </div>
-            <a href="" className="btn btn-primary margin">+</a>
+            <a className="btn btn-primary margin" onClick={ACTION("click add product")}>+</a>
         </div>
     </>;
 };

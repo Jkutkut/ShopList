@@ -1,4 +1,4 @@
-import { CATEGORIES, LIST_PRODUCTS, LISTS } from "../../mockup";
+import { ACTION, CATEGORIES, LIST_PRODUCTS, LISTS } from "../../mockup";
 import Category from "./Category";
 
 interface Props {
@@ -13,7 +13,7 @@ const ListLayout = ({
     const listProducts = LIST_PRODUCTS[id];
 
     return <section className="list-layout col gap">
-        <a href="" className="btn btn-primary">Create new category</a>
+        <a className="btn btn-primary" onClick={ACTION("new category")}>Create new category</a>
         <div className="categories col gap">
             {categories.map((c) => (
                 <Category
@@ -27,7 +27,7 @@ const ListLayout = ({
                 productsList={listProducts.filter((p) => p.categoryId === undefined)}
             />
         </div>
-        <a href="" className="btn btn-primary">Create new category</a>
+        <a className="btn btn-primary" onClick={ACTION("new category")}>Create new category</a>
     </section>;
 };
 

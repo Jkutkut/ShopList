@@ -272,3 +272,14 @@ export const APPS = [
   { name: 'Config', url: './config', enabled: false },
   { name: 'Security', url: './security', enabled: false },
 ];
+
+export const ACTION = (action: string) => {
+  return (...args: any[]) => {
+    if (args.length > 0) {
+      if (args[0].preventDefault) {
+        args[0].preventDefault();
+      }
+    }
+    console.log(action, ...args);
+  };
+};

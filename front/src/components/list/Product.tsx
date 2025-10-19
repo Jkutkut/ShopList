@@ -1,5 +1,5 @@
 import useExpanded from "../../hooks/useExpanded";
-import { IMAGES } from "../../mockup";
+import { ACTION, IMAGES } from "../../mockup";
 import DateLabel from "../date/DateLabel";
 import { TextField, TextFieldType } from "../form/textField";
 import arrowUp from "../../assets/arrow-up.svg";
@@ -18,21 +18,23 @@ const Product = ({
     const { expanded, toggleExpanded } = useExpanded(false);
     console.log("product", product);
     return <div className="product col with-border margin">
-        <div className="header row space-between half-padding" onClick={toggleExpanded}>
-            <div className="row gap center">
-                <a href="" className="btn btn-small no-animation">
-                    <img src={xMark.src} alt="" width={10} />
-                </a>
-                <h3>{product.name}</h3>
-            </div>
-            <div className="row half-gap center">
+        <div className="header row half-padding half-gap space-between">
+            <a className="btn btn-small no-animation" onClick={ACTION("Delete product")}>
+                <img src={xMark.src} alt="" width={10} />
+            </a>
+            <div className="row center space-between full-w" onClick={toggleExpanded}>
+                <h3 className="">{product.name}</h3>
                 {!expanded &&
-                    <span>{productList.amount} {productList.unit}</span>
+                    <div className="row half-gap center">
+                        <span>{productList.amount} {productList.unit}</span>
+                    </div>
                 }
-                <a href="" className="btn btn-primary btn-small no-animation">
+            </div>
+            <div className="row half-gap">
+                <a className="btn btn-primary btn-small no-animation" onClick={ACTION("Up product")}>
                     <img src={arrowUp.src} alt="" width={10} />
                 </a>
-                <a href="" className="btn btn-primary btn-small no-animation">
+                <a className="btn btn-primary btn-small no-animation" onClick={ACTION("Down product")}>
                     <img src={arrowDown.src} alt="" width={10} />
                 </a>
             </div>
@@ -41,7 +43,7 @@ const Product = ({
             <div className="content col gap half-padding">
                 <div className="row gap space-between wrap">
                     <div className="row gap space-between">
-                        <a href="" className="btn btn-primary btn-small no-animation">✏️</a>
+                        <a className="btn btn-primary btn-small no-animation" onClick={ACTION("Edit product")}>✏️</a>
                         <TextField
                             name="amount"
                             type={TextFieldType.TEXT}

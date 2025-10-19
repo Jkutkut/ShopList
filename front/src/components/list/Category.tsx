@@ -1,4 +1,4 @@
-import { PRODUCTS } from "../../mockup";
+import { ACTION, PRODUCTS } from "../../mockup";
 import Product from "./Product";
 import useExpanded from "../../hooks/useExpanded";
 import AddProduct from "./AddProduct";
@@ -17,9 +17,9 @@ const Category = ({
     console.log("category", category, productsList);
     return <div className="category col with-border">
         {category &&
-            <div className="header row space-between padding" onClick={toggleExpanded}>
-                <h2>{category.name}</h2>
-                <a href="" className="btn btn-primary no-animation">✏️</a>
+            <div className="header row">
+                <h2 className="full-w padding" onClick={toggleExpanded}>{category.name}</h2>
+                <a className="btn btn-primary no-animation margin" onClick={ACTION("Edit category")}>✏️</a>
             </div>
         ||
             <div className="header padding" onClick={toggleExpanded}>
