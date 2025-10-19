@@ -23,7 +23,7 @@ const Product = ({
                 <img src={xMark.src} alt="" width={10} />
             </a>
             <div className="row center space-between full-w" onClick={toggleExpanded}>
-                <h3 className="">{product.name}</h3>
+                <h3 className="no-wrap">{product.name}</h3>
                 {!expanded &&
                     <div className="row half-gap center">
                         <span>{productList.amount} {productList.unit}</span>
@@ -42,24 +42,26 @@ const Product = ({
         {expanded &&
             <div className="content col gap half-padding">
                 <div className="row gap space-between wrap">
-                    <div className="row gap space-between">
+                    <div className="row gap space-between full-w wrap">
                         <a className="btn btn-primary btn-small no-animation" onClick={ACTION("Edit product")}>✏️</a>
-                        <TextField
-                            name="amount"
-                            type={TextFieldType.TEXT}
-                            initialValue={productList.amount}
-                            placeholder="Amount"
-                            onChange={(...args) => console.log("onChange", args)}
-                            className="product-amount"
-                        />
-                        <TextField
-                            name="unit"
-                            type={TextFieldType.TEXT}
-                            initialValue={productList.unit}
-                            placeholder="Unit"
-                            onChange={(...args) => console.log("onChange", args)}
-                            className="product-unit"
-                        />
+                        <div className="row gap wrap">
+                            <TextField
+                                name="amount"
+                                type={TextFieldType.TEXT}
+                                initialValue={productList.amount}
+                                placeholder="Amount"
+                                onChange={(...args) => console.log("onChange", args)}
+                                className="product-amount"
+                            />
+                            <TextField
+                                name="unit"
+                                type={TextFieldType.TEXT}
+                                initialValue={productList.unit}
+                                placeholder="Unit"
+                                onChange={(...args) => console.log("onChange", args)}
+                                className="product-unit"
+                            />
+                        </div>
                     </div>
                     <div className="col">
                         <span className="">

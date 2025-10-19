@@ -18,7 +18,7 @@ const Category = ({
     return <div className="category col with-border">
         {category &&
             <div className="header row">
-                <h2 className="full-w padding" onClick={toggleExpanded}>{category.name}</h2>
+                <h2 className="full-w padding no-wrap" onClick={toggleExpanded}>{category.name}</h2>
                 <a className="btn btn-primary no-animation margin" onClick={ACTION("Edit category")}>✏️</a>
             </div>
         ||

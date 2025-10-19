@@ -4,14 +4,16 @@ import { LIST_PRODUCTS, LISTS, OPTIONS } from "../../../mockup";
 import ListLayout from "../../../components/list/ListLayout";
 import "../../../styles/list.css"
 import { asUrl } from "../../../utils";
+import { TEAMS } from "../../../mockup";
 
-const { list: listParam } = Astro.params;
+const { list: listParam, team_id } = Astro.params;
 
 const GO_BACK_URL = asUrl(`/${Astro.params.team_id}/lists`, Astro);
-if (!listParam) {
+if (!listParam || !team_id) {
   return Astro.redirect(GO_BACK_URL, 302);
 }
-if (!LIST_PRODUCTS.hasOwnProperty(listParam)) {
+const team = TEAMS.find((t) => t.id === team_id);
+if (!LIST_PRODUCTS.hasOwnProperty(listParam) || !team) {
   return Astro.redirect(GO_BACK_URL, 302);
 }
 const list_id: keyof typeof LIST_PRODUCTS = listParam as keyof typeof LIST_PRODUCTS;
@@ -22,6 +24,7 @@ const list = LISTS.find((l) => l.id === list_id)!;
   title={list.name}
   description=`Manage your list ${list.name}`
   options={OPTIONS['list']}
+  icon={list.image || team.image}
 >
   <ListLayout client:only id={list_id} />
 </Debug>
