@@ -1,4 +1,5 @@
 ---
+import DateLabel from "../../../components/date/DateLabel";
 import Debug from "../../../layouts/debug.astro";
 import { OPTIONS, TEAMS } from "../../../mockup";
 import { asUrl } from "../../../utils";
@@ -38,7 +39,7 @@ const lists = team.lists;
               }
               <p>
                 Last modified by {list.updatedBy} at
-                <label class="date2format" data-date={list.updatedAt}></label>
+                <DateLabel client:only date={list.updatedAt} />
               </p>
             </div>
             <div class="col">
@@ -76,35 +77,3 @@ const lists = team.lists;
     margin-bottom: 1rem;
   }
 </style>
-
-<script>
-  const date2str = (date: Date | string | number) => {
-    if (typeof date !== "object") {
-      date = new Date(date);
-    }
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    if (diff < 60000) { // < 1 min
-      return "just now";
-    }
-    if (diff < 1800000) { // < 30 min
-      const minutes = Math.floor(diff / 60000);
-      return `${minutes} minutes ago`;
-    }
-    const time = date.toLocaleTimeString();
-    if (diff < 86400000 && date.getDay() === now.getDay()) { // < 1 day
-      return time;
-    }
-    const day = date.toLocaleDateString();
-    return `${time} ${day}`;
-  };
-  document.querySelectorAll('.date2format').forEach(el => {
-    const DATE_ATTR = "data-date";
-    if (!el.hasAttribute(DATE_ATTR)) {
-      console.warn(`date2format without ${DATE_ATTR} found`);
-      return;
-    }
-    const date = new Date(el.getAttribute(DATE_ATTR)!);
-    el.textContent = date2str(date);
-  });
-</script>
