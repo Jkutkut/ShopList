@@ -116,10 +116,74 @@ export const LISTS = [
   }
 ];
 
+export const CATEGORIES = [
+  {
+    id: "category-a",
+    name: "Category A",
+    listId: "list-a",
+    createdAt: new Date().toISOString(),
+    createdBy: USER.id,
+    updatedAt: new Date().toISOString(),
+    updatedBy: USER.id
+  },
+  {
+    id: "category-b",
+    name: "Category B",
+    listId: "list-a",
+    createdAt: new Date().toISOString(),
+    createdBy: USER.id,
+    updatedAt: new Date().toISOString(),
+    updatedBy: USER.id
+  },
+  {
+    id: "category-c",
+    name: "Category C",
+    listId: "list-b",
+    createdAt: new Date().toISOString(),
+    createdBy: USER.id,
+    updatedAt: new Date().toISOString(),
+    updatedBy: USER.id
+  },
+];
+
+
 export const LIST_PRODUCTS = {
-  "list-a": PRODUCTS,
-  "list-b": PRODUCTS.slice(0, 3),
-  "list-c": PRODUCTS.slice(3, 6),
+  "list-a": [
+    ...PRODUCTS.slice(0, 3).map((p, idx) => ({
+      listId: "list-a",
+      categoryId: "category-a",
+      productId: p.id,
+      index: idx + 1,
+      amount: "12",
+      unit: "L",
+      createdAt: new Date().toISOString(),
+      createdBy: USER.id,
+      updatedAt: new Date().toISOString(),
+      updatedBy: USER.id
+    })),
+    {
+      listId: "list-a",
+      categoryId: undefined,
+      productId: PRODUCTS[3].id,
+      index: 3 + 1,
+      createdAt: new Date().toISOString(),
+      createdBy: USER.id,
+      updatedAt: new Date().toISOString(),
+      updatedBy: USER.id
+    },
+    ...PRODUCTS.splice(4, -1).map((p, idx) => ({
+      listId: "list-a",
+      categoryId: "category-b",
+      productId: p.id,
+      index: idx + 3 + 1,
+      createdAt: new Date().toISOString(),
+      createdBy: USER.id,
+      updatedAt: new Date().toISOString(),
+      updatedBy: USER.id
+    })),
+  ],
+  "list-b": [],
+  "list-c": [],
 };
 
 export const TEAMS = [
