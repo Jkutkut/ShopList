@@ -1,10 +1,12 @@
 ---
 import NewTeamForm from '../components/form/NewTeamForm'
 import LandingPage from '../layouts/landingPage.astro'
+import { OPTIONS } from '../mockup'
 ---
 <LandingPage
   title="Shoplist - New team"
   description="Register a team into Shoplist"
+  options={OPTIONS['new-team']}
 >
   <NewTeamForm client:load />
 </LandingPage>

@@ -1,15 +1,21 @@
 import useForm from "../../hooks/useForm";
 import { TextField, TextFieldType } from "./textField";
 
-const NewTeamForm = () => {
+interface Props {
+    team: any;
+};
+
+const ConfigTeamForm = ({
+    team,
+}: Props) => {
     const { name, description, img, onChange } = useForm({
-        name: "",
-        description: "",
+        name: team.name,
+        description: team.description,
         img: "",
     });
     return <section className="full-screen-form">
         <form className="col gap">
-            <h1>New Team</h1>
+            <h1>Configure team</h1>
             <TextField
                 name="name"
                 label="Name"
@@ -26,8 +32,9 @@ const NewTeamForm = () => {
             />
             {/* TODO img */}
             <button className="btn btn-primary" type="submit">Submit</button>
+            <button className="btn btn-danger" type="submit">Delete team</button>
         </form>
     </section>;
 };
 
-export default NewTeamForm;
+export default ConfigTeamForm;

@@ -264,13 +264,21 @@ OPTIONS['list'] = [
   ...OPTIONS['logout'],
 ];
 OPTIONS['products'] = OPTIONS['teams'];
+OPTIONS['new-team'] = [
+  { name: 'Teams', url: '/teams' },
+  ...OPTIONS['logout'],
+];
+OPTIONS['config-team'] = [
+  { name: 'Teams', url: '/teams' },
+  ...OPTIONS['logout'],
+];
 
 export const APPS = [
   { name: 'Shopping Lists', url: './lists', enabled: true },
   { name: 'Marvin', url: './marvin', enabled: false },
   { name: 'Products', url: './products', enabled: true },
   { name: 'Tags', url: './tags', enabled: false },
-  { name: 'Config', url: './config', enabled: false },
+  { name: 'Config', url: './config', enabled: true },
   { name: 'Security', url: './security', enabled: false },
 ];
 

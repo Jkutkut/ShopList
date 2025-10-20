@@ -1,0 +1,23 @@
+---
+import { TEAMS } from '../../mockup';
+import ConfigTeamForm from '../../components/form/ConfigTeamForm'
+import LandingPage from '../../layouts/landingPage.astro'
+
+const { team_id } = Astro.params;
+
+if (!team_id) {
+  return Astro.redirect('/teams', 302);
+}
+
+const team = TEAMS.find(t => t.id === team_id);
+
+if (!team) {
+  return Astro.redirect('/teams', 302);
+}
+---
+<LandingPage
+  title=`Shoplist - ${team.name} configuration`
+  description=`Configure the team ${team.name}`
+>
+  <ConfigTeamForm client:load team={team} />
+</LandingPage>
