@@ -4,3 +4,6 @@ export const asUrl = (url: string, Astro: any) => {
   }
   return url;
 };
+
+export const previousPageUrl = (Astro: any) =>
+  Astro.request.url.split('/').slice(0, -1).join('/') || '/';

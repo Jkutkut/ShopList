@@ -3,7 +3,7 @@ import Debug from "../../../layouts/debug.astro";
 import { LIST_PRODUCTS, LISTS, OPTIONS } from "../../../mockup";
 import ListLayout from "../../../components/list/ListLayout";
 import "../../../styles/list.css"
-import { asUrl } from "../../../utils";
+import { asUrl, previousPageUrl } from "../../../utils";
 import { TEAMS } from "../../../mockup";
 
 const { list: listParam, team_id } = Astro.params;
@@ -23,7 +23,10 @@ const list = LISTS.find((l) => l.id === list_id)!;
 <Debug
   title={list.name}
   description=`Manage your list ${list.name}`
-  options={OPTIONS['list']}
+  options={[
+    { name: 'Back', url: previousPageUrl(Astro) },
+    ...OPTIONS['list']
+  ]}
   icon={list.image || team.image}
 >
   <ListLayout client:only id={list_id} />

@@ -4,6 +4,7 @@ import Debug from "../../../layouts/debug.astro";
 import { ACTION } from "../../../mockup";
 import { OPTIONS } from "../../../mockup";
 import { TEAMS } from "../../../mockup";
+import { previousPageUrl } from "../../../utils";
 
 const { team_id } = Astro.params;
 
@@ -22,7 +23,10 @@ const products = team.products;
 <Debug
   title={`${team.name}'s products`}
   description=`Manage the products of the team ${team.name}`
-  options={OPTIONS['products']}
+  options={[
+    { name: 'Back', url: previousPageUrl(Astro) },
+    ...OPTIONS['products']
+  ]}
   icon={team.image}
 >
   <section>

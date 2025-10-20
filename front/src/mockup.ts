@@ -146,7 +146,6 @@ export const CATEGORIES = [
   },
 ];
 
-
 export const LIST_PRODUCTS = {
   "list-a": [
     ...PRODUCTS.slice(0, 3).map((p, idx) => ({
@@ -253,7 +252,7 @@ OPTIONS['teams'] = [
   ...OPTIONS['logout'],
 ];
 OPTIONS['team'] = [
-  { name: 'Config team', url: './config' },
+  { name: 'Teams', url: '/teams' },
   { name: 'Profile', url: '/profile' },
   ...OPTIONS['logout'],
 ];
@@ -269,9 +268,9 @@ OPTIONS['new-team'] = [
   ...OPTIONS['logout'],
 ];
 OPTIONS['config-team'] = [
-  { name: 'Teams', url: '/teams' },
   ...OPTIONS['logout'],
 ];
+OPTIONS['security-team'] = OPTIONS['config-team'];
 
 export const APPS = [
   { name: 'Shopping Lists', url: './lists', enabled: true },

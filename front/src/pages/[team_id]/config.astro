@@ -1,7 +1,8 @@
 ---
-import { TEAMS } from '../../mockup';
+import { OPTIONS, TEAMS } from '../../mockup';
 import ConfigTeamForm from '../../components/form/ConfigTeamForm'
-import LandingPage from '../../layouts/landingPage.astro'
+import Debug from '../../layouts/debug.astro'
+import { previousPageUrl } from '../../utils';
 
 const { team_id } = Astro.params;
 
@@ -15,9 +16,13 @@ if (!team) {
   return Astro.redirect('/teams', 302);
 }
 ---
-<LandingPage
+<Debug
   title=`Shoplist - ${team.name} configuration`
   description=`Configure the team ${team.name}`
+  options={[
+    { name: 'Back', url: previousPageUrl(Astro) },
+    ...OPTIONS['config-team']
+  ]}
 >
   <ConfigTeamForm client:load team={team} />
-</LandingPage>
+</Debug>

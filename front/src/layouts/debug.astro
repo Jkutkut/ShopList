@@ -27,17 +27,11 @@ pageIndex.forEach(page => {
     matches.forEach(match => dynamicTerms.add(match));
   }
 });
-
-
-const previousPageUrl = Astro.request.url.split('/').slice(0, -1).join('/') || '/';
 ---
 <Page
   title={title || Astro.request.url}
   description={description || "Debug page for Astro context"}
-  options={[
-    { name: 'Back', url: previousPageUrl },
-    ...options || []
-  ]}
+  options={options || []}
   icon={icon}
 >
 
