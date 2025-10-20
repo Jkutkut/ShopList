@@ -1,7 +1,7 @@
 {
   "name": "shoplist-front",
   "type": "module",
-  "version": "0.0.16",
+  "version": "0.0.40",
   "scripts": {
     "dev": "astro dev --host",
     "build": "astro build"

@@ -233,10 +233,56 @@ export const TEAMS = [
   }
 ];
 
+export const ROLES = ["admin", "member"];
+
 export const TEAM_ROLES = TEAMS.map((team, idx) => ({
-  role: (idx === 1 ? "admin" : "member"),
+  role: (idx !== 1 ? "admin" : "member"),
   team: team
 }));
+
+export const ALL_USERS = [
+  USER,
+  {
+    id: "user-b",
+    name: "marvin01",
+    email: "marvin01@email.com",
+    image: IMAGES["1:1"],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "user-c",
+    name: "marvin02",
+    email: "marvin02@email.com",
+    image: IMAGES["1:1"],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "user-d",
+    name: "marvin03",
+    email: "marvin03@email.com",
+    image: IMAGES["1:1"],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+];
+
+export const ALL_TEAM_ROLES = TEAMS.map((team, idx) => ({
+  key: team.id,
+  value: ALL_USERS.map((user, userIdx) => ({
+    role: (
+      user.id === USER.id ?
+      (TEAM_ROLES.find(role => role.team.id === team.id)?.role || undefined) :
+      (idx === userIdx) ? "admin" : "member"
+    ),
+    user
+  }))
+}))
+.reduce<Record<string, any>>((acc, team) => {
+  acc[team.key] = team.value;
+  return acc;
+}, {});
 
 
 export const OPTIONS: { [key: string]: { name: string; url: string }[] } = {};
@@ -276,9 +322,9 @@ export const APPS = [
   { name: 'Shopping Lists', url: './lists', enabled: true },
   { name: 'Marvin', url: './marvin', enabled: false },
   { name: 'Products', url: './products', enabled: true },
-  { name: 'Tags', url: './tags', enabled: false },
+  // { name: 'Tags', url: './tags', enabled: false },
   { name: 'Config', url: './config', enabled: true },
-  { name: 'Security', url: './security', enabled: false },
+  { name: 'Security', url: './security', enabled: true },
 ];
 
 export const ACTION = (action: string) => {

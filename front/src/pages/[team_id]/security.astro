@@ -1,0 +1,49 @@
+---
+import { ALL_TEAM_ROLES, OPTIONS, TEAMS } from '../../mockup';
+import { TEAM_ROLES } from '../../mockup';
+import Debug from '../../layouts/debug.astro';
+import MembersAdministration from '../../components/config/MembersAdministration';
+import { USER } from '../../mockup';
+import { previousPageUrl } from '../../utils';
+
+const { team_id } = Astro.params;
+
+if (!team_id) {
+  return Astro.redirect('/teams', 302);
+}
+
+const team = TEAMS.find(t => t.id === team_id);
+
+if (!team) {
+  return Astro.redirect('/teams', 302);
+}
+
+const teamRoles = ALL_TEAM_ROLES[team.id];
+const myRole = TEAM_ROLES.find((teamRole: any) => teamRole.team.id === team.id);
+
+if (!myRole) {
+  return Astro.redirect('/teams', 302);
+}
+
+const iAmAdmin = myRole.role === 'admin';
+---
+<Debug
+  title=`Shoplist - ${team.name} security`
+  description=`Manage users within ${team.name}`
+  options={[
+    { name: 'Back', url: previousPageUrl(Astro) },
+    ...OPTIONS['security-team']
+  ]}
+>
+  <section class="col gap">
+    <h1>Members of {team.name}</h1>
+    {iAmAdmin &&
+      <p>You are an admin</p>
+    }
+    <MembersAdministration
+      team={team}
+      teamRoles={teamRoles}
+      user={USER}
+    />
+  </section>
+</Debug>
