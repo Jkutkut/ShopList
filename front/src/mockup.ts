@@ -75,7 +75,7 @@ export const PRODUCTS = [
     id: "product-f",
     name: "Product F",
     description: TEXT["3"],
-    image: IMAGES["1:1"],
+    image: undefined,
     createdAt: new Date().toISOString(),
     createdBy: USER.id,
     updatedAt: new Date().toISOString(),
@@ -263,11 +263,12 @@ OPTIONS['list'] = [
   { name: 'Profile', url: '/profile' },
   ...OPTIONS['logout'],
 ];
+OPTIONS['products'] = OPTIONS['teams'];
 
 export const APPS = [
   { name: 'Shopping Lists', url: './lists', enabled: true },
   { name: 'Marvin', url: './marvin', enabled: false },
-  { name: 'Products', url: './products', enabled: false },
+  { name: 'Products', url: './products', enabled: true },
   { name: 'Tags', url: './tags', enabled: false },
   { name: 'Config', url: './config', enabled: false },
   { name: 'Security', url: './security', enabled: false },

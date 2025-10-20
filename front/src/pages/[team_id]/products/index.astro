@@ -1,0 +1,82 @@
+---
+import DateLabel from "../../../components/date/DateLabel";
+import Debug from "../../../layouts/debug.astro";
+import { ACTION } from "../../../mockup";
+import { OPTIONS } from "../../../mockup";
+import { TEAMS } from "../../../mockup";
+
+const { team_id } = Astro.params;
+
+if (!team_id) {
+  return Astro.redirect('/teams', 302);
+}
+
+const team = TEAMS.find(t => t.id === team_id);
+if (!team) {
+  return Astro.redirect('/teams', 302);
+}
+
+const products = team.products;
+---
+
+<Debug
+  title={`${team.name}'s products`}
+  description=`Manage the products of the team ${team.name}`
+  options={OPTIONS['products']}
+  icon={team.image}
+>
+  <section>
+    <h1>Products of {team.name}</h1>
+  </section>
+  <section class="col gap">
+    {products.map(product => (
+      <a href={product.id}>
+        <div class="product-card padding with-border col">
+          <div class="row wrap space-between">
+            {product.name &&
+              <h2 class="no-wrap">{product.name}</h2>
+            }
+            {product.image &&
+              <img src={product.image} alt={product.name} />
+            }
+          </div>
+          <div class="col gap">
+            {product.description &&
+              <p>{product.description}</p>
+            }
+            <div class="row space-between wrap gap">
+              <span class="">
+                Created by {product.createdBy} <DateLabel client:only date={product.createdAt} />
+              </span>
+              <span class="">
+                Updated by {product.updatedBy} <DateLabel client:only date={product.updatedAt} />
+              </span>
+            </div>
+            <a class="btn btn-primary btn-small no-animation">✏️</a>
+          </div>
+        </div>
+      </a>
+    ))}
+  </section>
+  <section>
+    <a class="btn btn-primary">Create a new product</a>
+  </section>
+</Debug>
+
+<style>
+  .product-card {
+    --img-size: 128px;
+  }
+
+  .product-card img {
+    aspect-ratio: 1 / 1;
+    max-width: 100%;
+    width: 128px;
+    height: auto;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+
+    float: right;
+  }
+</style>
