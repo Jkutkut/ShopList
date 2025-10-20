@@ -30,32 +30,30 @@ const products = team.products;
   </section>
   <section class="col gap">
     {products.map(product => (
-      <a href={product.id}>
-        <div class="product-card padding with-border col">
-          <div class="row wrap space-between">
-            {product.name &&
-              <h2 class="no-wrap">{product.name}</h2>
-            }
-            {product.image &&
-              <img src={product.image} alt={product.name} />
-            }
-          </div>
-          <div class="col gap">
-            {product.description &&
-              <p>{product.description}</p>
-            }
-            <div class="row space-between wrap gap">
-              <span class="">
-                Created by {product.createdBy} <DateLabel client:only date={product.createdAt} />
-              </span>
-              <span class="">
-                Updated by {product.updatedBy} <DateLabel client:only date={product.updatedAt} />
-              </span>
-            </div>
-            <a class="btn btn-primary btn-small no-animation">✏️</a>
-          </div>
+      <div class="product-card padding with-border col">
+        <div class="row wrap space-between">
+          {product.name &&
+            <h2 class="no-wrap">{product.name}</h2>
+          }
+          {product.image &&
+            <img src={product.image} alt={product.name} />
+          }
         </div>
-      </a>
+        <div class="col gap">
+          {product.description &&
+            <p>{product.description}</p>
+          }
+          <div class="row space-between wrap gap">
+            <span class="">
+              Created by {product.createdBy} <DateLabel client:only date={product.createdAt} />
+            </span>
+            <span class="">
+              Updated by {product.updatedBy} <DateLabel client:only date={product.updatedAt} />
+            </span>
+          </div>
+          <a class="btn btn-primary btn-small no-animation">✏️</a>
+        </div>
+      </div>
     ))}
   </section>
   <section>
