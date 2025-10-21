@@ -66,12 +66,18 @@ impl<'se> serde::Serialize for UuidWrapper {
 	where
 		S: serde::Serializer,
 	{
-		self.0.serialize(serializer)
+		match &self.0 {
+			Ok(uuid) => uuid.serialize(serializer),
+			Err(err) => Err(serde::ser::Error::custom(err)),
+		}
 	}
 }
 
 impl std::fmt::Debug for UuidWrapper {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "{:?}", self.0)
+		match &self.0 {
+			Ok(uuid) => write!(f, "{:?}", uuid),
+			Err(err) => Err(serde::ser::Error::custom(err)),
+		}
 	}
 }
