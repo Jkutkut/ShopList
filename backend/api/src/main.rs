@@ -6,8 +6,11 @@ use rocket::{
 use rocket::serde::json::Json;
 
 mod cors;
+mod route_handler;
 mod route_error;
 mod api_user_token;
+
+use route_handler::RouteHandlerBuilder;
 
 #[get("/")]
 fn ping() -> Json<&'static str> {
@@ -27,7 +30,7 @@ mod login {
 	};
 	use crate::api_user_token::ApiUserToken;
 
-	#[post("/user/login/basic", data = "<credentials>")]
+	#[post("/login/basic", data = "<credentials>")]
 	pub async fn basic(
 		credentials: Json<ApiBasicCredentials>,
 	) -> Result<ApiUserToken<UserToken>, InvalidResponse> {
@@ -101,7 +104,7 @@ mod user {
 		},
 	};
 
-	#[delete("/user/<user_id>")]
+	#[delete("/<user_id>")]
 	pub async fn delete_user(
 		user_id: UuidWrapper,
 		#[allow(unused_variables)]
@@ -182,7 +185,7 @@ mod me {
 		}
 	}
 
-	#[get("/user/me")]
+	#[get("/me")]
 	pub fn me(user: User) -> Json<User> {
 		println!("User: {:#?}", &user);
 		Json(user)
@@ -191,22 +194,49 @@ mod me {
 
 #[launch]
 async fn rocket() -> Rocket<Build> {
-	rocket::build()
-		.attach(cors::CORS).mount("/", routes![cors::options])
-		// .manage(auth_grpc_client) // TODO
-		.mount("/api", routes![
-			ping,
-		])
-		.mount("/api/v1", routes![
+	let users = RouteHandlerBuilder::new(
+		"/user",
+		routes![
 			me::me,
+			user::delete_user,
 			login::basic,
 			register::basic,
-			user::delete_user
-		])
-		.register("/", catchers![
+		],
+		catchers![],
+		vec![],
+	);
+	let api = RouteHandlerBuilder::new(
+		"/",
+		routes![cors::options],
+		catchers![
 			route_error::not_implemented,
 			route_error::unauthorized,
 			route_error::not_found,
 			route_error::internal_server_error,
-		])
+		],
+		vec![
+			RouteHandlerBuilder::new(
+				"/api",
+				routes![ping],
+				catchers![],
+				vec![]
+			),
+			RouteHandlerBuilder::new(
+				"/api/v1",
+				routes![],
+				catchers![],
+				vec![users]
+			),
+		],
+	).build();
+
+	let mut r = rocket::build()
+		.attach(cors::CORS);
+	for (path, routes) in api.routes {
+		r = r.mount(&path, routes);
+	}
+	for (path, catcher) in api.catchers {
+		r = r.register(&path, catcher);
+	}
+	r
 }
