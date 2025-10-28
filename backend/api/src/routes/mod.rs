@@ -21,8 +21,8 @@ use model::{
 	},
 };
 use crate::{
-	User,
 	cors,
+	guards,
 	api_user_token::ApiUserToken,
 	route_error,
 	route_error::{InvalidResponse, invalid_api},

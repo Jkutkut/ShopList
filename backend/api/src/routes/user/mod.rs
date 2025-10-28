@@ -7,7 +7,7 @@ use super::*;
 pub async fn delete_user(
 	user_id: UuidWrapper,
 	#[allow(unused_variables)]
-	user: User // TODO
+	user: guards::User // TODO
 ) -> Result<(), InvalidResponse> {
 	let user_id: Uuid = match user_id.get() {
 		Ok(id) => id,
@@ -29,7 +29,7 @@ pub async fn delete_user(
 }
 
 #[get("/me")]
-pub fn me(user: User) -> Json<User> {
+pub fn me(user: guards::User) -> Json<guards::User> {
 	println!("User: {:#?}", &user);
 	Json(user)
 }
