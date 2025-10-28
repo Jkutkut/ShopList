@@ -81,7 +81,7 @@ paths:
       summary: Register user with username and password
       description: Register user with basic authentication and return JWT token
       tags:
-        - user_credentials
+        - user
       requestBody:
         required: true
         content:
@@ -120,7 +120,7 @@ paths:
       summary: Login user with username and password
       description: Login user with basic authentication and return JWT token
       tags:
-        - user_credentials
+        - user
       requestBody:
         required: true
         content:
@@ -157,7 +157,7 @@ paths:
       summary: Change password of user
       description: Change password of user by user ID. If user_id is not the current user, superuser permissions are required.
       tags:
-        - user_credentials
+        - user
       security:
         - bearerAuth: []
       requestBody:
@@ -191,7 +191,7 @@ paths:
       summary: Get current user info
       description: Get current user info based on JWT token
       tags:
-        - user_credentials
+        - user
       security:
         - bearerAuth: []
       responses:
@@ -218,7 +218,7 @@ paths:
       summary: Refresh JWT token
       description: Refresh JWT token for current user by invalidating the current token and returning a new one
       tags:
-        - user_credentials
+        - user
       security:
         - bearerAuth: []
       responses:
@@ -252,7 +252,7 @@ paths:
       summary: Logout current user
       description: Logout current user by invalidating the current JWT token
       tags:
-        - user_credentials
+        - user
       security:
         - bearerAuth: []
       responses:
@@ -499,7 +499,7 @@ paths:
       summary: Get user team roles
       description: Get all teams and roles of the current user
       tags:
-        - user_credentials
+        - user
       security:
         - bearerAuth: []
       responses:
