@@ -81,8 +81,7 @@ paths:
       summary: Register user with username and password
       description: Register user with basic authentication and return JWT token
       tags:
-        - user
-        - credentials
+        - user_credentials
       requestBody:
         required: true
         content:
@@ -121,8 +120,7 @@ paths:
       summary: Login user with username and password
       description: Login user with basic authentication and return JWT token
       tags:
-        - user
-        - credentials
+        - user_credentials
       requestBody:
         required: true
         content:
@@ -159,8 +157,7 @@ paths:
       summary: Change password of user
       description: Change password of user by user ID. If user_id is not the current user, superuser permissions are required.
       tags:
-        - user
-        - credentials
+        - user_credentials
       security:
         - bearerAuth: []
       requestBody:
@@ -194,8 +191,7 @@ paths:
       summary: Get current user info
       description: Get current user info based on JWT token
       tags:
-        - user
-        - logged_user
+        - user_credentials
       security:
         - bearerAuth: []
       responses:
@@ -222,9 +218,7 @@ paths:
       summary: Refresh JWT token
       description: Refresh JWT token for current user by invalidating the current token and returning a new one
       tags:
-        - user
-        - logged_user
-        - credentials
+        - user_credentials
       security:
         - bearerAuth: []
       responses:
@@ -258,8 +252,7 @@ paths:
       summary: Logout current user
       description: Logout current user by invalidating the current JWT token
       tags:
-        - user
-        - logged_user
+        - user_credentials
       security:
         - bearerAuth: []
       responses:
@@ -506,9 +499,7 @@ paths:
       summary: Get user team roles
       description: Get all teams and roles of the current user
       tags:
-        - user
-        - logged_user
-        - team
+        - user_credentials
       security:
         - bearerAuth: []
       responses:
@@ -651,7 +642,6 @@ paths:
       summary: Get team tags
       description: Get all tags of a team by team ID
       tags:
-        - team
         - tag
       security:
         - bearerAuth: []
@@ -692,7 +682,6 @@ paths:
       summary: Create team tags
       description: Create tags for a team by team ID
       tags:
-        - team
         - tag
       security:
         - bearerAuth: []
@@ -781,7 +770,6 @@ paths:
       summary: Get team products
       description: Get all products of a team by team ID with pagination
       tags:
-        - team
         - product
       security:
         - bearerAuth: []
@@ -840,7 +828,6 @@ paths:
       summary: Create team product
       description: Create a new product for a team by team ID
       tags:
-        - team
         - product
       security:
         - bearerAuth: []
@@ -965,7 +952,6 @@ paths:
       summary: Add tags to product
       description: Add tags to a product by product ID
       tags:
-        - product
         - tag
       security:
         - bearerAuth: []
@@ -1012,7 +998,6 @@ paths:
       summary: Remove tag from product
       description: Remove a tag from a product by product ID and tag ID
       tags:
-        - product
         - tag
       security:
         - bearerAuth: []
@@ -1054,7 +1039,6 @@ paths:
       summary: Get team lists
       description: Get all lists of a team by team ID
       tags:
-        - team
         - list
       security:
         - bearerAuth: []
@@ -1096,7 +1080,6 @@ paths:
       summary: Create team list
       description: Create a new list for a team by team ID
       tags:
-        - team
         - list
       security:
         - bearerAuth: []
@@ -1236,7 +1219,6 @@ paths:
       summary: Get list categories
       description: Get all categories of a list by list ID
       tags:
-        - list
         - category
       security:
         - bearerAuth: []
@@ -1278,7 +1260,6 @@ paths:
       summary: Create list categories
       description: Create categories for a list by list ID
       tags:
-        - list
         - category
       security:
         - bearerAuth: []
@@ -1415,8 +1396,6 @@ paths:
       description: Get all products of a list by list
       tags:
         - list
-        - product
-        - list_product
       security:
         - bearerAuth: []
       parameters:
@@ -1458,8 +1437,6 @@ paths:
       description: Add or update a product in a list by list ID and product ID
       tags:
         - list
-        - product
-        - list_product
       security:
         - bearerAuth: []
       parameters:
@@ -1520,8 +1497,6 @@ paths:
       description: Remove a product from a list by list ID and product ID
       tags:
         - list
-        - product
-        - list_product
       security:
         - bearerAuth: []
       parameters:
