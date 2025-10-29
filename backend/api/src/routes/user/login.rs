@@ -21,11 +21,20 @@ pub async fn basic(
 	Ok(ApiUserToken::new(response.token.clone(), response))
 }
 
+#[post("/basic/password", data = "<credentials>")]
+pub async fn basic_change_password(
+	#[allow(unused_variables)]
+	credentials: Json<ApiBasicCredentials>,
+) -> Result<ApiUserToken<UserToken>, InvalidResponse> {
+	Err(route_error::not_implemented()) // TODO
+}
+
 pub fn routes() -> RouteHandlerBuilder {
 	RouteHandlerBuilder::new(
 		"/login",
 		routes![
 			basic,
+			basic_change_password,
 		],
 		catchers![],
 		vec![],

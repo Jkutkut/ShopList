@@ -1,10 +1,19 @@
 mod login;
+mod logout;
 mod register;
 
 use super::*;
 
+#[get("/<user_id>")]
+async fn get_user(
+	#[allow(unused_variables)]
+	user_id: UuidWrapper,
+) -> Result<Json<guards::User>, InvalidResponse> {
+	Err(route_error::not_implemented()) // TODO
+}
+
 #[delete("/<user_id>")]
-pub async fn delete_user(
+async fn delete_user(
 	user_id: UuidWrapper,
 	#[allow(unused_variables)]
 	user: guards::User // TODO
@@ -29,21 +38,54 @@ pub async fn delete_user(
 }
 
 #[get("/me")]
-pub fn me(user: guards::User) -> Json<guards::User> {
+fn me(user: guards::User) -> Json<guards::User> {
 	info!("user request: {:#?}", &user);
 	Json(user)
+}
+
+#[post("/me/token")]
+fn refresh_token(
+	#[allow(unused_variables)]
+	user: guards::User
+) -> Result<Json<guards::User>, InvalidResponse> {
+	Err(route_error::not_implemented()) // TODO
+}
+
+#[post("/superuser/<user_id>")]
+fn set_user_as_superuser(
+	#[allow(unused_variables)]
+	user: guards::User,
+	#[allow(unused_variables)]
+	user_id: UuidWrapper
+) -> Result<Json<guards::User>, InvalidResponse> {
+	Err(route_error::not_implemented()) // TODO
+}
+
+#[delete("/superuser/<user_id>")]
+fn delete_as_superuser(
+	#[allow(unused_variables)]
+	user: guards::User,
+	#[allow(unused_variables)]
+	user_id: UuidWrapper
+) -> Result<Json<guards::User>, InvalidResponse> {
+	Err(route_error::not_implemented()) // TODO
 }
 
 pub fn routes() -> RouteHandlerBuilder {
 	RouteHandlerBuilder::new(
 		"/user",
 		routes![
+			get_user,
 			delete_user,
 			me,
+			refresh_token,
+			set_user_as_superuser,
+			delete_as_superuser,
 		],
 		catchers![],
 		vec![
 			login::routes(),
+			logout::routes(),
 			register::routes(),
 		],
 	)

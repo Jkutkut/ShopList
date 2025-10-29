@@ -8,7 +8,7 @@ mod user;
 use uuid::Uuid;
 use log::*;
 use rocket::{
-	get, post, delete,
+	get, post, delete, put,
 	http::Status,
 	routes,
 	catchers,
