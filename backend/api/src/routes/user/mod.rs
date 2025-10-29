@@ -14,7 +14,7 @@ pub async fn delete_user(
 		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
 	};
 	println!("Delete request: {:?}", user_id);
-	let mut auth_grpc_client = AuthServiceClient::connect("http://shoplist-auth:50051").await.unwrap();
+	let mut auth_grpc_client = grpc::connect_auth().await.unwrap();
 	let auth_request = tonic::Request::new(DeleteUserRequest {
 		user_id: user_id.to_string()
 	});

@@ -7,11 +7,11 @@ use rocket::{
 	http::Status,
 };
 use model::grpc::auth::{
-	auth_service_client::AuthServiceClient,
 	UserToken,
 	User as GrpcUser
 };
 use model::UuidWrapper;
+use crate::grpc;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct User {
@@ -47,7 +47,7 @@ impl<'r> FromRequest<'r> for User {
 			Some(token) => token.split_once("Bearer ").unwrap().1.to_string(),
 			_ => return Outcome::Error((Status::Unauthorized, ())),
 		};
-		let mut auth_grpc_client = AuthServiceClient::connect("http://shoplist-auth:50051").await.unwrap();
+		let mut auth_grpc_client = grpc::connect_auth().await.unwrap();
 		let auth_request = tonic::Request::new(UserToken { token });
 		match auth_grpc_client.me(auth_request).await {
 			Ok(response) => {

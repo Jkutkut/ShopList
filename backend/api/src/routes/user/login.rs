@@ -6,7 +6,7 @@ pub async fn basic(
 ) -> Result<ApiUserToken<UserToken>, InvalidResponse> {
 	println!("Credentials: {:?}", credentials);
 
-	let mut auth_grpc_client = AuthServiceClient::connect("http://shoplist-auth:50051").await.unwrap();
+	let mut auth_grpc_client = grpc::connect_auth().await.unwrap();
 	let auth_request = tonic::Request::new(LoginRequest {
 		username: credentials.username.clone(),
 		password: credentials.password.clone(),

@@ -9,6 +9,7 @@ mod route_error;
 mod api_user_token;
 mod routes;
 mod guards;
+mod grpc;
 
 #[launch]
 async fn rocket() -> Rocket<Build> {
