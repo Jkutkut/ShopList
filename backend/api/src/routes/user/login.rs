@@ -4,7 +4,8 @@ use super::*;
 pub async fn basic(
 	credentials: Json<ApiBasicCredentials>,
 ) -> Result<ApiUserToken<UserToken>, InvalidResponse> {
-	println!("Credentials: {:?}", credentials);
+	info!("Login request");
+	debug!("Credentials: {:?}", credentials);
 
 	let mut auth_grpc_client = grpc::connect_auth().await.unwrap();
 	let auth_request = tonic::Request::new(LoginRequest {

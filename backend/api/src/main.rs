@@ -13,6 +13,7 @@ mod grpc;
 
 #[launch]
 async fn rocket() -> Rocket<Build> {
+	env_logger::init();
 	let mut r = rocket::build()
 		.attach(cors::CORS);
 	let api = routes::routes().build();

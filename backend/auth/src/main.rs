@@ -9,6 +9,7 @@ use std::io::{
 	Error,
 	ErrorKind,
 };
+use log::*;
 
 use model::grpc::auth::auth_service_server::AuthServiceServer;
 use grpc::Auth;
@@ -41,7 +42,7 @@ async fn connect_to_db() -> Result<(Client, Connection<Socket, NoTlsStream>), Er
 		env_var_or_error("DB_USER", "DB_USER not defined as environment variable or in .env file")?,
 		env_var_or_error("DB_USER_PASSWORD", "DB_USER_PASSWORD not defined as environment variable or in .env file")?
 	);
-	println!("Connecting to db... Config: {}", &db_properties);
+	info!("Connecting to db... Config: {}", &db_properties);
 	tokio_postgres::connect(&db_properties, NoTls).await
 		.map_err(|_| Error::new(
 			ErrorKind::Other,
@@ -69,24 +70,25 @@ async fn main_builder() -> Result<Main, Error> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+	env_logger::init();
 	let addr = "0.0.0.0:50051".parse().unwrap();
 	let main = main_builder().await?;
-	println!("Auth server listening on {addr}");
+	info!("Auth server listening on {addr}");
 	Server::builder()
 		.add_service(main.server)
 		.serve_with_shutdown(addr, async {
 			tokio::select! {
 				_ = tokio::signal::ctrl_c() => {
-					eprintln!("Received signal to end execution");
+					warn!("Received signal to end execution");
 				},
 				r = main.db_connection => {
-					eprintln!("DB connection closed");
+					warn!("DB connection closed");
 					if let Err(e) = r {
-						eprintln!("connection error: {}", e);
+						error!("connection error: {}", e);
 					}
 				},
 			};
-			println!("Shutting down...");
+			info!("Shutting down...");
 		}).await?;
 	Ok(())
 }

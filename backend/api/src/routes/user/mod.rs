@@ -9,11 +9,11 @@ pub async fn delete_user(
 	#[allow(unused_variables)]
 	user: guards::User // TODO
 ) -> Result<(), InvalidResponse> {
+	info!("Delete request: {:?}", user_id);
 	let user_id: Uuid = match user_id.get() {
 		Ok(id) => id,
 		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
 	};
-	println!("Delete request: {:?}", user_id);
 	let mut auth_grpc_client = grpc::connect_auth().await.unwrap();
 	let auth_request = tonic::Request::new(DeleteUserRequest {
 		user_id: user_id.to_string()
@@ -30,7 +30,7 @@ pub async fn delete_user(
 
 #[get("/me")]
 pub fn me(user: guards::User) -> Json<guards::User> {
-	println!("User: {:#?}", &user);
+	info!("user request: {:#?}", &user);
 	Json(user)
 }
 

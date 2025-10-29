@@ -18,6 +18,7 @@ services:
       target: builder
     environment:
       ENV_PATH: "/shoplist/.env"
+      RUST_LOG: "warn,auth=debug,model=debug"
     volumes:
       - cargo_registy:/root/.cargo/registry
       - .:/shoplist
@@ -39,6 +40,7 @@ services:
       - .:/shoplist
     working_dir: /shoplist/backend
     environment:
+      RUST_LOG: "warn,api=debug,model=debug,rocket=info"
       ROCKET_CONFIG: /shoplist/backend/api/Rocket.toml
       ROCKET_SECRET_KEY: ${ROCKET_SECRET_KEY}
     entrypoint: cargo

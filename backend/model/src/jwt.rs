@@ -7,6 +7,7 @@ use jsonwebtoken::{
 	EncodingKey, DecodingKey,
 };
 use uuid::Uuid;
+use log::*;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct JWT {
@@ -58,26 +59,33 @@ impl JWTHandler {
 	}
 
 	pub fn new_jwt(&self, user_id: &Uuid) -> JWT {
+		info!("Creating jwt");
 		// TODO expiration time
 		let expiration = Utc::now().checked_add_signed(Duration::hours(2)).unwrap().timestamp();
-		JWT::new(user_id, expiration as usize)
+		let jwt = JWT::new(user_id, expiration as usize);
+		debug!("JWT: {:#?}", jwt);
+		jwt
 	}
 
 	pub fn encode(&self, jwt: &JWT) -> Result<String, ()> {
+		info!("Encoding jwt");
+		debug!("JWT: {:#?}", jwt);
 		match encode(&self.encoding_header, jwt, &self.encoding_key) {
 			Ok(token) => Ok(token),
 			Err(e) => {
-				eprintln!("Failed to create JWT: {}", e);
+				error!("Failed to create JWT: {}", e);
 				Err(()) // TODO
 			}
 		}
 	}
 
 	pub fn decode(&self, token: &str) -> Result<JWT, ()> {
+		info!("Decoding jwt");
+		debug!("Token: {}", token);
 		match decode::<JWT>(token, &self.decoding_key, &self.decoding_validation) {
 			Ok(token) => Ok(token.claims),
 			Err(e) => {
-				eprintln!("Failed to decode JWT: {}", e);
+				error!("Failed to decode JWT: {}", e);
 				Err(()) // TODO
 			}
 		}

@@ -12,6 +12,7 @@ use model::grpc::auth::{
 };
 use model::UuidWrapper;
 use crate::grpc;
+use log::*;
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct User {
@@ -43,7 +44,9 @@ impl<'r> FromRequest<'r> for User {
 	type Error = ();
 
 	async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
-		let token = match req.headers().get_one("Authorization") {
+		let authorization = req.headers().get_one("Authorization");
+		debug!("User from request token {:#?}", &authorization);
+		let token = match authorization {
 			Some(token) => token.split_once("Bearer ").unwrap().1.to_string(),
 			_ => return Outcome::Error((Status::Unauthorized, ())),
 		};
@@ -52,7 +55,7 @@ impl<'r> FromRequest<'r> for User {
 		match auth_grpc_client.me(auth_request).await {
 			Ok(response) => {
 				let response = response.into_inner();
-				println!("Response: {:#?}", response);
+				debug!("user: {:#?}", response);
 				match Self::try_from(response).map_err(|_| ()) {
 					Ok(user) => Outcome::Success(user),
 					Err(_) => Outcome::Error((Status::Unauthorized, ())),

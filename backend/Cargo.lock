@@ -134,8 +134,10 @@ checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 
 [[package]]
 name = "api"
-version = "0.8.2"
+version = "0.8.3"
 dependencies = [
+ "env_logger",
+ "log",
  "model",
  "rocket",
  "serde",
@@ -213,7 +215,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "auth"
-version = "0.18.0"
+version = "0.18.1"
 dependencies = [
  "argon2",
  "chrono",
@@ -1233,10 +1235,11 @@ dependencies = [
 
 [[package]]
 name = "model"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "chrono",
  "jsonwebtoken",
+ "log",
  "prost",
  "rocket",
  "serde",

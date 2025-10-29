@@ -6,6 +6,7 @@ mod team;
 mod user;
 
 use uuid::Uuid;
+use log::*;
 use rocket::{
 	get, post, delete,
 	http::Status,
