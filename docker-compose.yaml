@@ -24,9 +24,6 @@ services:
     ports:
       - "6379"
   auth:
-    environment:
-      DB_HOST: "shoplist-db"
-      DB_PORT: "5432"
     ports:
       - "50051"
     depends_on:
