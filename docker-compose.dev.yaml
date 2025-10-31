@@ -40,6 +40,7 @@ services:
       - .:/shoplist
     working_dir: /shoplist/backend
     environment:
+      ENV_PATH: "/shoplist/.env"
       RUST_LOG: "warn,api=debug,model=debug,rocket=info"
       ROCKET_CONFIG: /shoplist/backend/api/Rocket.toml
       ROCKET_SECRET_KEY: ${ROCKET_SECRET_KEY}
@@ -47,6 +48,7 @@ services:
     command: watch -- cargo run -p api
     networks:
       - auth-network
+      - db-network
       - api-network
   front:
     container_name: shoplist-front
