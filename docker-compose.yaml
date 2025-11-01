@@ -13,7 +13,7 @@ services:
       - "5432"
   valkey:
     container_name: shoplist-valkey
-    hostname: shoplist-valkey
+    hostname: ${VALKEY_HOST}
     build:
       context: ./db/valkey/
       dockerfile: Dockerfile
@@ -22,7 +22,7 @@ services:
     volumes:
       - shoplist-valkey-data:/data
     ports:
-      - "6379"
+      - "${VALKEY_PORT}"
   auth:
     ports:
       - "50051"
