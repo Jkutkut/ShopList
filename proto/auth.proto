@@ -7,11 +7,11 @@ service AuthService {
   rpc RegisterUserBasicLogin(RegisterBasicUserRequest) returns (UserToken);
   rpc BasicChangePassword(BasicChangePasswordRequest) returns (Empty);
   rpc DeleteUser(DeleteUserRequest) returns (Empty);
-  rpc Me(UserToken) returns (User);
-  rpc Logout(UserToken) returns (Empty);
+  rpc Me(UserTokenRequest) returns (User);
+  rpc Logout(UserTokenRequest) returns (Empty);
   rpc LogoutUser(LogoutUserRequest) returns (Empty);
-  rpc LogoutEveryone(UserToken) returns (Empty);
-  rpc RefreshToken(UserToken) returns (UserToken);
+  rpc LogoutEveryone(UserTokenRequest) returns (Empty);
+  rpc RefreshToken(UserTokenRequest) returns (UserToken);
   rpc TeamRoles(UserId) returns (UserTeamRoles);
 }
 
@@ -21,6 +21,12 @@ message LoginRequest {
 }
 
 message UserToken {
+  string token = 1;
+  string userId = 2;
+  string expires_at = 3;
+}
+
+message UserTokenRequest {
   string token = 1;
 }
 

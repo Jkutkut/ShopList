@@ -6,6 +6,7 @@ use model::grpc::auth::{
 		AuthService,
 	},
 	UserToken,
+	UserTokenRequest,
 	User,
 	LoginRequest,
 	RegisterBasicUserRequest,
@@ -38,9 +39,7 @@ impl AuthService for Auth {
 		let LoginRequest { username, password } = request.into_inner();
 		info!("Login request from {:?}: {:?}", addr, &username);
 		match self.db.basic_login(username, password).await {
-			Ok(token) => Ok(Response::new(UserToken {
-				token
-			})),
+			Ok(user_token) => Ok(Response::new(user_token)),
 			Err(_) => Err(Status::unauthenticated("Invalid credentials"))
 		}
 	}
@@ -53,7 +52,7 @@ impl AuthService for Auth {
 		let RegisterBasicUserRequest { name, email, password } = request.into_inner();
 		info!("Register request from {:?}: {}", addr, &email);
 		match self.db.register_user_basic_login(name, email, password).await {
-			Ok(token) => Ok(Response::new(UserToken {token})),
+			Ok(user_token) => Ok(Response::new(user_token)),
 			Err(_) => Err(Status::unauthenticated("Invalid credentials"))
 		}
 	}
@@ -90,14 +89,14 @@ impl AuthService for Auth {
 
 	async fn me(
 		&self,
-		request: Request<UserToken>,
+		request: Request<UserTokenRequest>,
 	) -> Result<Response<User>, Status> {
 		Ok(Response::new(self.db.me(&request.into_inner().token).await?))
 	}
 
 	async fn logout(
 		&self,
-		request: Request<UserToken>,
+		request: Request<UserTokenRequest>,
 	) -> Result<Response<Empty>, Status> {
 		self.db.logout(&request.into_inner().token).await?;
 		Ok(Response::new(Empty {}))
@@ -118,7 +117,7 @@ impl AuthService for Auth {
 
 	async fn logout_everyone(
 		&self,
-		request: Request<UserToken>,
+		request: Request<UserTokenRequest>,
 	) -> Result<Response<Empty>, Status> {
 		self.db.logout_everyone(&request.into_inner().token).await?;
 		Ok(Response::new(Empty {}))
@@ -126,11 +125,9 @@ impl AuthService for Auth {
 
 	async fn refresh_token(
 		&self,
-		request: Request<UserToken>,
+		request: Request<UserTokenRequest>,
 	) -> Result<Response<UserToken>, Status> {
-		Ok(Response::new(UserToken {
-			token: self.db.refresh_token(&request.into_inner().token).await?
-		}))
+		Ok(Response::new(self.db.refresh_token(&request.into_inner().token).await?))
 	}
 
 	async fn team_roles(

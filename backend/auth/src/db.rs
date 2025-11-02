@@ -17,6 +17,7 @@ use model::{
 	BasicLogin,
 	grpc::auth::{
 		User,
+		UserToken,
 		Team,
 		TeamRole,
 		UserTeamRoles,
@@ -40,7 +41,7 @@ impl ShoplistDbAuth {
 		}
 	}
 
-	pub async fn basic_login(&self, email: String, password: String) -> Result<String, ()> {
+	pub async fn basic_login(&self, email: String, password: String) -> Result<UserToken, ()> {
 		info!("Login with email: {}", email);
 		debug!("Password: {}", password);
 		let credentials = self.get_user_credentials(&email).await.ok_or(())?;
@@ -56,7 +57,7 @@ impl ShoplistDbAuth {
 		}
 	}
 
-	pub async fn register_user_basic_login(&self, name: String, email: String, password: String) -> Result<String, ()> {
+	pub async fn register_user_basic_login(&self, name: String, email: String, password: String) -> Result<UserToken, ()> {
 		let password_hash = self.encrypt_password(password);
 		let query = "SELECT create_user_basic_credentials($1, $2, $3)";
 		let stmt = self.db_client.prepare(query).await.unwrap();
@@ -215,7 +216,7 @@ impl ShoplistDbAuth {
 		}
 	}
 
-	pub async fn refresh_token(&self, token: &str) -> Result<String, Status> {
+	pub async fn refresh_token(&self, token: &str) -> Result<UserToken, Status> {
 		info!("refresh_token request with token: {}", token);
 		let user_id = match self.get_user_id(token).await {
 			Ok(user_id) => user_id,
@@ -278,7 +279,7 @@ impl ShoplistDbAuth {
 }
 
 impl ShoplistDbAuth {
-	async fn new_jwt(&self, user_id: &Uuid) -> Result<String, ()> {
+	async fn new_jwt(&self, user_id: &Uuid) -> Result<UserToken, ()> {
 		info!("New JWT for user: {}", user_id);
 		let token = self.jwt.new_jwt(user_id);
 		let token_str: String = self.jwt.encode(&token)?;
@@ -290,7 +291,11 @@ impl ShoplistDbAuth {
 		]).await {
 			Ok(r) if r == 1 => {
 				debug!("Created credentials for user {}: credential_id {}", user_id, r);
-				Ok(token_str)
+				Ok(UserToken {
+					token: token_str,
+					user_id: user_id.to_string(),
+					expires_at: token.expiration_date_str(),
+				})
 			},
 			e => {
 				error!("Error creating credentials: {:?}", e);

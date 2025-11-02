@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
-use chrono::{Utc, Duration};
+use chrono::{
+	Utc, Duration,
+	DateTime,
+};
 use jsonwebtoken::{
 	encode, decode,
 	Header, Validation,
@@ -28,11 +31,22 @@ impl JWT {
 	}
 
 	pub fn is_expired(&self) -> bool {
-		chrono::Utc::now().timestamp() > self.exp as i64
+		Utc::now().timestamp() > self.exp as i64
 	}
 
 	pub fn expiration(&self) -> usize {
 		self.exp
+	}
+
+	pub fn expiration_date(&self) -> DateTime<Utc> {
+		DateTime::from_naive_utc_and_offset(
+			DateTime::from_timestamp(self.expiration() as i64, 0).unwrap().naive_utc(),
+			Utc
+		)
+	}
+
+	pub fn expiration_date_str(&self) -> String {
+		self.expiration_date().to_rfc3339()
 	}
 }
 

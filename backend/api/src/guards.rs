@@ -16,7 +16,7 @@ use crate::{
 };
 use model::UuidWrapper;
 use model::grpc::auth::{
-	UserToken,
+	UserTokenRequest,
 	User as GrpcUser
 };
 
@@ -51,7 +51,7 @@ impl<'r> FromRequest<'r> for User {
 
 	async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
 		let invalid = || Outcome::Error((Status::Unauthorized, ()));
-		let expiration = Some(cache::Expiration::EX(15 * 60)); // TODO
+		let expiration = Some(cache::Expiration::EX(15 * 60)); // TODO use login as expiration handler
 		info!("User guard");
 		let authorization = req.headers().get_one("Authorization");
 		let token = match authorization {
@@ -64,7 +64,7 @@ impl<'r> FromRequest<'r> for User {
 		let try_get_user = || async {
 			info!("Attempt to get user from grpc");
 			let mut auth_grpc_client = grpc::connect_auth().await.unwrap();
-			let auth_request = tonic::Request::new(UserToken { token });
+			let auth_request = tonic::Request::new(UserTokenRequest { token });
 			let user = match auth_grpc_client.me(auth_request).await {
 				Ok(response) => {
 					let response = response.into_inner();
