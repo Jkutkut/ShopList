@@ -3,6 +3,7 @@ use super::*;
 #[post("/basic", data = "<credentials>")]
 pub async fn basic(
 	credentials: Json<ApiBasicCredentials>,
+	cache_client: &State<Cache>,
 ) -> Result<ApiUserToken<UserToken>, InvalidResponse> {
 	info!("Login request");
 	debug!("Credentials: {:?}", credentials);

@@ -59,7 +59,7 @@ impl<'r> FromRequest<'r> for User {
 			_ => return invalid(),
 		};
 		debug!("Authentication token: {}", &token);
-		let cache_client = req.rocket().state::<cache::Client>().unwrap();
+		let cache_client = req.rocket().state::<cache::Cache>().unwrap();
 		let cache_key = token.clone();
 		let try_get_user = || async {
 			info!("Attempt to get user from grpc");
@@ -78,8 +78,8 @@ impl<'r> FromRequest<'r> for User {
 			};
 			Ok(user)
 		};
-		match cache::cached_value(
-			&cache_client, &cache_key, expiration,
+		match cache_client.cached_value(
+			&cache_key, expiration,
 			try_get_user
 		).await {
 			Ok(user) => Outcome::Success(user),

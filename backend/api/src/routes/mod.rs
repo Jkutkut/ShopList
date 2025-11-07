@@ -13,12 +13,16 @@ use rocket::{
 	routes,
 	catchers,
 	serde::json::Json,
+	State,
 };
 use model::*;
 use model::{
 	grpc::auth::*,
 };
 use crate::{
+	cache::{
+		Cache,
+	},
 	cors,
 	guards,
 	grpc,

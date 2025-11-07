@@ -30,7 +30,7 @@ async fn rocket() -> Rocket<Build> {
 		error!("Failed to connect to DB: {}", e);
 		std::process::exit(1);
 	});
-	let cache_client = cache::init().await.unwrap_or_else(|e| {
+	let cache_client = cache::Cache::init().await.unwrap_or_else(|e| {
 		error!("Failed to initialize cache: {}", e);
 		std::process::exit(1);
 	});
