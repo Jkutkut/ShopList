@@ -17,8 +17,27 @@ use crate::{
 use model::UuidWrapper;
 use model::grpc::auth::{
 	UserTokenRequest,
-	User as GrpcUser
+	User as GrpcUser,
+	UserToken,
 };
+
+fn bearer_token_from(req: &Request) -> Option<String> {
+	let authorization = match req.headers().get_one("Authorization") {
+		Some(token) => token,
+		_ => return None
+	};
+	match authorization.split_once("Bearer ") {
+		Some((_, token)) => {
+			#[cfg(debug_assertions)]
+			debug!("Bearer token: {:?}", token);
+			Some(token.to_string())
+		},
+		_ => {
+			warn!("Bearer token not found");
+			None
+		}
+	}
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
@@ -52,38 +71,59 @@ impl<'r> FromRequest<'r> for User {
 	async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
 		let invalid = || Outcome::Error((Status::Unauthorized, ()));
 		let expiration = Some(cache::Expiration::EX(15 * 60)); // TODO use login as expiration handler
-		info!("User guard");
-		let authorization = req.headers().get_one("Authorization");
-		let token = match authorization {
-			Some(token) => token.split_once("Bearer ").unwrap().1.to_string(),
+		info!("Authenticating user based on token...");
+		let token = match bearer_token_from(req) {
+			Some(token) => token,
 			_ => return invalid(),
 		};
-		debug!("Authentication token: {}", &token);
 		let cache_client = req.rocket().state::<cache::Cache>().unwrap();
-		let cache_key = token.clone();
+
 		let try_get_user = || async {
 			info!("Attempt to get user from grpc");
 			let mut auth_grpc_client = grpc::connect_auth().await.unwrap();
-			let auth_request = tonic::Request::new(UserTokenRequest { token });
+			let auth_request = tonic::Request::new(UserTokenRequest { token: token.clone() });
 			let user = match auth_grpc_client.me(auth_request).await {
 				Ok(response) => {
 					let response = response.into_inner();
-					debug!("user: {:#?}", response);
 					match Self::try_from(response) {
 						Ok(user) => user,
-						Err(_) => return Err(()),
+						Err(e) => {
+							error!("{:?}", e);
+							return Err(())
+						}
 					}
+				},
+				Err(e) => {
+					error!("{}", e);
+					return Err(())
 				}
-				Err(_) => return Err(()),
 			};
 			Ok(user)
 		};
-		match cache_client.cached_value(
-			&cache_key, expiration,
-			try_get_user
-		).await {
-			Ok(user) => Outcome::Success(user),
-			Err(_) => invalid(),
+
+		match cache_client.try_get::<UserToken>(token.as_str()).await {
+			Some(user_token) => {
+				let user_id = user_token.user_id;
+				match cache_client.cached_value(
+					&user_id, expiration,
+					try_get_user,
+				).await {
+					Ok(user) => Outcome::Success(user),
+					_ => invalid(),
+				}
+			},
+			None => {
+				let user = match try_get_user().await {
+					Ok(user) => {
+						#[cfg(debug_assertions)]
+						debug!("user: {:#?}", user);
+						user
+					},
+					Err(_) => return invalid(),
+				};
+				cache_client.set(user.uuid.to_string().as_str(), &user, expiration).await;
+				Outcome::Success(user)
+			}
 		}
 	}
 }

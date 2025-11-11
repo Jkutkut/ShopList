@@ -88,3 +88,12 @@ impl std::fmt::Debug for UuidWrapper {
 		}
 	}
 }
+
+impl std::fmt::Display for UuidWrapper {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match &self.0 {
+			Ok(uuid) => write!(f, "{}", uuid),
+			Err(err) => Err(serde::ser::Error::custom(err)),
+		}
+	}
+}
