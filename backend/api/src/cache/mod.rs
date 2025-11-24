@@ -144,4 +144,55 @@ impl Cache {
 			Some(Expiration::KEEPTTL) => "\"Do not reset the TTL\"".into(),
 		}
 	}
+
+	pub async fn sadd<T>(
+		&self,
+		key: &str,
+		value: &T,
+	) where
+		T: Serialize,
+	{
+		info!("sadd: {}", key);
+		let value = serde_json::to_string(&value).unwrap();
+		match self.client.sadd::<String, _, String>(key, value).await {
+			Ok(o) => debug!("Obj set in cache: {}", o),
+			Err(e) => error!("Failed to set obj in cache: {}", e),
+		}
+	}
+
+	pub async fn smembers<T>(
+		&self,
+		key: &str,
+	) -> Result<Vec<T>, ()>
+	where
+		T: DeserializeOwned,
+	{
+		info!("smembers: {}", key);
+		match self.client.smembers::<Vec<String>, _>(key).await {
+			Ok(obj) => {
+				debug!("Obj obtained from cache: {:?}", obj);
+				match obj.into_iter().map(|o| serde_json::from_str::<T>(&o)).collect::<Result<Vec<T>, _>>() {
+					Ok(obj) => Ok(obj),
+					Err(e) => {
+						error!("Failed to get from cache: {}", e);
+						Err(())
+					}
+				}
+			},
+			Err(e) => {
+				error!("Failed to get from cache: {}", e);
+				Err(())
+			}
+		}
+	}
+
+	pub async fn del(
+		&self,
+		key: &str,
+	) {
+		match self.client.del::<String, _>(key).await {
+			Ok(o) => debug!("Obj deleted in cache: {}", o),
+			Err(e) => error!("Failed to delete obj in cache: {}", e),
+		}
+	}
 }
