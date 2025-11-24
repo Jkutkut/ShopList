@@ -3,7 +3,7 @@ syntax = "proto3";
 package auth;
 
 service AuthService {
-  rpc BasicLogin(LoginRequest) returns (UserToken);
+  rpc BasicLogin(BasicLoginRequest) returns (UserToken);
   rpc RegisterUserBasicLogin(RegisterBasicUserRequest) returns (UserToken);
   rpc BasicChangePassword(BasicChangePasswordRequest) returns (Empty);
   rpc DeleteUser(DeleteUserRequest) returns (Empty);
@@ -15,8 +15,8 @@ service AuthService {
   rpc TeamRoles(UserId) returns (UserTeamRoles);
 }
 
-message LoginRequest {
-  string username = 1;
+message BasicLoginRequest {
+  string email = 1;
   string password = 2;
 }
 

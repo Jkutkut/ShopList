@@ -9,8 +9,8 @@ pub async fn basic(
 	debug!("Credentials: {:?}", credentials);
 
 	let mut auth_grpc_client = grpc::connect_auth().await.unwrap();
-	let auth_request = tonic::Request::new(LoginRequest {
-		username: credentials.username.clone(),
+	let auth_request = tonic::Request::new(BasicLoginRequest {
+		email: credentials.email.clone(),
 		password: credentials.password.clone(),
 	});
 

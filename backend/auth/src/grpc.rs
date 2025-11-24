@@ -8,7 +8,7 @@ use model::grpc::auth::{
 	UserToken,
 	UserTokenRequest,
 	User,
-	LoginRequest,
+	BasicLoginRequest,
 	RegisterBasicUserRequest,
 	DeleteUserRequest,
 	Empty,
@@ -33,12 +33,12 @@ impl Auth {
 impl AuthService for Auth {
 	async fn basic_login(
 		&self,
-		request: Request<LoginRequest>,
+		request: Request<BasicLoginRequest>,
 	) -> Result<Response<UserToken>, Status> {
 		let addr = request.remote_addr().unwrap();
-		let LoginRequest { username, password } = request.into_inner();
-		info!("Login request from {:?}: {:?}", addr, &username);
-		match self.db.basic_login(username, password).await {
+		let BasicLoginRequest { email, password } = request.into_inner();
+		info!("Login request from {:?}: {:?}", addr, &email);
+		match self.db.basic_login(email, password).await {
 			Ok(user_token) => Ok(Response::new(user_token)),
 			Err(_) => Err(Status::unauthenticated("Invalid credentials"))
 		}
