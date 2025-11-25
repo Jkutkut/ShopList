@@ -41,12 +41,12 @@ fn bearer_token_from(req: &Request) -> Option<String> {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
-	uuid: UuidWrapper,
-	name: String,
-	created_at: String,
-	updated_at: String,
-	is_superuser: bool,
-	image: Option<String>
+	pub uuid: UuidWrapper,
+	pub name: String,
+	pub created_at: String,
+	pub updated_at: String,
+	pub is_superuser: bool,
+	pub image: Option<String>
 }
 
 impl TryFrom<GrpcUser> for User {

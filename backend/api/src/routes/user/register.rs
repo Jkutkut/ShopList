@@ -19,6 +19,7 @@ pub async fn basic(
 		return Err(invalid_api(&format!("GRPC error: {:?}", e)));
 	}
 	let response: UserToken = response.unwrap().into_inner();
+	// TODO cache usertoken
 	Ok(ApiUserToken::new(response.token.clone(), response))
 }
 

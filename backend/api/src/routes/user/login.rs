@@ -13,25 +13,25 @@ pub async fn basic(
 		email: credentials.email.clone(),
 		password: credentials.password.clone(),
 	});
+	debug!("grpc login");
+	let user_data = match auth_grpc_client.basic_login(auth_request).await {
+		Ok(response) => response.into_inner(),
+		Err(e) => return Err(invalid_api(&format!("GRPC error: {:?}", e))),
+	};
 
-	let response = auth_grpc_client.basic_login(auth_request).await;
-	if let Err(e) = response {
-		return Err(invalid_api(&format!("GRPC error: {:?}", e)));
-	}
-	let response: UserToken = response.unwrap().into_inner();
-
-	let expires_at = DateTime::parse_from_rfc3339(&response.expires_at).map_err(|_| {
-		error!("Failed to parse as datetime expires_at: {}", &response.expires_at);
+	let expires_at = DateTime::parse_from_rfc3339(&user_data.expires_at).map_err(|_| {
+		error!("Failed to parse as datetime expires_at: {}", &user_data.expires_at);
 		invalid_api("Failed to parse as datetime expires_at")
 	})?;
 	let now = Utc::now();
 	let expiration = cache::Expiration::EX(expires_at.signed_duration_since(now).num_seconds());
 	cache_client.set(
-		&response.token,
-		&response,
+		&user_data.token,
+		&user_data,
 		Some(expiration),
 	).await;
-	Ok(ApiUserToken::new(response.token.clone(), response))
+	cache_client.sadd(format!("user_token:{}", user_data.user_id).as_str(), &user_data.token).await;
+	Ok(ApiUserToken::new(user_data.token.clone(), user_data))
 }
 
 #[post("/basic/password", data = "<credentials>")]

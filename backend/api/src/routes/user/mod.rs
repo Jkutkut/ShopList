@@ -16,7 +16,8 @@ async fn get_user(
 async fn delete_user(
 	user_id: UuidWrapper,
 	#[allow(unused_variables)]
-	user: guards::User // TODO
+	user: guards::User, // TODO
+	cache_client: &State<Cache>,
 ) -> Result<(), InvalidResponse> {
 	info!("Delete request: {:?}", user_id);
 	let user_id: Uuid = match user_id.get() {
@@ -27,6 +28,15 @@ async fn delete_user(
 	let auth_request = tonic::Request::new(DeleteUserRequest {
 		user_id: user_id.to_string()
 	});
+
+	let user_tokens_key = format!("user_token:{}", user_id);
+	let tokens: Vec<String> = cache_client.smembers(&user_tokens_key).await.unwrap();
+	for token in tokens {
+		debug!("Deleting token: {}", token);
+		cache_client.del(&token).await;
+	}
+	cache_client.del(&user_tokens_key).await;
+
 	match auth_grpc_client.delete_user(auth_request).await {
 		Ok(_) => Ok(()),
 		Err(e) => match e.code() {
