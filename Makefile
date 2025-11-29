@@ -6,6 +6,8 @@ MAKE=make --no-print-directory
 DEV_DOCKER_CONFIG="--rm"
 PRD_DOCKER_CONFIG="--restart=unless-stopped"
 
+default: usage
+
 # ########   DB Controler   #########
 
 DB_CONTROLER_NAME=db_controller
@@ -92,3 +94,58 @@ fclean:
 	@echo " - ${TITLE}Shoplist${NC}: ${LGREEN}OK${NC}"
 
 .PHONY: all re build clean fclean run remove stop
+
+usage:
+	@echo "${TITLE}Usage:${NC}"
+	@echo "make usage;"
+	@echo "";
+	@echo "${TITLE}Start environment - up environment:${NC}"
+	@for env in $(ENVS); do \
+		echo "make up_$$env; ${GREEN}# $$env${NC}"; \
+		echo "make up_d_$$env; ${GREEN}# $$env detached${NC}"; \
+	done
+	@echo ""
+	@echo "${TITLE}Stop environment - down environment:${NC}"
+	@for env in $(ENVS); do \
+		echo "make down_$$env; ${GREEN}# $$env${NC}"; \
+	done
+	@echo "make down_test; ${GREEN}# all tests${NC}"
+	@echo ""
+	@echo "${TITLE}Monitoring logs in environment:${NC}"
+	@for env in $(ENVS); do \
+		echo "make logs_$$env; ${GREEN}# $$env${NC}"; \
+	done
+	@echo ""
+	@echo "${TITLE}Monitoring logs of service:${NC}"
+	@for project in $(PROJECTS); do \
+		echo "make logs_$$project; ${GREEN}# $$project${NC}"; \
+	done
+	@echo ""
+	@echo "${TITLE}Open a terminal in service:${NC}"
+	@for project in $(PROJECTS); do \
+		echo "make terminal_$$project; ${GREEN}# $$project${NC}"; \
+	done
+	@echo ""
+	@# TODO build
+	@# TODO doc
+	@echo "${TITLE}Test service:${NC}"
+	@for project in $(TEST_PROJECTS); do \
+		echo "make test_$$project; ${GREEN}# $$project${NC}"; \
+		echo "make test_d_$$project; ${GREEN}# $$project detached${NC}"; \
+	done
+	@echo ""
+	@echo "${TITLE}Monitoring logs of test:${NC}"
+	@for project in $(TEST_PROJECTS); do \
+		echo "make test_logs_$$project; ${GREEN}# $$project${NC}"; \
+	done
+	@echo ""
+	@echo "${TITLE}Cleaning base services:${NC} (based on ${YELLOW}${GENERIC_ENV}${NC})"
+	@for project in $(PROJECTS); do \
+		echo "make clean_$$project; ${GREEN}# $$project${NC}"; \
+	done
+	@echo "make fclean; ${GREEN}# all${NC}"
+	@echo ""
+	@echo "${TITLE}DB Controler:${NC}"
+	@echo "make run_db_controler; ${GREEN}# run db controller (pgadmin)${NC}"
+	@echo "make delete_db_controler; ${GREEN}# delete db controller${NC}"
+	@echo "make run_valkey_controller; ${GREEN}# Open a cli to work with valkey${NC}"
