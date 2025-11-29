@@ -277,7 +277,7 @@ DROP FUNCTION IF EXISTS team_roles(users.id%TYPE);
 CREATE FUNCTION team_roles(
     usr_id users.id%TYPE
 ) RETURNS TABLE (
-    role_name roles.name%TYPE,
+    role_name user_roles.role%TYPE,
     team_id teams.id%TYPE,
     team_name teams.name%TYPE,
     team_description teams.description%TYPE,
