@@ -21,13 +21,17 @@ mod utils;
 mod tests;
 
 #[launch]
+async fn main_rocket() -> Rocket<Build> {
+	env_logger::init();
+	rocket().await
+}
+
 async fn rocket() -> Rocket<Build> {
 	let env_path = std::env::var("ENV_PATH");
 	if let Ok(env_path) = env_path {
 		info!("Loading environment variables from {}", env_path);
 		dotenv::from_path(env_path).ok();
 	}
-	env_logger::init();
 
 	let db_client = db::connect_to_db_or_end().await.unwrap_or_else(|e| {
 		error!("Failed to connect to DB: {}", e);
