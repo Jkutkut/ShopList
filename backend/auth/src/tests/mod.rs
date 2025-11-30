@@ -1,7 +1,6 @@
 use crate::*;
 use model::grpc::auth::*;
 use uuid::Uuid;
-use log::*;
 #[allow(unused_imports)]
 use macro_test::*;
 
