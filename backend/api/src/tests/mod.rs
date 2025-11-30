@@ -7,6 +7,8 @@ use rocket::{
 	},
 };
 
+mod openapi;
+
 struct Test {
 	client: Client,
 }
