@@ -36,8 +36,54 @@ services:
     networks:
       - db-network-test
       - auth-network-test
+  auth:
+    environment:
+      DB_HOST: "shoplist-db-test"
+      DB_PORT: "5432"
+    depends_on:
+      - db-test
+    networks:
+      - auth-network-test
+      - db-network-test
+  valkey:
+    hostname: ${VALKEY_HOST}
+    volumes:
+      - test_valkey_data:/data
+    networks:
+      - db-network-test
+  api-test:
+    container_name: shoplist-api-test
+    hostname: shoplist-api-test
+    build:
+      context: ./backend/
+      dockerfile: Dockerfile
+      target: builder
+    environment:
+      DB_HOST: "shoplist-db-test"
+      DB_PORT: "5432"
+
+      ENV_PATH: "/shoplist/.env"
+      RUST_LOG: "warn,test=debug,api=debug,model=debug,rocket=info"
+      ROCKET_CONFIG: /shoplist/backend/api/Rocket.toml
+      ROCKET_SECRET_KEY: ${ROCKET_SECRET_KEY}
+
+    volumes:
+      - test_cargo_registy:/root/.cargo/registry
+      - .:/shoplist
+    working_dir: /shoplist/backend
+    entrypoint: cargo
+    command: watch -- cargo test -p api -- --test-threads=8
+    depends_on:
+      - db-test
+      - auth
+      - valkey
+    networks:
+      - db-network-test
+      - auth-network-test
+
 volumes:
   test_cargo_registy:
+  test_valkey_data:
 networks:
   db-network-test:
     driver: bridge

@@ -50,7 +50,7 @@ run_valkey_controller:
 ENVS = dev
 GENERIC_ENV = dev
 PROJECTS = api auth db front nginx
-TEST_PROJECTS = auth
+TEST_PROJECTS = auth api
 
 $(ENVS:%=up_%): up_%:
 	@echo "${TITLE}Starting ENV ${YELLOW}$*${NC}..."

@@ -17,6 +17,9 @@ mod guards;
 mod grpc;
 mod utils;
 
+#[cfg(test)]
+mod tests;
+
 #[launch]
 async fn rocket() -> Rocket<Build> {
 	let env_path = std::env::var("ENV_PATH");
