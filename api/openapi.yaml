@@ -15,6 +15,20 @@ info:
 servers:
   - url: http://localhost/
 paths:
+  /api:
+    get:
+      summary: Ping - Health check
+      description: Basic call that can be used as a health check
+      tags:
+        - ping
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                example: shoplist-api is up an running vX.X.X
   /api/v1/user/{user_id}:
     get:
       summary: Get user info
