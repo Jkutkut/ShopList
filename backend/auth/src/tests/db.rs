@@ -50,14 +50,13 @@ async fn create_user_basic_credentials(test: &Test, name: &str, email: &str, pas
 }
 
 #[allow(dead_code)]
-async fn create_superuser_basic_credentials(test: &Test, name: &str, email: &str, password: &str) -> (User, String) {
-	let super_token = create_user_basic_credentials(&test, name, email, password).await.token;
-	let super_user = test.db.me(&super_token).await.unwrap();
-	let super_user_uuid: Uuid = super_user.uuid.parse().unwrap();
+async fn create_superuser_basic_credentials(test: &Test, name: &str, email: &str, password: &str) -> UserToken {
+	let user_token = create_user_basic_credentials(&test, name, email, password).await;
+	let super_user_uuid: Uuid = user_token.user_id.parse().unwrap();
 	let query = "SELECT set_superuser($1);";
 	let stmt = test.db.db_client.prepare(query).await.unwrap();
 	test.db.db_client.execute(&stmt, &[&super_user_uuid]).await.unwrap();
-	(super_user, super_token)
+	user_token
 }
 
 #[tokio::test]
@@ -165,20 +164,19 @@ async fn db_test_change_password() {
 	]).await;
 
 	info!("Registering users...");
-	let (_, super_user_token) = create_superuser_basic_credentials(
+	let super_user_token = create_superuser_basic_credentials(
 		&test,
 		&(user_base.to_string() + "superuser"),
 		&(email_base.to_string() + "superuser@marvin.com"),
 		"superuser-password"
-	).await;
-	let user1_token = create_user_basic_credentials(
+	).await.token;
+	let UserToken { token: user1_token, user_id, .. } = create_user_basic_credentials(
 		&test,
 		&(user_base.to_string() + "1"),
 		&(email_base.to_string() + "1@marvin.com"),
 		password
-	).await.token;
-	let user1 = test.db.me(&user1_token).await.unwrap();
-	let user1_uuid: Uuid = user1.uuid.parse().unwrap();
+	).await;
+	let user1_uuid: Uuid = user_id.parse().unwrap();
 	let user2_token = create_user_basic_credentials(
 		&test,
 		&(user_base.to_string() + "2"),
@@ -233,14 +231,15 @@ async fn db_test_logout_user() {
 	ensure_users_deleted(&test, &[user, super_user]).await;
 
 	info!("Registering users...");
-	let (_, super_token) = create_superuser_basic_credentials(&test, super_user, super_email, super_password).await;
-	let token = create_user_basic_credentials(&test, user, email, password).await.token;
-
-	let user_obj = test.db.me(&token).await;
-	assert!(user_obj.is_ok(), "User info should succeed");
-	let user_obj = user_obj.unwrap();
-
-	let user_uuid: Uuid = user_obj.uuid.parse().unwrap();
+	let UserToken {
+		token: super_token,
+		user_id: super_user_id,
+		..
+	} = create_superuser_basic_credentials(&test, super_user, super_email, super_password).await;
+	let super_uuid: Uuid = super_user_id.parse().unwrap();
+	let UserToken { token, user_id, .. } = create_user_basic_credentials(&test, user, email, password).await;
+	let user_uuid: Uuid = user_id.parse().unwrap();
+	assert!(test.db.me(&token).await.is_ok(), "User info should succeed");
 
 	assert!(test.db.logout_user(
 		&token,
@@ -262,10 +261,9 @@ async fn db_test_logout_user() {
 	).await.is_ok(), "Superuser should be able to logout user");
 	assert!(test.db.me(&token).await.is_err(), "Me should fail (User logged out)");
 	assert!(test.db.me(&super_token).await.is_ok(), "Me should succeed (Superuser logged in)");
-	let super_id: Uuid = test.db.me(&super_token).await.unwrap().uuid.parse().unwrap();
 	assert!(test.db.logout_user(
 		&super_token,
-		&super_id
+		&super_uuid
 	).await.is_ok(), "Superuser should be able to logout itself");
 	assert!(test.db.me(&super_token).await.is_err(), "Me should fail (Superuser logged out)");
 
@@ -293,7 +291,7 @@ async fn db_test_logout_everyone() {
 	let super_password = "marvin-password";
 	let super_email = "marvin-db_test_logout_everyone_superuser@marvin.com";
 
-	let (_, super_token) = create_superuser_basic_credentials(&test, super_user, super_email, super_password).await;
+	let super_token = create_superuser_basic_credentials(&test, super_user, super_email, super_password).await.token;
 
 	for i in 0..10 {
 		assert!(test.db.me(&users[i]).await.is_ok(), "Me should succeed");
@@ -326,9 +324,8 @@ async fn db_test_user_team_roles() {
 	let email = "marvin-db_test_user_team_roles@marvin.com";
 
 	ensure_users_deleted(&test, &[user]).await;
-	let token = create_user_basic_credentials(&test, user, email, password).await.token;
-	let user_obj = test.db.me(&token).await.unwrap();
-	let user_uuid: Uuid = user_obj.uuid.parse().unwrap();
+	let user_id = create_user_basic_credentials(&test, user, email, password).await.user_id;
+	let user_uuid: Uuid = user_id.parse().unwrap();
 
 	let user_team_roles = test.db.team_roles(&user_uuid).await;
 	assert!(user_team_roles.is_ok(), "Team roles should succeed");
