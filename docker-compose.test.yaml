@@ -16,7 +16,6 @@ services:
       - db-network-test
   auth-test:
     container_name: shoplist-auth-test
-    hostname: shoplist-auth-test
     build:
       context: ./backend/
       dockerfile: Dockerfile
@@ -27,20 +26,18 @@ services:
       ENV_PATH: "/shoplist/.env.test"
       RUST_LOG: "auth=debug,warn"
     volumes:
-      - cargo_registy:/root/.cargo/registry
+      - test_cargo_registy:/root/.cargo/registry
       - .:/shoplist
     working_dir: /shoplist/backend
     entrypoint: cargo
     command: watch -- cargo test -p auth -- --test-threads=1
-    ports:
-      - "50051"
     depends_on:
       - db-test
     networks:
       - db-network-test
       - auth-network-test
 volumes:
-  cargo_registy:
+  test_cargo_registy:
 networks:
   db-network-test:
     driver: bridge
