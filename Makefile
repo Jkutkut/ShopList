@@ -13,23 +13,31 @@ default: usage
 DB_CONTROLER_NAME=db_controller
 
 run_db_controler:
-	docker ps | grep ${DB_CONTROLER_NAME} > /dev/null || \
+	@echo "${TITLE}Starting DB Controler: ${YELLOW}${DB_CONTROLER_NAME}${TITLE}...${NC}"
+	@docker ps | grep ${DB_CONTROLER_NAME} > /dev/null || \
 	( \
 		docker ps -a | grep ${DB_CONTROLER_NAME} > /dev/null && \
 		docker start ${DB_CONTROLER_NAME} \
 	) || \
-	docker run -d \
+	docker run -d --rm \
 		--name ${DB_CONTROLER_NAME} \
 		-p ${DB_CONTROLER_PORT}:80 \
 		-e PGADMIN_DEFAULT_EMAIL="${DB_CONTROLER_EMAIL}" \
 		-e PGADMIN_DEFAULT_PASSWORD="${DB_CONTROLER_PASSWORD}" \
-		--network "shoplist_db-network" \
 		-v db_controller_data:/var/lib/pgadmin \
 		dpage/pgadmin4
-	open http://localhost:${DB_CONTROLER_PORT}
+	@make -s connect_db_controler
+	@echo "${LGREEN}http://localhost:${DB_CONTROLER_PORT}${NC}"
+	@open http://localhost:${DB_CONTROLER_PORT}
+
+connect_db_controler:
+	@echo "${TITLE}Connecting DB Controler: ${YELLOW}${DB_CONTROLER_NAME}${TITLE}...${NC}"
+	@docker network connect "shoplist_db-network" ${DB_CONTROLER_NAME} || true;
+	@docker network connect "shoplist_db-network-test" ${DB_CONTROLER_NAME} || true;
 
 delete_db_controler:
-	docker rm -f ${DB_CONTROLER_NAME}
+	@echo "${TITLE}Deleting DB Controler: ${YELLOW}${DB_CONTROLER_NAME}${TITLE}...${NC}"
+	@docker rm -f ${DB_CONTROLER_NAME}
 
 run_valkey_controller:
 	docker run -it --rm \
@@ -147,5 +155,6 @@ usage:
 	@echo ""
 	@echo "${TITLE}DB Controler:${NC}"
 	@echo "make run_db_controler; ${GREEN}# run db controller (pgadmin)${NC}"
+	@echo "make connect_db_controler; ${GREEN}# connect to docker networks${NC}"
 	@echo "make delete_db_controler; ${GREEN}# delete db controller${NC}"
 	@echo "make run_valkey_controller; ${GREEN}# Open a cli to work with valkey${NC}"
