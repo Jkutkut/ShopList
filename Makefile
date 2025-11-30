@@ -88,6 +88,9 @@ $(TEST_PROJECTS:%=test_d_%): test_d_%:
 $(TEST_PROJECTS:%=test_logs_%): test_logs_%:
 	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml logs --no-log-prefix -f $*-test
 
+$(TEST_PROJECTS:%=test_terminal_%): test_terminal_%:
+	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml exec $*-test sh
+
 down_test:
 	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml down
 
@@ -132,6 +135,9 @@ usage:
 	@echo "${TITLE}Open a terminal in service:${NC}"
 	@for project in $(PROJECTS); do \
 		echo "make terminal_$$project; ${GREEN}# $$project${NC}"; \
+	done
+	@for test in $(TEST_PROJECTS); do \
+		echo "make test_terminal_$$test; ${GREEN}# test $$test${NC}"; \
 	done
 	@echo ""
 	@# TODO build
