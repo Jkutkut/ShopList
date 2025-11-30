@@ -7,6 +7,8 @@ services:
     networks:
       - db-network
   valkey:
+    volumes:
+      - valkey_data:/data
     networks:
       - db-network
   auth:
@@ -67,6 +69,7 @@ services:
       - api-network
 volumes:
   db_data:
+  valkey_data:
   cargo_registy:
 networks:
   db-network:
