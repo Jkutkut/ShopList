@@ -18,19 +18,7 @@ pub async fn basic(
 		Ok(response) => response.into_inner(),
 		Err(e) => return Err(invalid_api(&format!("GRPC error: {:?}", e))),
 	};
-
-	let expires_at = DateTime::parse_from_rfc3339(&user_data.expires_at).map_err(|_| {
-		error!("Failed to parse as datetime expires_at: {}", &user_data.expires_at);
-		invalid_api("Failed to parse as datetime expires_at")
-	})?;
-	let now = Utc::now();
-	let expiration = cache::Expiration::EX(expires_at.signed_duration_since(now).num_seconds());
-	cache_client.set(
-		&user_data.token,
-		&user_data,
-		Some(expiration),
-	).await;
-	cache_client.sadd(format!("user_token:{}", user_data.user_id).as_str(), &user_data.token).await;
+	cache_client.cache_user_token(&user_data).await.map_err(|e| invalid_api(&e))?;
 	Ok(ApiUserToken::new(user_data.token.clone(), user_data))
 }
 

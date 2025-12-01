@@ -7,8 +7,14 @@ use log::*;
 use chrono::{
 	Utc,
 	TimeZone,
+	DateTime,
 };
 use crate::utils::env_var;
+use model::{
+	grpc::auth::{
+		UserToken,
+	},
+};
 
 pub use fred::prelude::*;
 
@@ -194,5 +200,23 @@ impl Cache {
 			Ok(o) => debug!("Obj deleted in cache: {}", o),
 			Err(e) => error!("Failed to delete obj in cache: {}", e),
 		}
+	}
+}
+
+impl Cache {
+	pub async fn cache_user_token(&self, user_token: &UserToken) -> Result<(), String> {
+		let expires_at = DateTime::parse_from_rfc3339(&user_token.expires_at).map_err(|_| {
+			error!("Failed to parse as datetime expires_at: {}", &user_token.expires_at);
+			"Failed to parse as datetime expires_at".to_string()
+		})?;
+		let now = Utc::now();
+		let expiration = Expiration::EX(expires_at.signed_duration_since(now).num_seconds());
+		self.set(
+			&user_token.token,
+			&user_token,
+			Some(expiration),
+		).await;
+		self.sadd(format!("user_token:{}", user_token.user_id).as_str(), &user_token.token).await;
+		Ok(())
 	}
 }
