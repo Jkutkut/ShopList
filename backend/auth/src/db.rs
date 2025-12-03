@@ -111,7 +111,7 @@ impl ShoplistDbAuth {
 			};
 			debug!("User {} is a superuser", auth_user_id);
 		}
-		let query = "DELETE FROM basic_login WHERE user_id = $1";
+		let query = "DELETE FROM users WHERE id = $1";
 		let stmt = self.db_client.prepare(query).await.unwrap();
 		match self.db_client.execute(&stmt, &[&user_id]).await {
 			Ok(r) if r == 1 => {
