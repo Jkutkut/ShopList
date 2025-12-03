@@ -1,10 +1,20 @@
 use crate::*;
+use serde_json::{
+	json,
+	Value as JsonValue,
+};
 use rocket::{
-	http::Status,
+	http::{
+		Status,
+		Header,
+	},
 	local::asynchronous::{
 		Client,
 		LocalResponse,
 	},
+};
+use model::{
+	grpc::auth::*,
 };
 
 mod openapi;
@@ -26,17 +36,48 @@ async fn setup() -> Test {
 	}
 }
 
-async fn check_response(res: LocalResponse<'_>, status: Status, content_type: &str, message_contains: &[&str]) {
+async fn check_response(
+	res: &LocalResponse<'_>,
+	status: Status,
+	content_type: &str,
+) {
 	assert_eq!(res.status(), status, "Response status is {} but should be {}", res.status(), status);
-	assert_eq!(res.content_type(), Some(content_type.parse().unwrap()), "Response content type is {} but should be {}", res.content_type().unwrap(), content_type);
-	let res_str = res.into_string().await.unwrap();
-	for message in message_contains {
-		assert!(res_str.contains(message), "Response body is {} but should contain {}", res_str, message);
-	}
+	assert_eq!(
+		res.content_type(), Some(content_type.parse().unwrap()),
+		"Response content type is {} but should be {}", res.content_type().unwrap(), content_type
+	);
 }
 
-async fn check_json_response(res: LocalResponse<'_>, message_contains: &[&str]) {
-	check_response(res, Status::Ok, "application/json", message_contains).await;
+async fn check_json_response(
+	res: &LocalResponse<'_>,
+) {
+	check_response(res, Status::Ok, "application/json").await;
+}
+
+fn create_user_credentials(key: &str) -> JsonValue {
+	json!({
+		"name": format!("test-{}", key),
+		"email": format!("{}-test@test.com", key),
+		"password": format!("test-{}-password", key),
+	})
+}
+
+async fn create_user(test: &Test, key: &str) -> UserToken {
+	let credentials = create_user_credentials(key);
+	let req = test.client.post("/api/v1/user/register/basic").json(&credentials);
+	let res = req.dispatch().await;
+	check_json_response(&res).await;
+	res.into_json().await.unwrap()
+}
+
+async fn delete_self_user(test: &Test, user_token: &UserToken) {
+	let UserToken { user_id, token, .. } = user_token;
+	let endpoint = format!("/api/v1/user/{user_id}");
+	let auth = format!("Bearer {}", token);
+	let res = test.client.delete(&endpoint)
+		.header(Header::new("Authorization", auth))
+		.dispatch().await;
+	assert_eq!(res.status(), Status::Ok);
 }
 
 #[tokio::test]
@@ -45,5 +86,19 @@ async fn ping() {
 
 	let req = test.client.get("/api");
 	let res = req.dispatch().await;
-	check_json_response(res, &["api", "is up", "running"]).await;
+
+	check_json_response(&res).await;
+
+	let res_str = res.into_string().await.unwrap();
+	for message in ["api", "is up", "running"] {
+		assert!(res_str.contains(message), "Response body is {} but should contain {}", res_str, message);
+	}
+}
+
+#[tokio::test]
+async fn basic_register() {
+	let test = setup().await;
+	let test = &test;
+	let user_token = create_user(test, "basic_register").await;
+	delete_self_user(test, &user_token).await;
 }
