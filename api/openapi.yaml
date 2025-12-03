@@ -29,6 +29,13 @@ paths:
               schema:
                 type: string
                 example: shoplist-api is up an running vX.X.X
+    options:
+      summary: CORS preflight
+      tags:
+        - ping
+      responses:
+        '200':
+          description: OK
   /api/v1/user/{user_id}:
     get:
       summary: Get user info
