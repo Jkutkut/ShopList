@@ -4,6 +4,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 	#[cfg(feature = "api")]
 	tonic_build::configure()
 		.type_attribute("UserToken", "#[derive(serde::Serialize, serde::Deserialize)]")
+		.type_attribute("User", "#[derive(serde::Deserialize)]")
 		.compile_protos(&["../../proto/auth.proto"], &["../../proto"])
 		.expect("Unable to compile protos");
 	Ok(())

@@ -1,4 +1,6 @@
 use crate::*;
+use std::time::Duration;
+use std::thread::sleep;
 use serde_json::{
 	json,
 	Value as JsonValue,
@@ -31,13 +33,13 @@ async fn setup() -> Test {
 
 	let rocket_instance = rocket().await;
 
-	let mut grpc_connect_attempts = 10;
+	let mut grpc_connect_attempts = 50;
 	while grpc_connect_attempts > 0 {
 		match grpc::connect_auth().await {
 			Ok(_) => break,
 			Err(e) => {
 				error!("Failed to connect to auth grpc: {}", e);
-				std::thread::sleep(std::time::Duration::from_secs(1));
+				sleep(Duration::from_millis(100));
 			}
 		}
 		grpc_connect_attempts -= 1;
@@ -47,6 +49,10 @@ async fn setup() -> Test {
 	Test {
 		client,
 	}
+}
+
+fn auth_header(token: &str) -> Header<'static> {
+	Header::new("Authorization", format!("Bearer {}", token))
 }
 
 async fn check_response(
@@ -86,12 +92,42 @@ async fn create_user(test: &Test, key: &str) -> UserToken {
 async fn delete_self_user(test: &Test, user_token: &UserToken) {
 	let UserToken { user_id, token, .. } = user_token;
 	let endpoint = format!("/api/v1/user/{user_id}");
-	let auth = format!("Bearer {}", token);
 	let res = test.client.delete(&endpoint)
-		.header(Header::new("Authorization", auth))
+		.header(auth_header(&token))
 		.dispatch().await;
 	assert_eq!(res.status(), Status::Ok);
 }
+
+async fn fetch_me(test: &Test, user_token: &UserToken) -> User {
+	let UserToken { token, .. } = user_token;
+	let res = test.client.get("/api/v1/user/me")
+		.header(auth_header(&token))
+		.dispatch().await;
+	check_json_response(&res).await;
+	res.into_json().await.unwrap()
+}
+
+#[allow(dead_code)]
+async fn fetch_user(test: &Test, user_token: &UserToken, user_id: &str) -> User {
+	let UserToken { token, .. } = user_token;
+	let endpoint = format!("/api/v1/user/{}", user_id);
+	let res = test.client.get(&endpoint)
+		.header(auth_header(&token))
+		.dispatch().await;
+	check_json_response(&res).await;
+	res.into_json().await.unwrap()
+}
+
+async fn login_user(test: &Test, key: &str) -> UserToken {
+	sleep(Duration::from_secs(1)); // Ensure the JWT token is different
+	let credentials = create_user_credentials(key);
+	let req = test.client.post("/api/v1/user/login/basic").json(&credentials);
+	let res = req.dispatch().await;
+	check_json_response(&res).await;
+	res.into_json().await.unwrap()
+}
+
+// -------------------------------------------
 
 // GET /api
 #[tokio::test]
@@ -117,4 +153,29 @@ async fn basic_register() {
 	let test = &test;
 	let user_token = create_user(test, "basic_register").await;
 	delete_self_user(test, &user_token).await;
+}
+
+// GET /api/v1/user/me
+// GET TODO /api/v1/user/<user_id>
+#[tokio::test]
+async fn get_user() {
+	let test = setup().await;
+	let user_token = create_user(&test, "get_user_me").await;
+	let user = fetch_me(&test, &user_token).await;
+	debug!("user: {:#?}", user);
+	// assert_eq!(user, fetch_user(&test, &user_token, &user.uuid).await);
+	assert_eq!(user.uuid, user_token.user_id);
+	delete_self_user(&test, &user_token).await;
+}
+
+// POST /api/v1/user/login/basic
+#[tokio::test]
+async fn basic_login() {
+	let test = setup().await;
+	let key = "basic_login";
+	let user_token = create_user(&test, key).await;
+	let login = login_user(&test, key).await;
+	assert_eq!(login.user_id, user_token.user_id);
+	assert!(user_token.token != login.token);
+	delete_self_user(&test, &user_token).await;
 }

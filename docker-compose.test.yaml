@@ -82,7 +82,7 @@ services:
       DB_HOST: "shoplist-db-test"
       DB_PORT: "5432"
       ENV_PATH: "/shoplist/.env"
-      RUST_LOG: "warn,test=debug,api=debug,model=debug,rocket=info"
+      RUST_LOG: "warn,api=debug,model=debug,rocket=info"
       ROCKET_CONFIG: /shoplist/backend/api/Rocket.toml
       ROCKET_SECRET_KEY: ${ROCKET_SECRET_KEY}
     volumes:
