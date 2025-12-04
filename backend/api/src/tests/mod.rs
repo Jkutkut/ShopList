@@ -80,6 +80,7 @@ async fn delete_self_user(test: &Test, user_token: &UserToken) {
 	assert_eq!(res.status(), Status::Ok);
 }
 
+// GET /api
 #[tokio::test]
 async fn ping() {
 	let test = setup().await;
@@ -95,6 +96,8 @@ async fn ping() {
 	}
 }
 
+// POST /api/v1/user/register/basic
+// DELETE /api/v1/user/<user_id>
 #[tokio::test]
 async fn basic_register() {
 	let test = setup().await;
