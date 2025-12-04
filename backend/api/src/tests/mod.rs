@@ -30,6 +30,19 @@ async fn setup() -> Test {
 	).is_test(true).format_timestamp(None).try_init();
 
 	let rocket_instance = rocket().await;
+
+	let mut grpc_connect_attempts = 10;
+	while grpc_connect_attempts > 0 {
+		match grpc::connect_auth().await {
+			Ok(_) => break,
+			Err(e) => {
+				error!("Failed to connect to auth grpc: {}", e);
+				std::thread::sleep(std::time::Duration::from_secs(1));
+			}
+		}
+		grpc_connect_attempts -= 1;
+	}
+
 	let client = Client::tracked(rocket_instance).await.unwrap();
 	Test {
 		client,
