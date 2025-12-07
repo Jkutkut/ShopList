@@ -1,9 +1,12 @@
 use tokio_postgres::{
-	Client,
 	NoTls,
 };
 use log::*;
 use crate::utils::env_var;
+
+pub use tokio_postgres::{
+	Client,
+};
 
 pub async fn connect_to_db_or_end() -> Result<Client, String> {
 	let db_properties = format!(

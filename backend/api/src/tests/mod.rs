@@ -83,6 +83,14 @@ fn create_user_credentials(key: &str) -> JsonValue {
 
 async fn create_user(test: &Test, key: &str) -> UserToken {
 	let credentials = create_user_credentials(key);
+	{
+		debug!("Ensure user does not exist");
+		let db = test.client.rocket().state::<db::Client>().unwrap();
+		let query = "DELETE FROM users WHERE name = $1";
+		let user_name: String = credentials["name"].as_str().unwrap().to_string();
+		let stmt = db.prepare(query).await.unwrap();
+		db.execute(&stmt, &[&user_name]).await.unwrap();
+	}
 	let req = test.client.post("/api/v1/user/register/basic").json(&credentials);
 	let res = req.dispatch().await;
 	check_json_response(&res).await;
