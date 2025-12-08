@@ -9,6 +9,7 @@ use chrono::{
 	TimeZone,
 	DateTime,
 };
+use uuid::Uuid;
 use crate::utils::env_var;
 use model::{
 	grpc::auth::{
@@ -217,6 +218,12 @@ impl Cache {
 			Some(expiration),
 		).await;
 		self.sadd(format!("user_token:{}", user_token.user_id).as_str(), &user_token.token).await;
+		Ok(())
+	}
+
+	pub async fn flush_user_token(&self, user_token: &str, user_id: &Uuid) -> Result<(), String> {
+		self.del(user_token).await;
+		self.del(format!("user_token:{}", user_id).as_str()).await;
 		Ok(())
 	}
 }

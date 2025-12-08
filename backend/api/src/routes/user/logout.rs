@@ -3,9 +3,27 @@ use super::*;
 #[post("/")]
 async fn logout_current_user(
 	#[allow(unused_variables)]
-	user: guards::User
+	user: guards::User,
+	session_token: guards::SessionToken,
+	cache_client: &State<Cache>,
 ) -> Result<(), InvalidResponse> {
-	Err(route_error::not_implemented()) // TODO
+	info!("logout request: {}", user.uuid);
+	let session_token = session_token.to_string();
+	let mut auth_grpc_client = grpc::connect_auth().await.unwrap();
+	let auth_request = tonic::Request::new(UserTokenRequest {
+		token: session_token.clone(),
+	});
+	match auth_grpc_client.logout(auth_request).await {
+		Ok(_) => info!("Logout successful"),
+		Err(e) => {
+			error!("Logout failed: {}", e);
+			return Err(invalid_api(&format!("GRPC error: {:?}", e)));
+		}
+	};
+	cache_client.flush_user_token(
+		&session_token, &user.uuid.get().unwrap()
+	).await.map_err(|e| invalid_api(&e))?;
+	Ok(())
 }
 
 #[post("/<user_id>")]

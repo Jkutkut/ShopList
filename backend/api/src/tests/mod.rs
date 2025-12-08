@@ -55,22 +55,35 @@ fn auth_header(token: &str) -> Header<'static> {
 	Header::new("Authorization", format!("Bearer {}", token))
 }
 
-async fn check_response(
-	res: &LocalResponse<'_>,
-	status: Status,
-	content_type: &str,
-) {
-	assert_eq!(res.status(), status, "Response status is {} but should be {}", res.status(), status);
+fn check_content_type(res: &LocalResponse<'_>, content_type: &str) {
 	assert_eq!(
 		res.content_type(), Some(content_type.parse().unwrap()),
 		"Response content type is {} but should be {}", res.content_type().unwrap(), content_type
 	);
 }
 
+fn check_json_content_type(res: &LocalResponse<'_>) {
+	check_content_type(res, "application/json");
+}
+
+fn check_status(res: &LocalResponse<'_>, status: Status) {
+	assert_eq!(res.status(), status, "Response status is {} but should be {}", res.status(), status);
+}
+
+async fn check_response(
+	res: &LocalResponse<'_>,
+	status: Status,
+	content_type: &str,
+) {
+	check_status(res, status);
+	check_content_type(res, content_type);
+}
+
 async fn check_json_response(
 	res: &LocalResponse<'_>,
 ) {
-	check_response(res, Status::Ok, "application/json").await;
+	check_status(res, Status::Ok);
+	check_json_content_type(res);
 }
 
 fn create_user_credentials(key: &str) -> JsonValue {
@@ -113,6 +126,14 @@ async fn fetch_me(test: &Test, user_token: &UserToken) -> User {
 		.dispatch().await;
 	check_json_response(&res).await;
 	res.into_json().await.unwrap()
+}
+
+async fn fail_fetch_me(test: &Test, user_token: &UserToken) {
+	let UserToken { token, .. } = user_token;
+	let res = test.client.get("/api/v1/user/me")
+		.header(auth_header(&token))
+		.dispatch().await;
+	check_response(&res, Status::Unauthorized, "application/json").await;
 }
 
 #[allow(dead_code)]
@@ -185,5 +206,18 @@ async fn basic_login() {
 	let login = login_user(&test, key).await;
 	assert_eq!(login.user_id, user_token.user_id);
 	assert!(user_token.token != login.token);
+	delete_self_user(&test, &user_token).await;
+}
+
+// POST /api/v1/user/logout
+#[tokio::test]
+async fn logout() {
+	let test = setup().await;
+	let key = "logout";
+	let user_token = create_user(&test, key).await;
+	let _ = fetch_me(&test, &user_token).await;
+	logout_user(&test, &user_token).await;
+	fail_fetch_me(&test, &user_token).await;
+	let user_token = login_user(&test, key).await;
 	delete_self_user(&test, &user_token).await;
 }

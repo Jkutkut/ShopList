@@ -127,3 +127,29 @@ impl<'r> FromRequest<'r> for User {
 		}
 	}
 }
+
+#[derive(Debug)]
+pub struct SessionToken(String);
+
+impl SessionToken {
+	pub fn new(token: String) -> Self {
+		Self(token)
+	}
+
+	pub fn to_string(self) -> String {
+		self.0
+	}
+}
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for SessionToken {
+	type Error = ();
+
+	async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+		let token = match bearer_token_from(req) {
+			Some(token) => token,
+			_ => return Outcome::Error((Status::Unauthorized, ())),
+		};
+		Outcome::Success(Self::new(token))
+	}
+}
