@@ -33,7 +33,7 @@ async fn rocket() -> Rocket<Build> {
 		dotenv::from_path(env_path).ok();
 	}
 
-	let db_client = db::connect_to_db_or_end().await.unwrap_or_else(|e| {
+	let db_client = db::DB::connect_to_db_or_end().await.unwrap_or_else(|e| {
 		error!("Failed to connect to DB: {}", e);
 		std::process::exit(1);
 	});

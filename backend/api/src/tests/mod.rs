@@ -85,7 +85,7 @@ async fn create_user(test: &Test, key: &str) -> UserToken {
 	let credentials = create_user_credentials(key);
 	{
 		debug!("Ensure user does not exist");
-		let db = test.client.rocket().state::<db::Client>().unwrap();
+		let db = test.client.rocket().state::<db::DB>().unwrap().client();
 		let query = "DELETE FROM users WHERE name = $1";
 		let user_name: String = credentials["name"].as_str().unwrap().to_string();
 		let stmt = db.prepare(query).await.unwrap();
