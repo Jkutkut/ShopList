@@ -1,12 +1,12 @@
 import { useState } from "react";
 
 const useExpanded = (initialValue: boolean = false) => {
-  const [expanded, setExpanded] = useState(initialValue);
-  const toggleExpanded = () => setExpanded(!expanded);
+  const [isExpanded, setIsExpanded] = useState(initialValue);
+  const toggleIsExpanded = () => setIsExpanded(!isExpanded);
   return {
-    expanded,
-    setExpanded,
-    toggleExpanded,
+    isExpanded,
+    setIsExpanded,
+    toggleIsExpanded,
   };
 };
 

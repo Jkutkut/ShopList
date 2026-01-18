@@ -37,3 +37,8 @@
     overflow-y: scroll;
     overflow-x: hidden;
 }
+
+/* dnd */
+.dnd-draggable {
+    cursor: move;
+}
