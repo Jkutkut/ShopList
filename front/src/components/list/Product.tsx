@@ -1,5 +1,5 @@
 import useExpanded from "../../hooks/useExpanded";
-import { ACTION, IMAGES } from "../../mockup";
+import { ACTION } from "../../mockup";
 import DateLabel from "../date/DateLabel";
 import { TextField, TextFieldType } from "../form/textField";
 import arrowUp from "../../assets/arrow-up.svg";
@@ -7,16 +7,23 @@ import arrowDown from "../../assets/arrow-down.svg";
 import xMark from "../../assets/x-mark.svg";
 import Droppable from "../dnd/Droppable";
 import Draggable from "../dnd/Draggable";
+import { useContext } from "react";
+import { ListContext } from "../../context/ListContext";
+import useListContext from "../../hooks/useListContext";
 
 interface Props {
-    productList: any
-    product: any
+    productList: any;
+};
+
+interface ProductDetailProps {
+    productList: any;
+    product: any;
 };
 
 const ProductDetail = ({
     productList,
     product,
-}: Props) => {
+}: ProductDetailProps) => {
     return <div className="content col gap half-padding">
         <div className="row gap space-between wrap">
             <div className="row gap space-between full-w wrap">
@@ -105,8 +112,9 @@ const ProductDnDHandle = ({
 
 const Product = ({
     productList,
-    product,
 }: Props) => {
+    const { getProductById } = useListContext();
+    const product = getProductById(productList.productId); // TODO handle undefined
     const {
         node: draggable,
         style: dragStyle,
@@ -115,7 +123,6 @@ const Product = ({
         usingDnd: true,
     });
     const { isExpanded, toggleIsExpanded } = useExpanded(false);
-    // console.log("product", product);
     return <Droppable
         id={`drop-${product.id}`}
         className="product col with-border margin"

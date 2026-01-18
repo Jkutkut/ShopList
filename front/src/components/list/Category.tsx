@@ -1,14 +1,17 @@
-import { ACTION, PRODUCTS } from "../../mockup";
+import { ACTION } from "../../mockup";
 import Product from "./Product";
 import useExpanded from "../../hooks/useExpanded";
 import AddProduct from "./AddProduct";
 import { DndContext } from "@dnd-kit/core";
 import Droppable from "../dnd/Droppable";
 import Draggable from "../dnd/Draggable";
+import { useContext } from "react";
+import { ListContext } from "../../context/ListContext";
+import { DndType, ListActionType } from "../../context/listReducer";
+import useListContext from "../../hooks/useListContext";
 
 interface Props {
     category?: any;
-    productsList: any[];
 };
 
 interface CategoryHeaderProps {
@@ -45,23 +48,30 @@ interface CategoryDetailProps {
 const CategoryDetail = ({
     productsList,
 }: CategoryDetailProps) => {
+    const { dispatch } = useContext(ListContext);
     return <>
         {productsList.length > 0 && <AddProduct /> }
         <DndContext
-            onDragStart={(e) =>  console.log(`Category ctx: Drag start: ${e.active.id}`)}
-            onDragEnd={(e) =>    console.log(`Category ctx: Drag end: ${e.active.id} over ${e.over?.id}`)}
-            onDragAbort={() =>   console.log("Category ctx: Drag aborted")}
-            onDragCancel={() =>  console.log("Category ctx: Drag cancelled")}
-            onDragOver={(e) =>   console.log(`Category ctx: Drag over: ${e.over?.id}`)}
-            onDragMove={(e) =>   console.log(`Category ctx: Drag move: ${e.active.id}`)}
-            onDragPending={() => console.log("Category ctx: Drag pending")}
+            onDragStart={(e) => dispatch({
+                type: ListActionType.DND_START,
+                payload: { type: DndType.PRODUCT, id: `${e.active.id}` },
+            })}
+            onDragEnd={(e) => dispatch({
+                type: ListActionType.DND_STOP,
+                payload: { type: DndType.PRODUCT, id: `${e.active.id}` },
+            })}
+            onDragOver={(e) => dispatch({
+                type: ListActionType.DND_OVER,
+                payload: { type: DndType.PRODUCT, id: `${e.over?.id}` },
+            })}
+            onDragAbort={() => console.log("Drag aborted category")}
+            onDragCancel={() => console.log("Drag cancelled category")}
         >
             <div className="products">
                 {productsList.map((p, idx) => (
                     <Product
                         key={idx}
                         productList={p}
-                        product={PRODUCTS.find((product) => product.id === p.productId)}
                     />
                 ))}
                 {productsList.length === 0 &&
@@ -75,17 +85,19 @@ const CategoryDetail = ({
 
 const Category = ({
     category,
-    productsList
 }: Props) => {
+    const { getListProductsByCategoryId } = useListContext();
     const { isExpanded, toggleIsExpanded } = useExpanded(true);
-    // console.log("category", category, productsList);
-    const categoryId = category ? category.id : "uncategorized";
 
+    const categoryId = category ? category.id : undefined;
+    const categoryIdLiteral = category ? category.id : "uncategorized";
+    const productsList = getListProductsByCategoryId(categoryId);
+    // TODO handle undefined category
     const {
         node: dndHandle,
         style: dndStyle,
     } = Draggable({
-        id: `drag-cat-${categoryId}`,
+        id: `drag-cat-${categoryIdLiteral}`,
         className: "btn btn-primary no-animation margin center",
         style: {
             exportStyles: true,
@@ -95,7 +107,7 @@ const Category = ({
         children: "⠿",
     });
     return <Droppable
-        id={`drop-${categoryId}`}
+        id={`drop-${categoryIdLiteral}`}
         className="category col with-border"
         style={dndStyle}
     >

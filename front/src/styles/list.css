@@ -1,3 +1,7 @@
+.product, .category {
+    background: var(--bg);
+}
+
 .list-layout {
     --product-img-size: 128px;
 }

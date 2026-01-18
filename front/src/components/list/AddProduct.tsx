@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { TextField, TextFieldType } from "../form/textField";
-import { ACTION, PRODUCTS } from "../../mockup";
+import { ACTION } from "../../mockup";
+import useListContext from "../../hooks/useListContext";
 
 const SUGGEST_AFTER = 300;
 
@@ -11,6 +12,7 @@ interface Props {
 const AddProduct = ({
     suggestAfter = SUGGEST_AFTER
 }: Props) => {
+    const { searchProductsByQuery } = useListContext();
     const [query, setQuery] = useState<string>("");
     const [suggestions, setSuggestions] = useState<any[]>([]);
     useEffect(() => {
@@ -25,11 +27,7 @@ const AddProduct = ({
     const suggestProducts = (query: string) => {
         let newSuggestions: any[] = [];
         if (query.length >= 3) {
-            newSuggestions = PRODUCTS
-                .filter((p) =>
-                    p.name.toLowerCase().includes(query.toLowerCase()) ||
-                    p.description.toLowerCase().includes(query.toLowerCase())
-                );
+            newSuggestions = searchProductsByQuery(query);
         }
         setSuggestions(newSuggestions);
     };
