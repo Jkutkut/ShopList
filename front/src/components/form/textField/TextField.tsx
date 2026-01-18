@@ -36,7 +36,7 @@ const TextField = ({
     errorMessage,
     okMessageTimeout = DEFAULT_VALIDATION_TIMEOUT,
     errorMessageTimeout = INFINITE_VALIDATION_TIMEOUT,
-    className,
+    className = "",
 }: Props) => {
     const [validationState, setValidationState] = useState<FormValidationState>(FormValidationState.NONE);
     const [value, setValue] = useState(initialValue);
@@ -52,8 +52,8 @@ const TextField = ({
         }
         onChange(e);
     }
-
-    return <div className={`input-field ${className}`}>
+    className = `input-field ${className}`.trim();
+    return <div className={className}>
         {label && <span className="input-field-text">{label}</span>}
         <input
             type={type}

@@ -13,13 +13,12 @@ const AddProduct = ({
 }: Props) => {
     const [query, setQuery] = useState<string>("");
     const [suggestions, setSuggestions] = useState<any[]>([]);
-
     useEffect(() => {
         const timer = setTimeout(() => {
             suggestProducts(query);
         }, suggestAfter);
         return () => clearTimeout(timer);
-    });
+    }, [query]);
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value);
     const ofFocus = () => suggestProducts(query);
     const onBlur = () => setSuggestions([]);
