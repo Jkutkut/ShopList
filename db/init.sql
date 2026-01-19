@@ -155,12 +155,15 @@ CREATE TABLE list_categories (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   list_id uuid NOT NULL,
   name text NOT NULL,
+  index integer, -- TODO
   created_at timestamp DEFAULT now() NOT NULL,
   created_by uuid,
   updated_at timestamp DEFAULT now() NOT NULL,
   updated_by uuid,
 
   CONSTRAINT list_categories_unique UNIQUE (list_id, name),
+  CONSTRAINT list_categories_index_positive CHECK (index >= 0),
+  CONSTRAINT list_categories_index_unique UNIQUE (list_id, index),
   FOREIGN KEY (list_id) REFERENCES lists (id) ON DELETE CASCADE,
   FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL,
   FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE SET NULL
@@ -181,6 +184,7 @@ CREATE TABLE list_products (
 
   CONSTRAINT list_products_unique UNIQUE (list_id, product_id),
   CONSTRAINT list_products_index_positive CHECK (index >= 0),
+  CONSTRAINT list_products_index_unique UNIQUE (category_id, index),
   CONSTRAINT list_products_amount_positive CHECK (amount >= 0),
   FOREIGN KEY (list_id) REFERENCES lists (id) ON DELETE CASCADE,
   FOREIGN KEY (category_id) REFERENCES list_categories (id) ON DELETE SET NULL,

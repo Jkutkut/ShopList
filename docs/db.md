@@ -91,6 +91,7 @@ classDiagram
         id
         list_id
         name
+        index
         created_at
         created_by
         updated_at
