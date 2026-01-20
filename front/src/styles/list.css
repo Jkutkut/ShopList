@@ -45,4 +45,5 @@
 /* dnd */
 .dnd-draggable {
     cursor: move;
+    touch-action: none;
 }
