@@ -24,15 +24,15 @@ const List = () => {
         <DndContext
             onDragStart={(e) => dispatch({
                 type: ListActionType.DND_START,
-                payload: { type: DndType.CATEGORY, id: `${e.active.id}` },
+                payload: { id: `${e.active.id}` },
             })}
             onDragEnd={(e) => dispatch({
                 type: ListActionType.DND_STOP,
-                payload: { type: DndType.CATEGORY, id: `${e.active.id}` },
+                payload: { id: `${e.active.id}` },
             })}
             onDragOver={(e) => dispatch({
                 type: ListActionType.DND_OVER,
-                payload: { type: DndType.CATEGORY, id: `${e.over?.id}` },
+                payload: { id: `${e.over?.id}` },
             })}
             onDragAbort={() => console.log("Drag aborted list")}
             onDragCancel={() => console.log("Drag cancelled list")}

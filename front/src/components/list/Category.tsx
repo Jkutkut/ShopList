@@ -48,37 +48,19 @@ interface CategoryDetailProps {
 const CategoryDetail = ({
     productsList,
 }: CategoryDetailProps) => {
-    const { dispatch } = useContext(ListContext);
     return <>
-        {productsList.length > 0 && <AddProduct /> }
-        <DndContext
-            onDragStart={(e) => dispatch({
-                type: ListActionType.DND_START,
-                payload: { type: DndType.PRODUCT, id: `${e.active.id}` },
-            })}
-            onDragEnd={(e) => dispatch({
-                type: ListActionType.DND_STOP,
-                payload: { type: DndType.PRODUCT, id: `${e.active.id}` },
-            })}
-            onDragOver={(e) => dispatch({
-                type: ListActionType.DND_OVER,
-                payload: { type: DndType.PRODUCT, id: `${e.over?.id}` },
-            })}
-            onDragAbort={() => console.log("Drag aborted category")}
-            onDragCancel={() => console.log("Drag cancelled category")}
-        >
-            <div className="products">
-                {productsList.sort((a, b) => a.index - b.index).map((p, idx) => (
-                    <Product
-                        key={idx}
-                        productList={p}
-                    />
-                ))}
-                {productsList.length === 0 &&
-                    <p className="padding">No products</p>
-                }
-            </div>
-        </DndContext>
+        {productsList.length > 5 && <AddProduct /> }
+        <div className="products">
+            {productsList.sort((a, b) => a.index - b.index).map((p, idx) => (
+                <Product
+                    key={idx}
+                    productList={p}
+                />
+            ))}
+            {productsList.length === 0 &&
+                <p className="padding">No products</p>
+            }
+        </div>
         <AddProduct />
     </>;
 };

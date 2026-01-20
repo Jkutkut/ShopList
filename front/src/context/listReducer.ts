@@ -26,13 +26,13 @@ type ListAction = {
   payload: any[]; // TODO type
 } | {
   type: ListActionType.DND_START;
-  payload: { type: DndType, id: string };
+  payload: { id: string };
 } | {
   type: ListActionType.DND_OVER;
-  payload: { type: DndType, id: string };
+  payload: { id: string };
 } | {
   type: ListActionType.DND_STOP;
-  payload: { type: DndType, id: string };
+  payload: { id: string };
 };
 
 const listReducer = (
@@ -55,22 +55,19 @@ const listReducer = (
       break;
     // Drag and Drop actions (DnD)
     case ListActionType.DND_START:
-      if (action.payload.type == DndType.CATEGORY) {
+      const [type] = idSplit(action.payload.id);
+      if (type == DndType.CATEGORY) {
         newState.events.inCategoryDnd = true;
       }
-      else if (action.payload.type == DndType.PRODUCT) {
+      else if (type == DndType.PRODUCT) {
         newState.events.inProductDnd = true;
       }
       newState.events.dndId = action.payload.id;
       break;
     case ListActionType.DND_STOP:
       handleDndStop(newState);
-      if (action.payload.type == DndType.CATEGORY) {
-        newState.events.inCategoryDnd = false;
-      }
-      else if (action.payload.type == DndType.PRODUCT) {
-        newState.events.inProductDnd = false;
-      }
+      newState.events.inCategoryDnd = false;
+      newState.events.inProductDnd = false;
       newState.events.dndId = undefined;
       newState.events.dndOverId = undefined;
       break;
@@ -87,12 +84,13 @@ const listReducer = (
   return newState;
 };
 
+const idSplit = (fullId: string) => {
+  const [meta, id] = fullId.split("_");
+  const [_, type] = meta.split("-");
+  return [type, id];
+};
+
 const handleDndStop = (state: ListContextType) => {
-  const idSplit = (fullId: string) => {
-    const [meta, id] = fullId.split("_");
-    const [_, type] = meta.split("-");
-    return [type, id];
-  };
   const swap = <T>(arr: T[], fromIdx: number, toIdx: number): T[] => {
     const from = arr[fromIdx];
     const to = arr[toIdx];
@@ -110,11 +108,17 @@ const handleDndStop = (state: ListContextType) => {
     return;
   }
   const [fromType, fromId] = idSplit(state.events.dndId);
-  const [toType, toId] = idSplit(state.events.dndOverId);
+  let [toType, toId] = idSplit(state.events.dndOverId);
   if (fromType !== toType) {
-    console.warn(`Different fromType (${fromType}) and toType (${toType}) - ignoring`);
-    // TODO can happen?
-    return;
+    if (fromType === DndType.PRODUCT && toType === DndType.CATEGORY) {
+      console.warn("TODO handle change of category");
+      // TODO
+      return;
+    }
+    else { // fromType === DndType.CATEGORY && toType === DndType.PRODUCT
+      toId = state.listProducts.find((p) => p.productId === toId).categoryId;
+      toType = DndType.CATEGORY;
+    }
   }
   console.log(`Handling DnD stop from ${fromId} to ${toId} of type ${fromType}`, state);
   if (state.events.inCategoryDnd && fromType == DndType.CATEGORY) {
