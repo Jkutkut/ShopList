@@ -68,7 +68,7 @@ const CategoryDetail = ({
             onDragCancel={() => console.log("Drag cancelled category")}
         >
             <div className="products">
-                {productsList.map((p, idx) => (
+                {productsList.sort((a, b) => a.index - b.index).map((p, idx) => (
                     <Product
                         key={idx}
                         productList={p}
@@ -93,11 +93,20 @@ const Category = ({
     const categoryIdLiteral = category ? category.id : "uncategorized";
     const productsList = getListProductsByCategoryId(categoryId);
     // TODO handle undefined category
+    if (!category) {
+        return <div className="category col with-border">
+            <CategoryHeader
+                category={category}
+                isExpanded={isExpanded} toggleExpanded={toggleIsExpanded}
+            />
+            {isExpanded && <CategoryDetail productsList={productsList} />}
+        </div>;
+    }
     const {
         node: dndHandle,
         style: dndStyle,
     } = Draggable({
-        id: `drag-cat-${categoryIdLiteral}`,
+        id: `drag-${DndType.CATEGORY}_${categoryIdLiteral}`,
         className: "btn btn-primary no-animation margin center",
         style: {
             exportStyles: true,
@@ -107,14 +116,14 @@ const Category = ({
         children: "⠿",
     });
     return <Droppable
-        id={`drop-${categoryIdLiteral}`}
+        id={`drop-${DndType.CATEGORY}_${categoryIdLiteral}`}
         className="category col with-border"
         style={dndStyle}
     >
         <CategoryHeader
             category={category}
             isExpanded={isExpanded} toggleExpanded={toggleIsExpanded}
-            dndHandle={dndHandle}
+            dndHandle={category && dndHandle}
         />
         {isExpanded && <CategoryDetail productsList={productsList} />}
     </Droppable>;

@@ -10,6 +10,7 @@ import Draggable from "../dnd/Draggable";
 import { useContext } from "react";
 import { ListContext } from "../../context/ListContext";
 import useListContext from "../../hooks/useListContext";
+import { DndType } from "../../context/listReducer";
 
 interface Props {
     productList: any;
@@ -79,7 +80,7 @@ const ProductDnDHandle = ({
 }: ProductDndHandleProps) => {
     if (usingDnd) {
         return Draggable({
-            id: `drag-${productId}`,
+            id: `drag-${DndType.PRODUCT}_${productId}`,
             className: "btn btn-primary btn-small no-animation center",
             style: {
                 exportStyles: true,
@@ -124,7 +125,7 @@ const Product = ({
     });
     const { isExpanded, toggleIsExpanded } = useExpanded(false);
     return <Droppable
-        id={`drop-${product.id}`}
+        id={`drop-${DndType.PRODUCT}_${product.id}`}
         className="product col with-border margin"
         style={dragStyle}
     >

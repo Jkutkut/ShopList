@@ -39,7 +39,7 @@ const List = () => {
         >
             <a className="btn btn-primary" onClick={ACTION("new category")}>Create new category</a>
             <div className="categories col gap">
-                {categories.map((c) => (
+                {categories.sort((a, b) => a.index - b.index).map((c) => (
                     <Category
                         key={c.id}
                         category={c}

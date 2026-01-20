@@ -1,19 +1,25 @@
 import React, { createContext, useEffect, useReducer } from "react";
 import { ListActionType, listReducer, type ListAction } from "./listReducer";
 import { CATEGORIES, LIST_PRODUCTS, PRODUCTS } from "../mockup";
-import useCachedValue, { NO_EXPIRATION } from "../hooks/useCachedValue";
+import usePersistedValue, { NO_EXPIRATION } from "../hooks/usePersistedValue";
 
 interface ListContextType {
     id: string;
     categories: any[]; // TODO type
     listProducts: any[]; // TODO type
     products: any[]; // TODO type
+
+    setCategories: (categories: any[]) => void; // TODO type
+    setListProducts: (listProducts: any[]) => void; // TODO type
+    setProducts: (products: any[]) => void; // TODO type
+
     dispatch: React.Dispatch<ListAction>;
 
     events: {
         inCategoryDnd: boolean;
         inProductDnd: boolean;
         dndId?: string;
+        dndOverId?: string;
     }
 }
 
@@ -23,6 +29,9 @@ const createListContext: (id: string) => ListContextType = (id) => {
         categories: [],
         listProducts: [],
         products: [],
+        setCategories: () => {},
+        setListProducts: () => {},
+        setProducts: () => {},
         dispatch: () => {},
         events: {
             inCategoryDnd: false,
@@ -39,13 +48,12 @@ interface ListContextProviderProps {
 };
 
 const ListContextProvider = ({ id, children }: ListContextProviderProps) => {
-    const [state, dispatch] = useReducer(listReducer, createListContext(id));
-
     // TODO replace mockup with real fetch functions
     const {
         value: categories,
-        isLoading: isLoadingCategories
-    } = useCachedValue<any[]>({
+        isLoading: isLoadingCategories,
+        setValue: setCategories
+    } = usePersistedValue<any[]>({
         key: `list-${id}-categories`,
         fetchFunc: async () => {
             console.debug(`Fetching categories for list ${id} from mockup`);
@@ -55,8 +63,9 @@ const ListContextProvider = ({ id, children }: ListContextProviderProps) => {
     });
     const {
         value: listProducts,
-        isLoading: isLoadingListProducts
-    } = useCachedValue<any[]>({
+        isLoading: isLoadingListProducts,
+        setValue: setListProducts
+    } = usePersistedValue<any[]>({
         key: `list-${id}-list-products`,
         fetchFunc: async () => {
             console.debug(`Fetching list products for list ${id} from mockup`);
@@ -66,8 +75,9 @@ const ListContextProvider = ({ id, children }: ListContextProviderProps) => {
     });
     const {
         value: products,
-        isLoading: isLoadingProducts
-    } = useCachedValue<any[]>({
+        isLoading: isLoadingProducts,
+        setValue: setProducts
+    } = usePersistedValue<any[]>({
         key: `list-${id}-products`,
         fetchFunc: async () => {
             console.debug(`Fetching products for list ${id} from mockup`);
@@ -75,6 +85,16 @@ const ListContextProvider = ({ id, children }: ListContextProviderProps) => {
         },
         expiration: NO_EXPIRATION,
     });
+
+    const [state, dispatch] = useReducer(
+      listReducer,
+      {
+        ...createListContext(id),
+        setCategories,
+        setListProducts,
+        setProducts,
+      }
+    );
 
     useEffect(() => {
         if (!isLoadingCategories && categories) {
