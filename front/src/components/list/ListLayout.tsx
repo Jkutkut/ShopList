@@ -3,7 +3,7 @@ import { ACTION } from "../../mockup";
 import Category from "./Category";
 import { useContext } from "react";
 import { ListContext, ListContextProvider } from "../../context/ListContext";
-import { DndType, ListActionType } from "../../context/listReducer";
+import { DNDActionType } from "../../context/listReducer";
 
 interface Props {
     id: string;
@@ -23,15 +23,15 @@ const List = () => {
     return <section className="list-layout col gap">
         <DndContext
             onDragStart={(e) => dispatch({
-                type: ListActionType.DND_START,
+                type: DNDActionType.DND_START,
                 payload: { id: `${e.active.id}` },
             })}
             onDragEnd={(e) => dispatch({
-                type: ListActionType.DND_STOP,
+                type: DNDActionType.DND_STOP,
                 payload: { id: `${e.active.id}` },
             })}
             onDragOver={(e) => dispatch({
-                type: ListActionType.DND_OVER,
+                type: DNDActionType.DND_OVER,
                 payload: { id: `${e.over?.id}` },
             })}
             onDragAbort={() => console.log("Drag aborted list")}
