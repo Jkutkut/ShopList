@@ -77,6 +77,7 @@ const listReducer = (
         newIdx = newState.listProducts.filter((lp) => lp.categoryId === categoryId).length;
       }
       const listProduct = {
+        id: `list-product-${Math.random().toString(36).substring(2, 9)}`,
         listId: newState.id,
         categoryId,
         productId,

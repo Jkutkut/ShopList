@@ -152,6 +152,7 @@ export const CATEGORIES = [
 export const LIST_PRODUCTS = {
   "list-a": [
     ...PRODUCTS.slice(0, 3).map((p, idx) => ({
+      id: "list-product-" + idx,
       listId: "list-a",
       categoryId: "category-a",
       productId: p.id,
@@ -164,6 +165,7 @@ export const LIST_PRODUCTS = {
       updatedBy: USER.id
     })),
     {
+      id: "list-product-3",
       listId: "list-a",
       categoryId: undefined,
       productId: PRODUCTS[3].id,
@@ -174,6 +176,7 @@ export const LIST_PRODUCTS = {
       updatedBy: USER.id
     },
     ...PRODUCTS.splice(4, -1).map((p, idx) => ({
+      id: "list-product-" + (idx + 4),
       listId: "list-a",
       categoryId: "category-b",
       productId: p.id,

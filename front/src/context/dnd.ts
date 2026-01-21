@@ -50,7 +50,7 @@ const handleDndStop = (state: ListContextType) => {
     }
     else { // fromType === DndType.CATEGORY && toType === DndType.PRODUCT
       // TODO this breaks if the product is currently uncategorized
-      toId = state.listProducts.find((p) => p.productId === toId).categoryId;
+      toId = state.listProducts.find((p) => p.id === toId).categoryId;
       toType = DndType.CATEGORY;
     }
   }
@@ -70,8 +70,8 @@ const handleDndStop = (state: ListContextType) => {
     state.setCategories(state.categories);
   }
   else if (state.events.inProductDnd && fromType == DndType.PRODUCT) {
-    const fromIdx = state.listProducts.findIndex((p) => p.productId === fromId);
-    const toIdx = state.listProducts.findIndex((p) => p.productId === toId);
+    const fromIdx = state.listProducts.findIndex((p) => p.id === fromId);
+    const toIdx = state.listProducts.findIndex((p) => p.id === toId);
     if (fromIdx === -1 || toIdx === -1) {
       console.error("Unable to find product for DnD swap - ignoring");
       return;

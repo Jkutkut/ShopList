@@ -70,17 +70,17 @@ const ProductDetail = ({
 };
 
 interface ProductDndHandleProps {
-    productId: string;
+    id: string;
     usingDnd: boolean;
 };
 
 const ProductDnDHandle = ({
-    productId,
+    id,
     usingDnd
 }: ProductDndHandleProps) => {
     if (usingDnd) {
         return Draggable({
-            id: `drag-${DndType.PRODUCT}_${productId}`,
+            id: `drag-${DndType.PRODUCT}_${id}`,
             className: "btn btn-primary btn-small no-animation center",
             style: {
                 exportStyles: true,
@@ -120,12 +120,12 @@ const Product = ({
         node: draggable,
         style: dragStyle,
     } = ProductDnDHandle({
-        productId: product.id,
+        id: productList.id,
         usingDnd: true,
     });
     const { isExpanded, toggleIsExpanded } = useExpanded(false);
     return <Droppable
-        id={`drop-${DndType.PRODUCT}_${product.id}`}
+        id={`drop-${DndType.PRODUCT}_${productList.id}`}
         className="product col with-border margin"
         style={dragStyle}
     >
