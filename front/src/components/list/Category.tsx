@@ -78,16 +78,6 @@ const Category = ({
     const categoryId = category ? category.id : undefined;
     const categoryIdLiteral = category ? category.id : "uncategorized";
     const productsList = getListProductsByCategoryId(categoryId);
-    // TODO handle undefined category
-    if (!category) {
-        return <div className="category col with-border">
-            <CategoryHeader
-                category={category}
-                isExpanded={isExpanded} toggleExpanded={toggleIsExpanded}
-            />
-            {isExpanded && <CategoryDetail categoryId={categoryId} productsList={productsList} />}
-        </div>;
-    }
     const {
         node: dndHandle,
         style: dndStyle,
