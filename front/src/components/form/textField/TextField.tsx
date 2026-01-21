@@ -1,5 +1,5 @@
 import "../../../styles/form.css";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { DEFAULT_VALIDATION_TIMEOUT, FormValidationState, INFINITE_VALIDATION_TIMEOUT, TextFieldType } from ".";
 import ValidationFeedback from "../ValidationFeedback";
 
@@ -40,6 +40,10 @@ const TextField = ({
 }: Props) => {
     const [validationState, setValidationState] = useState<FormValidationState>(FormValidationState.NONE);
     const [value, setValue] = useState(initialValue);
+
+    useEffect(() => {
+        setValue(initialValue);
+    }, [initialValue]);
 
     const onChangeListener = (e: React.ChangeEvent<HTMLInputElement>) => {
         setValue(e.target.value);

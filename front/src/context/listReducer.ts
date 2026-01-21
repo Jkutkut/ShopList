@@ -1,10 +1,13 @@
-import { handleDndOver, handleDndStart, handleDndStop, idSplit, resetDnd } from "./dnd";
+import { USER } from "../mockup";
+import { handleDndOver, handleDndStart, handleDndStop, resetDnd } from "./dnd";
 import type { ListContextType } from "./ListContext";
 
 enum ListActionType {
   SET_CATEGORIES = "SET_CATEGORIES",
   SET_LIST_PRODUCTS = "SET_LIST_PRODUCTS",
   SET_PRODUCTS = "SET_PRODUCTS",
+
+  ADD_PRODUCT_TO_CATEGORY_LIST = "ADD_PRODUCT_TO_CATEGORY_LIST",
 };
 
 enum DNDActionType {
@@ -28,6 +31,13 @@ type ListAction = {
   type: ListActionType.SET_PRODUCTS;
   payload: any[]; // TODO type
 } | {
+  type: ListActionType.ADD_PRODUCT_TO_CATEGORY_LIST;
+  payload: {
+    productId: string;
+    categoryId: string;
+    index: 0 | -1;
+  };
+} | {
   type: DNDActionType;
   payload: { id: string };
 };
@@ -49,6 +59,36 @@ const listReducer = (
       break;
     case ListActionType.SET_PRODUCTS:
       newState.products = action.payload;
+      break;
+    case ListActionType.ADD_PRODUCT_TO_CATEGORY_LIST:
+      // TODO categoryId may technically not exist
+      const { productId, categoryId, index } = action.payload;
+      let newIdx;
+      if (index === 0) { // TODO this can be optimized
+        newState.listProducts.forEach((lp) => {
+          if (lp.categoryId !== categoryId) {
+            return;
+          }
+          lp.index += 1;
+        });
+        newIdx = 0;
+      }
+      else {
+        newIdx = newState.listProducts.filter((lp) => lp.categoryId === categoryId).length;
+      }
+      const listProduct = {
+        listId: newState.id,
+        categoryId,
+        productId,
+        index: newIdx,
+        amount: undefined,
+        unit: undefined,
+        createdAt: new Date().toISOString(),
+        createdBy: USER.id, // TODO who am I?
+        updatedAt: new Date().toISOString(),
+        updatedBy: USER.id, // TODO who am I?
+      };
+      newState.listProducts.push(listProduct);
       break;
     // Drag and Drop actions (DnD)
     case DNDActionType.DND_START:

@@ -49,6 +49,7 @@ const handleDndStop = (state: ListContextType) => {
       return;
     }
     else { // fromType === DndType.CATEGORY && toType === DndType.PRODUCT
+      // TODO this breaks if the product is currently uncategorized
       toId = state.listProducts.find((p) => p.productId === toId).categoryId;
       toType = DndType.CATEGORY;
     }

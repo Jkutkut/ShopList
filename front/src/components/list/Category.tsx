@@ -42,14 +42,18 @@ const CategoryHeader = ({
 };
 
 interface CategoryDetailProps {
+    categoryId: string;
     productsList: any[];
 };
 
 const CategoryDetail = ({
+    categoryId,
     productsList,
 }: CategoryDetailProps) => {
     return <>
-        {productsList.length > 5 && <AddProduct /> }
+        {productsList.length >= 5 &&
+            <AddProduct categoryId={categoryId} addPosition={0} />
+        }
         <div className="products">
             {productsList.sort((a, b) => a.index - b.index).map((p, idx) => (
                 <Product
@@ -61,7 +65,7 @@ const CategoryDetail = ({
                 <p className="padding">No products</p>
             }
         </div>
-        <AddProduct />
+        <AddProduct categoryId={categoryId} addPosition={-1} />
     </>;
 };
 
@@ -81,7 +85,7 @@ const Category = ({
                 category={category}
                 isExpanded={isExpanded} toggleExpanded={toggleIsExpanded}
             />
-            {isExpanded && <CategoryDetail productsList={productsList} />}
+            {isExpanded && <CategoryDetail categoryId={categoryId} productsList={productsList} />}
         </div>;
     }
     const {
@@ -107,7 +111,7 @@ const Category = ({
             isExpanded={isExpanded} toggleExpanded={toggleIsExpanded}
             dndHandle={category && dndHandle}
         />
-        {isExpanded && <CategoryDetail productsList={productsList} />}
+        {isExpanded && <CategoryDetail categoryId={categoryId} productsList={productsList} />}
     </Droppable>;
 };
 

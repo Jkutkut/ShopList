@@ -2,17 +2,22 @@ import { useEffect, useState } from "react";
 import { TextField, TextFieldType } from "../form/textField";
 import { ACTION } from "../../mockup";
 import useListContext from "../../hooks/useListContext";
+import { ListActionType } from "../../context/listReducer";
 
 const SUGGEST_AFTER = 300;
 
 interface Props {
-    suggestAfter?: number
+    categoryId: string;
+    addPosition: 0 | -1;
+    suggestAfter?: number;
 }
 
 const AddProduct = ({
+    categoryId,
+    addPosition,
     suggestAfter = SUGGEST_AFTER
 }: Props) => {
-    const { searchProductsByQuery } = useListContext();
+    const { listProducts, searchProductsByQuery, dispatch } = useListContext();
     const [query, setQuery] = useState<string>("");
     const [suggestions, setSuggestions] = useState<any[]>([]);
     useEffect(() => {
@@ -22,31 +27,55 @@ const AddProduct = ({
         return () => clearTimeout(timer);
     }, [query]);
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value);
-    const ofFocus = () => suggestProducts(query);
-    const onBlur = () => setSuggestions([]);
+    const onFocus = () => suggestProducts(query);
+    const onBlur = () => setTimeout(() => setSuggestions([]), 50);
     const suggestProducts = (query: string) => {
         let newSuggestions: any[] = [];
         if (query.length >= 3) {
-            newSuggestions = searchProductsByQuery(query);
+            newSuggestions = searchProductsByQuery(query).filter((p) => !listProducts.find(
+                (lp) => lp.categoryId === categoryId && lp.productId === p.id
+            ));
         }
         setSuggestions(newSuggestions);
     };
+    const addSuggestion = (suggestion: any) => { // TODO type product
+        dispatch({
+            type: ListActionType.ADD_PRODUCT_TO_CATEGORY_LIST,
+            payload: {
+                categoryId,
+                productId: suggestion.id,
+                index: addPosition
+            }
+        });
+        setQuery("");
+        setSuggestions([]);
+    };
     return <>
-        <div className="addProduct row center">
+        <div
+            className="addProduct row center"
+            onFocus={onFocus}
+        >
             <div className="col full-w margin">
                 <TextField
                     name="new-product"
                     type={TextFieldType.TEXT}
+                    autocomplete="off"
                     initialValue={query}
                     placeholder="Add a product"
                     onChange={onChange}
-                    onInputFocus={ofFocus}
+                    onInputFocus={onFocus}
                     onInputBlur={onBlur}
                 />
                 {suggestions.length > 0 &&
-                    <div className="product-suggestions col">
+                    <div
+                        className="product-suggestions col"
+                    >
                         {suggestions.map((suggestion) => (
-                            <div className="suggestion padding with-border margin" key={suggestion.name}>
+                            <a
+                                key={suggestion.name}
+                                className="suggestion padding with-border margin"
+                                onClick={() => addSuggestion(suggestion)}
+                            >
                                 <div className="row gap">
                                     <span className="no-wrap">
                                         {suggestion.name}
@@ -55,7 +84,7 @@ const AddProduct = ({
                                         {suggestion.description}
                                     </span>
                                 </div>
-                            </div>
+                            </a>
                         ))}
                     </div>
                 }
