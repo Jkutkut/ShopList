@@ -8,6 +8,9 @@ enum ListActionType {
   SET_PRODUCTS = "SET_PRODUCTS",
 
   ADD_PRODUCT_TO_CATEGORY_LIST = "ADD_PRODUCT_TO_CATEGORY_LIST",
+  REMOVE_PRODUCT_FROM_CATEGORY_LIST = "REMOVE_PRODUCT_FROM_CATEGORY_LIST",
+  UPDATE_PRODUCT_LIST_AMOUNT = "UPDATE_PRODUCT_LIST_AMOUNT",
+  UPDATE_PRODUCT_LIST_UNIT = "UPDATE_PRODUCT_LIST_UNIT",
 };
 
 enum DNDActionType {
@@ -38,6 +41,23 @@ type ListAction = {
     index: 0 | -1;
   };
 } | {
+  type: ListActionType.REMOVE_PRODUCT_FROM_CATEGORY_LIST;
+  payload: {
+    productListId: string;
+  };
+} | {
+  type: ListActionType.UPDATE_PRODUCT_LIST_AMOUNT;
+  payload: {
+    id: string;
+    amount: string;
+  };
+} | {
+  type: ListActionType.UPDATE_PRODUCT_LIST_UNIT;
+  payload: {
+    id: string;
+    unit: string;
+  };
+} | {
   type: DNDActionType;
   payload: { id: string };
 };
@@ -61,35 +81,14 @@ const listReducer = (
       newState.products = action.payload;
       break;
     case ListActionType.ADD_PRODUCT_TO_CATEGORY_LIST:
-      // TODO categoryId may technically not exist
-      const { productId, categoryId, index } = action.payload;
-      let newIdx;
-      if (index === 0) { // TODO this can be optimized
-        newState.listProducts.forEach((lp) => {
-          if (lp.categoryId !== categoryId) {
-            return;
-          }
-          lp.index += 1;
-        });
-        newIdx = 0;
-      }
-      else {
-        newIdx = newState.listProducts.filter((lp) => lp.categoryId === categoryId).length;
-      }
-      const listProduct = {
-        id: `list-product-${Math.random().toString(36).substring(2, 9)}`,
-        listId: newState.id,
-        categoryId,
-        productId,
-        index: newIdx,
-        amount: undefined,
-        unit: undefined,
-        createdAt: new Date().toISOString(),
-        createdBy: USER.id, // TODO who am I?
-        updatedAt: new Date().toISOString(),
-        updatedBy: USER.id, // TODO who am I?
-      };
-      newState.listProducts.push(listProduct);
+      addProductToCategoryList(newState, action.payload);
+      break;
+    case ListActionType.REMOVE_PRODUCT_FROM_CATEGORY_LIST:
+      removeProductFromCategoryList(newState, action.payload);
+      break;
+    case ListActionType.UPDATE_PRODUCT_LIST_AMOUNT:
+    case ListActionType.UPDATE_PRODUCT_LIST_UNIT:
+      updateProductList(newState, action.payload);
       break;
     // Drag and Drop actions (DnD)
     case DNDActionType.DND_START:
@@ -111,6 +110,89 @@ const listReducer = (
   console.groupEnd();
   return newState;
 };
+
+const updateProductList = (state: ListContextType, {
+  id,
+  amount,
+  unit,
+}: {
+  id: string;
+  amount?: string;
+  unit?: string;
+}) => {
+  const productList = state.listProducts.find((lp) => lp.id === id);
+  if (!productList) {
+    console.error("Unable to update product list:", id);
+    return;
+  }
+  let modified = false;
+  if (amount !== undefined) {
+    productList.amount = amount === "" ? undefined : amount;
+    modified = true;
+  }
+  if (unit !== undefined) {
+    productList.unit = unit === "" ? undefined : unit;
+    modified = true;
+  }
+  if (modified) {
+    productList.updatedAt = new Date().toISOString();
+  }
+  else {
+    console.warn("Nothing to update in product list:", id);
+  }
+};
+
+const removeProductFromCategoryList = (state: ListContextType, {
+  productListId,
+}: {
+  productListId: string;
+}) => {
+  const before = state.listProducts.length;
+  state.listProducts = state.listProducts.filter((lp) => lp.id !== productListId);
+  const after = state.listProducts.length;
+  if (before <= after) {
+    console.error("Unable to remove product from category list:", productListId);
+  }
+};
+
+const addProductToCategoryList = (state: ListContextType, {
+  productId,
+  categoryId,
+  index,
+}: {
+  productId: string;
+  categoryId: string;
+  index: 0 | -1;
+}) => {
+  // TODO categoryId may technically not exist
+  let newIdx;
+  if (index === 0) { // TODO this can be optimized
+    state.listProducts.forEach((lp) => {
+      if (lp.categoryId !== categoryId) {
+        return;
+      }
+      lp.index += 1;
+    });
+    newIdx = 0;
+  }
+  else {
+    newIdx = state.listProducts.filter((lp) => lp.categoryId === categoryId).length;
+  }
+  const listProduct = {
+    id: `list-product-${Math.random().toString(36).substring(2, 9)}`,
+    listId: state.id,
+    categoryId,
+    productId,
+    index: newIdx,
+    amount: undefined,
+    unit: undefined,
+    createdAt: new Date().toISOString(),
+    createdBy: USER.id, // TODO who am I?
+    updatedAt: new Date().toISOString(),
+    updatedBy: USER.id, // TODO who am I?
+  };
+  state.listProducts.push(listProduct);
+}
 
 export { listReducer, ListActionType, DNDActionType, DndType };
 export type { ListAction };

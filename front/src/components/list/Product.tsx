@@ -7,10 +7,10 @@ import arrowDown from "../../assets/arrow-down.svg";
 import xMark from "../../assets/x-mark.svg";
 import Droppable from "../dnd/Droppable";
 import Draggable from "../dnd/Draggable";
-import { useContext } from "react";
-import { ListContext } from "../../context/ListContext";
 import useListContext from "../../hooks/useListContext";
-import { DndType } from "../../context/listReducer";
+import { DndType, ListActionType } from "../../context/listReducer";
+import { useEffect, useState } from "react";
+import { set } from "astro:schema";
 
 interface Props {
     productList: any;
@@ -25,6 +25,28 @@ const ProductDetail = ({
     productList,
     product,
 }: ProductDetailProps) => {
+    const [amount, setAmount] = useState<string>(productList.amount);
+    const [unit, setUnit] = useState<string>(productList.unit);
+    const { dispatch } = useListContext();
+
+    const updateAmount = () => productList.amount !== amount && dispatch({
+        type: ListActionType.UPDATE_PRODUCT_LIST_AMOUNT,
+        payload: { id: productList.id, amount },
+    });
+    const updateUnit = () => productList.unit !== unit && dispatch({
+        type: ListActionType.UPDATE_PRODUCT_LIST_UNIT,
+        payload: { id: productList.id, unit },
+    });
+
+    useEffect(() => {
+        const timer = setTimeout(updateAmount, 1000);
+        return () => clearTimeout(timer);
+    }, [amount]);
+    useEffect(() => {
+        const timer = setTimeout(updateUnit, 1000);
+        return () => clearTimeout(timer);
+    }, [unit]);
+
     return <div className="content col gap half-padding">
         <div className="row gap space-between wrap">
             <div className="row gap space-between full-w wrap">
@@ -36,17 +58,19 @@ const ProductDetail = ({
                     <TextField
                         name="amount"
                         type={TextFieldType.TEXT}
-                        initialValue={productList.amount}
+                        initialValue={amount}
                         placeholder="Amount"
-                        onChange={(...args) => console.log("onChange", args)}
+                        onChange={(e) => setAmount(e.target.value)}
+                        onInputBlur={updateAmount}
                         className="product-amount"
                     />
                     <TextField
                         name="unit"
                         type={TextFieldType.TEXT}
-                        initialValue={productList.unit}
+                        initialValue={unit}
                         placeholder="Unit"
-                        onChange={(...args) => console.log("onChange", args)}
+                        onChange={(e) => setUnit(e.target.value)}
+                        onInputBlur={updateUnit}
                         className="product-unit"
                     />
                 </div>
@@ -114,7 +138,8 @@ const ProductDnDHandle = ({
 const Product = ({
     productList,
 }: Props) => {
-    const { getProductById } = useListContext();
+    const { getProductById, dispatch } = useListContext();
+    const { isExpanded, toggleIsExpanded } = useExpanded(false);
     const product = getProductById(productList.productId); // TODO handle undefined
     const {
         node: draggable,
@@ -123,14 +148,21 @@ const Product = ({
         id: productList.id,
         usingDnd: true,
     });
-    const { isExpanded, toggleIsExpanded } = useExpanded(false);
+    const deleteProduct = () => {
+        dispatch({
+            type: ListActionType.REMOVE_PRODUCT_FROM_CATEGORY_LIST,
+            payload: {
+                productListId: productList.id
+            },
+        });
+    }
     return <Droppable
         id={`drop-${DndType.PRODUCT}_${productList.id}`}
         className="product col with-border margin"
         style={dragStyle}
     >
         <div className="header row half-padding half-gap space-between">
-            <a className="btn btn-small no-animation" onClick={ACTION("Delete product")}>
+            <a className="btn btn-small no-animation" onClick={deleteProduct}>
                 <img src={xMark.src} alt="" width={10} />
             </a>
             <div className="row center space-between full-w" onClick={toggleIsExpanded}>
