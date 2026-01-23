@@ -38,6 +38,10 @@ const DateLabel = ({
     const [dateLabel, setDayLabel] = useState(date2str(dateObj));
 
     useEffect(() => {
+        setDayLabel(date2str(dateObj));
+    }, [date]);
+
+    useEffect(() => {
         if (refreshInterval === NO_REFRESH_INTERVAL) {
             return;
         }
