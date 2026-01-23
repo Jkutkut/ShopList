@@ -138,7 +138,7 @@ paths:
                 $ref: '#/components/schemas/result'
   /api/v1/user/login/basic:
     post:
-      summary: Login user with username and password
+      summary: Login user with email and password
       description: Login user with basic authentication and return JWT token
       tags:
         - user
@@ -149,8 +149,8 @@ paths:
             schema:
               type: object
               properties:
-                username:
-                  $ref: '#/components/schemas/name'
+                email:
+                  $ref: '#/components/schemas/email'
                 password:
                   $ref: '#/components/schemas/password'
       responses:
@@ -1593,6 +1593,9 @@ components:
     name:
       type: string
       example: Marvin
+    email:
+      type: string
+      format: email
     password:
       type: string
       example: please-change-me
