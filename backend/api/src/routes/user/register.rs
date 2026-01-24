@@ -4,6 +4,7 @@ use super::*;
 pub async fn basic(
 	credentials: Json<ApiRegisterBasicCredentials>,
 	cache_client: &State<Cache>,
+	cookie_jar: &CookieJar<'_>,
 ) -> Result<ApiUserToken<UserToken>, InvalidResponse> {
 	info!("Registering user");
 	debug!("Credentials: {:?}", credentials);
@@ -20,6 +21,7 @@ pub async fn basic(
 	}
 	let response: UserToken = response.unwrap().into_inner();
 	cache_client.cache_user_token(&response).await.map_err(|e| invalid_api(&e))?;
+	cookie::add_user_token_cookie(cookie_jar, &response);
 	Ok(ApiUserToken::new(response.token.clone(), response))
 }
 

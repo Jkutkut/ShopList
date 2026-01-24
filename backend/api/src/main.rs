@@ -8,6 +8,7 @@ use log::*;
 
 mod cache;
 mod cors;
+mod cookie;
 mod db;
 mod route_handler;
 mod route_error;

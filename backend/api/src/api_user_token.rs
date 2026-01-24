@@ -30,6 +30,7 @@ where
 	fn respond_to(self, _: &'r Request<'_>) -> rocket::response::Result<'static> {
 		let json = serde_json::to_string(&self.response).unwrap();
 		Ok(Response::build()
+			// TODO is this needed?
 			.header(Header::new("Authorization", format!("Bearer {}", self.token)))
 			.sized_body(json.len(), std::io::Cursor::new(json))
 			.header(ContentType::JSON)

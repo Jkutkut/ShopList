@@ -4,6 +4,7 @@ use super::*;
 pub async fn basic(
 	credentials: Json<ApiBasicCredentials>,
 	cache_client: &State<Cache>,
+	cookie_jar: &CookieJar<'_>,
 ) -> Result<ApiUserToken<UserToken>, InvalidResponse> {
 	info!("Login request");
 	debug!("Credentials: {:?}", credentials);
@@ -19,6 +20,7 @@ pub async fn basic(
 		Err(e) => return Err(invalid_api(&format!("GRPC error: {:?}", e))),
 	};
 	cache_client.cache_user_token(&user_data).await.map_err(|e| invalid_api(&e))?;
+	cookie::add_user_token_cookie(cookie_jar, &user_data);
 	Ok(ApiUserToken::new(user_data.token.clone(), user_data))
 }
 

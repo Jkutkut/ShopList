@@ -9,7 +9,11 @@ use uuid::Uuid;
 use log::*;
 use rocket::{
 	get, post, delete, put,
-	http::Status,
+	http::{
+		Status,
+		Cookie,
+		CookieJar,
+	},
 	routes,
 	catchers,
 	serde::json::Json,
@@ -24,6 +28,7 @@ use crate::{
 		Cache,
 	},
 	cors,
+	cookie,
 	guards,
 	grpc,
 	api_user_token::ApiUserToken,

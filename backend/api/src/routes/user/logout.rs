@@ -6,6 +6,7 @@ async fn logout_current_user(
 	user: guards::User,
 	session_token: guards::SessionToken,
 	cache_client: &State<Cache>,
+	cookie_jar: &CookieJar<'_>,
 ) -> Result<(), InvalidResponse> {
 	info!("logout request: {}", user.uuid);
 	let session_token = session_token.to_string();
@@ -23,6 +24,7 @@ async fn logout_current_user(
 	cache_client.flush_user_token(
 		&session_token, &user.uuid.get().unwrap()
 	).await.map_err(|e| invalid_api(&e))?;
+	cookie_jar.remove(Cookie::named("jwt"));
 	Ok(())
 }
 
