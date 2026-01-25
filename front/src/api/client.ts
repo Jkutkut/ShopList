@@ -35,7 +35,7 @@ class HttpClient<E> {
   }
 
   protected toUrl(endpoint: string) {
-    return `/${this.config.basePath}/${this.version}/${endpoint}`
+    return `/${this.config.basePath}/${this.version}${endpoint}`
   }
 
   protected formatHeaders(headers?: Record<string, string>) {

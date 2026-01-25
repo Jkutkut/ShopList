@@ -37,13 +37,13 @@ const userService = {
     return client.delete<NothingResponse>(`/user/${user_id}`);
   },
   registerBasic(payload: RegisterBasicRequest) {
-    return client.post<RegisterBasicRequest, RegisterBasicResponse>("/user/login/basic", payload);
+    return client.post<RegisterBasicRequest, RegisterBasicResponse>("/user/register/basic", payload);
   },
   loginBasic(payload: LoginBasicRequest) {
     return client.post<LoginBasicRequest, LoginBasicResponse>("/user/login/basic", payload);
   },
   changeBasicPassword(payload: ChangeBasicPasswordRequest) {
-    return client.post<ChangeBasicPasswordRequest, NothingResponse>("/user/login/basic/password", payload);
+    return client.post<ChangeBasicPasswordRequest, NothingResponse>("/user/basic/password", payload);
   },
   me() {
     return client.get<UserResponse>("/user/me");

@@ -13,7 +13,10 @@ interface Props {
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onInputFocus?: () => void;
     onInputBlur?: () => void;
-    validate?: (value: string) => FormValidationState;
+    validate?: ((value: string) => FormValidationState) | ((value: string) => {
+        state: FormValidationState;
+        message: string | undefined;
+    });
     okMessage?: string;
     errorMessage?: string;
     okMessageTimeout?: number;
@@ -40,6 +43,7 @@ const TextField = ({
 }: Props) => {
     const [validationState, setValidationState] = useState<FormValidationState>(FormValidationState.NONE);
     const [value, setValue] = useState(initialValue);
+    const [fullErrorMessage, setFullErrorMessage] = useState<string | undefined>(errorMessage);
 
     useEffect(() => {
         setValue(initialValue);
@@ -49,8 +53,16 @@ const TextField = ({
         setValue(e.target.value);
         if (validate) {
             const result = validate(e.target.value);
-            setValidationState(result);
-            if (result !== FormValidationState.SUCCESS) {
+            let newValidationState;
+            if (typeof result === "object") {
+                setFullErrorMessage(result.message);
+                newValidationState = result.state;
+            }
+            else {
+                newValidationState = result;
+            }
+            setValidationState(newValidationState);
+            if (newValidationState !== FormValidationState.SUCCESS) {
                 return;
             }
         }
@@ -72,7 +84,7 @@ const TextField = ({
         <ValidationFeedback
             isOn={validationState !== FormValidationState.NONE}
             type={validationState === FormValidationState.SUCCESS ? "valid" : "invalid"}
-            message={validationState === FormValidationState.SUCCESS ? okMessage : errorMessage}
+            message={validationState === FormValidationState.SUCCESS ? okMessage : fullErrorMessage}
             time={validationState === FormValidationState.SUCCESS ? okMessageTimeout : errorMessageTimeout}
         />
     </div>;
