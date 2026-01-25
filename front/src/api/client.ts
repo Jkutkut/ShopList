@@ -5,7 +5,7 @@ import { HttpMethod, APIVersion, type Transport } from "./types";
 class HttpClient<E> {
   protected readonly config: ApiConfig;
   protected readonly transport: Transport<E>;
-  protected readonly headers: Record<string, string>;
+  protected headers: Record<string, string>;
   protected readonly version: APIVersion;
 
   public constructor(
@@ -35,7 +35,7 @@ class HttpClient<E> {
   }
 
   protected toUrl(endpoint: string) {
-    return `/${this.config.basePath}/${this.version}${endpoint}`
+    return `${this.config.basePath}/${this.version}${endpoint}`
   }
 
   protected formatHeaders(headers?: Record<string, string>) {
@@ -85,6 +85,19 @@ class HttpClient<E> {
       method: HttpMethod.PATCH,
       headers: this.formatHeaders(headers),
       body,
+    });
+  }
+
+  public addHeaders(headers: Record<string, string>) {
+    this.headers = {
+      ...this.headers,
+      ...headers,
+    };
+  }
+
+  public addToken(token: string) {
+    this.addHeaders({
+      Authorization: `Bearer ${token}`,
     });
   }
 };

@@ -84,3 +84,4 @@ export type {
 };
 
 export default userService;
+export { client };

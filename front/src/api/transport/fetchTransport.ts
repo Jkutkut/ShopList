@@ -17,6 +17,7 @@ class FetchTransport implements Transport<FetchTransportError> {
     TransportResponse<T>,
     TransportError<FetchTransportError>
   >> {
+    console.debug(`Fetching ${method} ${url}`);
     const response = await fetch(url, {
       method,
       headers: {

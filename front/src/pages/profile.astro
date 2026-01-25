@@ -1,7 +1,15 @@
 ---
+import userService, { client as userServiceClient } from "../api/versions/v1/userService";
 import Debug from "../layouts/debug.astro";
 import { OPTIONS } from "../mockup";
-import { USER } from "../mockup";
+
+userServiceClient.addToken(Astro.cookies.get("jwt")!.value);
+const result = await userService.me();
+if (result.isErr()) {
+  console.error("Unable to get current user:", result.unwrapErr());
+  return Astro.redirect("/");
+}
+const user = result.unwrap().data;
 ---
 
 <Debug
@@ -10,24 +18,35 @@ import { USER } from "../mockup";
   options={OPTIONS['profile']}
 >
   <section class="col gap">
-    <h1>{USER.name}'s profile</h1>
+    <h1>{user.name}'s profile</h1>
     <div class="row">
       <div class="col gap full-w">
-        <p>Email: {USER.email}</p>
-        <p>Password: XXXXXXXXX</p>
-        <p>Member since: {new Date(USER.createdAt).toLocaleDateString()}</p>
-        <p>Last updated: {new Date(USER.updatedAt).toLocaleDateString()}</p>
+        <p>Member since: {new Date(user.created_at).toLocaleDateString()}</p>
+        <p>Last updated: {new Date(user.updated_at).toLocaleDateString()}</p>
       </div>
       <div class="profile-image">
-        <img src={USER.image} alt={USER.name} />
+        {user.image &&
+          <img src={user.image} alt={`${user.name}'s profile picture`} />
+        }
       </div>
     </div>
     <div>
       <a class="btn btn-primary">Edit Profile</a>
-      <a class="btn btn-danger">Delete Profile</a>
+      <a id="delete-user" data-userid={user.id} class="btn btn-danger">Delete user</a>
     </div>
   </section>
+  <pre>{JSON.stringify(user, null, 2)}</pre>
 </Debug>
+
+<script>
+  import userService from "../api/versions/v1/userService";
+
+  const deleteButton = document.getElementById("delete-user")!;
+  deleteButton.addEventListener("click", async () => {
+    const userId = deleteButton.dataset.userid!;
+    console.error("TODO: delete user", userId);
+  });
+</script>
 
 <style>
   .profile-image {

@@ -62,6 +62,8 @@ services:
     command: npm run dev
     networks:
       - api-network
+    environment:
+      - BASE_PATH=http://shoplist-api/api
   nginx:
     environment:
       API_HOST: "shoplist-api"
