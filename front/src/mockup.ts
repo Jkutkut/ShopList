@@ -12,7 +12,7 @@ export const TEXT = {
 }
 
 export const USER = {
-  id: "user-a",
+  uuid: "user-a",
   name: "Jkutkut",
   email: "email@email.com",
   image: IMAGES["1:1"],
@@ -27,9 +27,9 @@ export const PRODUCTS = [
     description: TEXT["1"],
     image: IMAGES["1:1"],
     createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    createdBy: USER.uuid,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updatedBy: USER.uuid
   },
   {
     id: "product-b",
@@ -37,9 +37,9 @@ export const PRODUCTS = [
     description: TEXT["2"],
     image: IMAGES["1:1"],
     createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    createdBy: USER.uuid,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updatedBy: USER.uuid
   },
   {
     id: "product-c",
@@ -47,9 +47,9 @@ export const PRODUCTS = [
     description: TEXT["3"],
     image: IMAGES["1:1"],
     createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    createdBy: USER.uuid,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updatedBy: USER.uuid
   },
   {
     id: "product-d",
@@ -57,9 +57,9 @@ export const PRODUCTS = [
     description: TEXT["1"],
     image: IMAGES["1:1"],
     createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    createdBy: USER.uuid,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updatedBy: USER.uuid
   },
   {
     id: "product-e",
@@ -67,9 +67,9 @@ export const PRODUCTS = [
     description: TEXT["2"],
     image: IMAGES["1:1"],
     createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    createdBy: USER.uuid,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updatedBy: USER.uuid
   },
   {
     id: "product-f",
@@ -77,9 +77,9 @@ export const PRODUCTS = [
     description: TEXT["3"],
     image: undefined,
     createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    createdBy: USER.uuid,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updatedBy: USER.uuid
   }
 ];
 
@@ -90,9 +90,9 @@ export const LISTS = [
     description: TEXT["1"],
     image: IMAGES["1:1"],
     createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    createdBy: USER.uuid,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updatedBy: USER.uuid
   },
   {
     id: "list-b",
@@ -100,9 +100,9 @@ export const LISTS = [
     description: TEXT["2"],
     image: IMAGES["1:1"],
     createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    createdBy: USER.uuid,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updatedBy: USER.uuid
   },
   {
     id: "list-c",
@@ -110,9 +110,9 @@ export const LISTS = [
     description: TEXT["3"],
     image: IMAGES["1:1"],
     createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    createdBy: USER.uuid,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updatedBy: USER.uuid
   }
 ];
 
@@ -123,9 +123,9 @@ export const CATEGORIES = [
     listId: "list-a",
     index: 1,
     createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    createdBy: USER.uuid,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updatedBy: USER.uuid
   },
   {
     id: "category-b",
@@ -133,9 +133,9 @@ export const CATEGORIES = [
     listId: "list-a",
     index: 2,
     createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    createdBy: USER.uuid,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updatedBy: USER.uuid
   },
   {
     id: "category-c",
@@ -143,9 +143,9 @@ export const CATEGORIES = [
     listId: "list-b",
     index: 3,
     createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    createdBy: USER.uuid,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updatedBy: USER.uuid
   },
 ];
 
@@ -160,9 +160,9 @@ export const LIST_PRODUCTS = {
       amount: "12",
       unit: "L",
       createdAt: new Date().toISOString(),
-      createdBy: USER.id,
+      createdBy: USER.uuid,
       updatedAt: new Date().toISOString(),
-      updatedBy: USER.id
+      updatedBy: USER.uuid
     })),
     {
       id: "list-product-3",
@@ -171,9 +171,9 @@ export const LIST_PRODUCTS = {
       productId: PRODUCTS[3].id,
       index: 3 + 1,
       createdAt: new Date().toISOString(),
-      createdBy: USER.id,
+      createdBy: USER.uuid,
       updatedAt: new Date().toISOString(),
-      updatedBy: USER.id
+      updatedBy: USER.uuid
     },
     ...PRODUCTS.splice(4, -1).map((p, idx) => ({
       id: "list-product-" + (idx + 4),
@@ -182,9 +182,9 @@ export const LIST_PRODUCTS = {
       productId: p.id,
       index: idx + 3 + 1,
       createdAt: new Date().toISOString(),
-      createdBy: USER.id,
+      createdBy: USER.uuid,
       updatedAt: new Date().toISOString(),
-      updatedBy: USER.id
+      updatedBy: USER.uuid
     })),
   ],
   "list-b": [],
@@ -278,7 +278,7 @@ export const ALL_TEAM_ROLES = TEAMS.map((team, idx) => ({
   key: team.id,
   value: ALL_USERS.map((user, userIdx) => ({
     role: (
-      user.id === USER.id ?
+      USER.uuid === USER.uuid ?
       (TEAM_ROLES.find(role => role.team.id === team.id)?.role || undefined) :
       (idx === userIdx) ? "admin" : "member"
     ),

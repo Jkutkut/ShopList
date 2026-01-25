@@ -32,10 +32,9 @@ const user = result.unwrap().data;
     </div>
     <div>
       <a class="btn btn-primary">Edit Profile</a>
-      <a id="delete-user" data-userid={user.id} class="btn btn-danger">Delete user</a>
+      <a id="delete-user" data-user-uuid={user.uuid} class="btn btn-danger">Delete user</a>
     </div>
   </section>
-  <pre>{JSON.stringify(user, null, 2)}</pre>
 </Debug>
 
 <script>
@@ -43,8 +42,13 @@ const user = result.unwrap().data;
 
   const deleteButton = document.getElementById("delete-user")!;
   deleteButton.addEventListener("click", async () => {
-    const userId = deleteButton.dataset.userid!;
-    console.error("TODO: delete user", userId);
+    const userUuid = deleteButton.dataset["userUuid"]!;
+    const result = await userService.deleteUser(userUuid);
+    if (result.isErr()) {
+      console.error("Unable to delete user:", result.unwrapErr());
+      return;
+    }
+    window.location.href = "/";
   });
 </script>
 
