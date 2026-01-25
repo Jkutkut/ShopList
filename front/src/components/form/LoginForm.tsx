@@ -62,7 +62,7 @@ const LoginForm = () => {
         }
         const tokenResponse = r.unwrap().data;
         localStorage.setItem("token", JSON.stringify(tokenResponse)); // TODO change
-        window.location.href = "/teams";
+        window.location.href = "/";
     }
 
     return <section className="full-screen-form">
