@@ -14,6 +14,19 @@ impl UuidWrapper {
 		debug!("uuid get: {:?}", self.0);
 		self.0
 	}
+
+	pub fn secure_parse(value: &str) -> Self {
+		debug!("uuid secure parse: {}", value);
+		const UUID_LENGTH: usize = 36;
+		if value.len() != UUID_LENGTH {
+			warn!("invalid uuid: {}", value);
+			return UuidWrapper(Err("invalid uuid".to_string()));
+		}
+		match Uuid::parse_str(value) {
+			Ok(uuid) => UuidWrapper(Ok(uuid)),
+			Err(_) => UuidWrapper(Err("invalid uuid".to_string()))
+		}
+	}
 }
 
 #[cfg(feature =	"api")]
@@ -21,10 +34,7 @@ impl TryFrom<&str> for UuidWrapper {
 	type Error = String;
 	fn try_from(value: &str) -> Result<Self, Self::Error> {
 		debug!("uuid from str: {}", value);
-		Ok(match Uuid::parse_str(value) {
-			Ok(uuid) => UuidWrapper(Ok(uuid)),
-			Err(_) => UuidWrapper(Err("invalid uuid".to_string()))
-		})
+		Ok(UuidWrapper::secure_parse(value))
 	}
 }
 
@@ -32,10 +42,7 @@ impl TryFrom<&str> for UuidWrapper {
 impl<'v> FromFormField<'v> for UuidWrapper {
 	fn from_value(field: ValueField<'v>) -> rocket::form::Result<'v, Self> {
 		debug!("uuid from field: {}", field.value);
-		Ok(match Uuid::parse_str(field.value) {
-			Ok(uuid) => UuidWrapper(Ok(uuid)),
-			Err(_) => UuidWrapper(Err("invalid uuid".to_string()))
-		})
+		Ok(UuidWrapper::secure_parse(field.value))
 	}
 }
 
@@ -45,10 +52,7 @@ impl<'r> FromParam<'r> for UuidWrapper {
 
 	fn from_param(param: &'r str) -> Result<Self, Self::Error> {
 		debug!("uuid from param: {}", param);
-		Ok(match Uuid::parse_str(param) {
-			Ok(uuid) => UuidWrapper(Ok(uuid)),
-			Err(_) => UuidWrapper(Err("invalid uuid".to_string()))
-		})
+		Ok(UuidWrapper::secure_parse(param))
 	}
 }
 
@@ -84,7 +88,7 @@ impl std::fmt::Debug for UuidWrapper {
 	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
 		match &self.0 {
 			Ok(uuid) => write!(f, "{:?}", uuid),
-			Err(err) => Err(serde::ser::Error::custom(err)),
+			Err(err) => write!(f, "UuidWrapper(Err({}))", err),
 		}
 	}
 }

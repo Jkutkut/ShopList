@@ -18,6 +18,7 @@ async fn delete_user(
 	#[allow(unused_variables)]
 	user: guards::User, // TODO
 	cache_client: &State<Cache>,
+	cookie_jar: &CookieJar<'_>,
 ) -> Result<(), InvalidResponse> {
 	info!("Delete request: {:?}", user_id);
 	let user_id: Uuid = match user_id.get() {
@@ -38,7 +39,10 @@ async fn delete_user(
 	cache_client.del(&user_tokens_key).await;
 
 	match auth_grpc_client.delete_user(auth_request).await {
-		Ok(_) => Ok(()),
+		Ok(_) => {
+			cookie_jar.remove(Cookie::from("jwt"));
+			Ok(())
+		},
 		Err(e) => match e.code() {
 			// Code::NotFound
 			// Code::PermissionDenied

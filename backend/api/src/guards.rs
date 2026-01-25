@@ -91,7 +91,7 @@ impl<'r> FromRequest<'r> for User {
 	async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
 		let invalid = || {
 			let cookie_jar = req.cookies();
-			cookie_jar.remove(Cookie::named("jwt"));
+			cookie_jar.remove(Cookie::from("jwt"));
 			Outcome::Error((Status::Unauthorized, ()))
 		};
 		let expiration = Some(cache::Expiration::EX(15 * 60)); // TODO use login as expiration handler
