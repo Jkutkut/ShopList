@@ -62,7 +62,7 @@ const LoginForm = () => {
         }
         const tokenResponse = r.unwrap().data;
         localStorage.setItem("token", JSON.stringify(tokenResponse)); // TODO change
-        window.location.href = "/";
+        window.location.href = "/teams";
     }
 
     return <section className="full-screen-form">
@@ -98,7 +98,7 @@ const LoginForm = () => {
             <button type="submit"
                 className="btn btn-primary"
                 onClick={onSubmit}
-                // TODO disable if not valid
+                disabled={!isFormValid}
             >
                 Login
             </button>
