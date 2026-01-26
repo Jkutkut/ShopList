@@ -15,7 +15,7 @@ export const onRequest = defineMiddleware((context, next) => {
   if (isAuthenticated && currentPath === "/") {
     return context.redirect("/teams", 302);
   }
-  const isAuthPage = authRootPages.some((page) => page.startsWith(currentPath));
+  const isAuthPage = authRootPages.some((page) => currentPath.startsWith(page));
   if (!isAuthenticated && isAuthPage) {
     return context.redirect("/login", 302);
   }

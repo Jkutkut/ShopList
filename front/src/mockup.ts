@@ -299,6 +299,10 @@ OPTIONS['profile'] = [
   { name: 'Teams', url: '/teams' },
   ...OPTIONS['logout'],
 ];
+OPTIONS['profile-edit'] = [
+  { name: 'Back', url: '/profile' },
+  ...OPTIONS['profile'],
+];
 OPTIONS['teams'] = [
   { name: 'Profile', url: '/profile' },
   ...OPTIONS['logout'],

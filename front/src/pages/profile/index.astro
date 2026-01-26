@@ -1,7 +1,7 @@
 ---
-import userService, { client as userServiceClient } from "../api/versions/v1/userService";
-import Debug from "../layouts/debug.astro";
-import { OPTIONS } from "../mockup";
+import userService, { client as userServiceClient } from "../../api/versions/v1/userService";
+import Debug from "../../layouts/debug.astro";
+import { OPTIONS } from "../../mockup";
 
 userServiceClient.addToken(Astro.cookies.get("jwt")!.value);
 const result = await userService.me();
@@ -31,14 +31,14 @@ const user = result.unwrap().data;
       </div>
     </div>
     <div>
-      <a class="btn btn-primary">Edit Profile</a>
+      <a class="btn btn-primary" href="/profile/edit">Edit Profile</a>
       <a id="delete-user" data-user-uuid={user.uuid} class="btn btn-danger">Delete user</a>
     </div>
   </section>
 </Debug>
 
 <script>
-  import userService from "../api/versions/v1/userService";
+  import userService from "../../api/versions/v1/userService";
 
   const deleteButton = document.getElementById("delete-user")!;
   deleteButton.addEventListener("click", async () => {
