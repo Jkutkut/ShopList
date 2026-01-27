@@ -1,0 +1,24 @@
+---
+import userService, { client as userServiceClient } from "../api/versions/v1/userService";
+import LandingPage from "../layouts/landingPage.astro";
+
+const jwtCookie = Astro.cookies.get("jwt");
+if (!jwtCookie) {
+  return Astro.redirect("/");
+}
+userServiceClient.addToken(jwtCookie.value);
+const result = await userService.logout();
+if (result.isOk()) {
+    Astro.cookies.delete("jwt", { path: "/" });
+    return Astro.redirect("/");
+}
+console.error("Unable to log out user:", result.unwrapErr());
+
+---
+<LandingPage
+  title="Shoplist - Logout page"
+  description="Logout from Shoplist account"
+>
+  <h1>Logout</h1>
+  <pre>{JSON.stringify(result.unwrapErr(), null, 2)}</pre>
+</LandingPage>

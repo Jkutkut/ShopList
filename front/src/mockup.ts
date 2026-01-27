@@ -293,7 +293,7 @@ export const ALL_TEAM_ROLES = TEAMS.map((team, idx) => ({
 
 export const OPTIONS: { [key: string]: { name: string; url: string }[] } = {};
 OPTIONS['logout'] = [
-  { name: 'Logout', url: '' },
+  { name: 'Logout', url: '/logout' },
 ];
 OPTIONS['profile'] = [
   { name: 'Teams', url: '/teams' },
