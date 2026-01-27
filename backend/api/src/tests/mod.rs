@@ -18,6 +18,7 @@ use rocket::{
 use model::{
 	grpc::auth::*,
 };
+use uuid::Uuid;
 
 mod openapi;
 
@@ -156,6 +157,26 @@ async fn login_user(test: &Test, key: &str) -> UserToken {
 	res.into_json().await.unwrap()
 }
 
+async fn logout_user(test: &Test, user_token: &UserToken) {
+	let UserToken { token, .. } = user_token;
+	let res = test.client.post("/api/v1/user/logout")
+		.header(auth_header(&token))
+		.dispatch().await;
+	check_status(&res, Status::Ok);
+}
+
+async fn create_team(test: &Test, user_token: &UserToken, team_name: &str) -> Uuid {
+	let UserToken { token, .. } = user_token;
+	let req = test.client.post("/api/v1/team")
+		.header(auth_header(&token))
+		.json(&json!({
+			"name": team_name
+		}));
+	let res = req.dispatch().await;
+	check_json_response(&res).await;
+	res.into_json().await.unwrap()
+}
+
 // -------------------------------------------
 
 // GET /api
@@ -220,4 +241,15 @@ async fn logout() {
 	fail_fetch_me(&test, &user_token).await;
 	let user_token = login_user(&test, key).await;
 	delete_self_user(&test, &user_token).await;
+}
+
+// POST /api/v1/team
+#[tokio::test]
+async fn test_create_team() {
+	let test = setup().await;
+	let user_token = create_user(&test, "create_team").await;
+	let _ = create_team(&test, &user_token, "test_create_team").await;
+	// TODO fetch team
+	delete_self_user(&test, &user_token).await;
+	// delete_team(&test, &team).await; // TODO
 }

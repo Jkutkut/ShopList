@@ -29,6 +29,14 @@ impl UuidWrapper {
 	}
 }
 
+#[cfg(feature = "api")]
+impl From<Uuid> for UuidWrapper {
+	fn from(value: Uuid) -> Self {
+		debug!("uuid from uuid: {}", value);
+		UuidWrapper(Ok(value))
+	}
+}
+
 #[cfg(feature =	"api")]
 impl TryFrom<&str> for UuidWrapper {
 	type Error = String;

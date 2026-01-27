@@ -8,12 +8,21 @@ async fn user_team_roles(
 	Err(route_error::not_implemented()) // TODO
 }
 
-#[post("/")] // TODO data
+#[post("/", data = "<team_request>")]
 async fn team_create(
-	#[allow(unused_variables)]
 	user: guards::User,
-) -> Result<Json<()>, InvalidResponse> { // TODO output
-	Err(route_error::not_implemented()) // TODO
+	team_request: Json<TeamRequest>,
+	db: &State<DB>,
+) -> Result<Json<UuidWrapper>, InvalidResponse> {
+	info!("Team create");
+	let user_id: Uuid = match user.uuid.get() {
+		Ok(id) => id,
+		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
+	};
+	match db.create_team(&user_id, &team_request).await {
+		Ok(team_id) => Ok(Json(team_id.into())),
+		Err(err) => Err(InvalidResponse::new(Status::InternalServerError, &err))
+	}
 }
 
 #[get("/<team_id>")]

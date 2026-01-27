@@ -29,6 +29,7 @@ use crate::{
 	},
 	cors,
 	cookie,
+	db::DB,
 	guards,
 	grpc,
 	api_user_token::ApiUserToken,

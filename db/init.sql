@@ -273,6 +273,7 @@ BEGIN
     INSERT INTO teams (name, description, image, created_by, updated_by)
         VALUES (name, description, image, creator, creator)
         RETURNING id INTO team_id;
+    INSERT INTO user_roles (user_id, role, team_id) VALUES (creator, 'admin', team_id);
     RETURN team_id;
 END $$ LANGUAGE plpgsql;
 

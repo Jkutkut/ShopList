@@ -79,6 +79,22 @@ $(PROJECTS:%=terminal_%): terminal_%:
 # $(PROJECTS:%=build_%):
 # $(PROJECTS:%=doc_%):
 
+up_test:
+	@echo "${TITLE}Starting ${YELLOW}test${NC}..."
+	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml up
+
+up_d_test:
+	@echo "${TITLE}Starting ${YELLOW}test${NC}..."
+	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml up -d
+
+down_test:
+	@echo "${TITLE}Shutting down ${YELLOW}test${NC}..."
+	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml down
+
+logs_test:
+	@echo "${TITLE}Monitoring logs in ${YELLOW}test${NC}..."
+	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml logs
+
 $(TEST_PROJECTS:%=test_%): test_%:
 	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml up $*-test
 
@@ -90,9 +106,6 @@ $(TEST_PROJECTS:%=test_logs_%): test_logs_%:
 
 $(TEST_PROJECTS:%=test_terminal_%): test_terminal_%:
 	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml exec $*-test sh
-
-down_test:
-	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml -f docker-compose.test.yaml down
 
 $(PROJECTS:%=clean_%): clean_%:
 	@echo "${TITLE}Shutting down ${YELLOW}$*${NC}..."

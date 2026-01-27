@@ -4,6 +4,10 @@ use tokio_postgres::{
 };
 use log::*;
 use crate::utils::env_var;
+use model::{
+	TeamRequest,
+};
+use uuid::Uuid;
 
 pub struct DB {
 	client: Client,
@@ -16,7 +20,13 @@ impl DB {
 		}
 	}
 
+	#[cfg(test)]
 	pub fn client(&self) -> &Client {
+		&self.client
+	}
+
+	#[cfg(not(test))]
+	fn client(&self) -> &Client {
 		&self.client
 	}
 
@@ -45,5 +55,27 @@ impl DB {
 			}
 		});
 		Ok(DB::new(db_client))
+	}
+}
+
+// Teams
+impl DB {
+	pub async fn create_team(&self, creator_uuid: &Uuid, team: &TeamRequest) -> Result<Uuid, String> {
+		info!("Creating team \"{}\" by user {}", team.name, creator_uuid);
+		debug!("Team request: {:#?}", team);
+		let query = "SELECT new_team($1, $2, $3, $4)";
+		let stmt = self.client().prepare(query).await.unwrap();
+		match self.client().query_one(&stmt, &[
+			creator_uuid, &team.name, &team.description, &team.image
+		]).await {
+			Ok(r) => {
+				debug!("Team created: {:#?}", r);
+				Ok(r.get::<'_, usize, Uuid>(0))
+			},
+			Err(e) => {
+				warn!("Error creating team: {}", e);
+				Err(e.to_string()) // TODO
+			}
+		}
 	}
 }
