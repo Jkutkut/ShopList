@@ -26,6 +26,10 @@ struct Test {
 	client: Client,
 }
 
+async fn new_client() -> Client {
+	Client::tracked(rocket().await).await.unwrap()
+}
+
 async fn setup() -> Test {
 	let _ = env_logger::Builder::from_env(
 		env_logger::Env::default()
@@ -46,7 +50,7 @@ async fn setup() -> Test {
 		grpc_connect_attempts -= 1;
 	}
 
-	let client = Client::tracked(rocket_instance).await.unwrap();
+	let client = new_client().await;
 	Test {
 		client,
 	}
@@ -108,7 +112,9 @@ async fn create_user(test: &Test, key: &str) -> UserToken {
 	let req = test.client.post("/api/v1/user/register/basic").json(&credentials);
 	let res = req.dispatch().await;
 	check_json_response(&res).await;
-	res.into_json().await.unwrap()
+	let user_token = res.into_json().await.unwrap();
+	debug!("Created user named {}: {:#?}", credentials["name"], user_token);
+	user_token
 }
 
 async fn delete_self_user(test: &Test, user_token: &UserToken) {
@@ -166,6 +172,13 @@ async fn logout_user(test: &Test, user_token: &UserToken) {
 }
 
 async fn create_team(test: &Test, user_token: &UserToken, team_name: &str) -> Uuid {
+	{
+		debug!("Ensure team does not exist");
+		let db = test.client.rocket().state::<db::DB>().unwrap().client();
+		let query = "DELETE FROM teams WHERE name = $1";
+		let stmt = db.prepare(query).await.unwrap();
+		db.execute(&stmt, &[&team_name]).await.unwrap();
+	}
 	let UserToken { token, .. } = user_token;
 	let req = test.client.post("/api/v1/team")
 		.header(auth_header(&token))
@@ -175,6 +188,18 @@ async fn create_team(test: &Test, user_token: &UserToken, team_name: &str) -> Uu
 	let res = req.dispatch().await;
 	check_json_response(&res).await;
 	res.into_json().await.unwrap()
+}
+
+async fn delete_team(_: &Test, user_token: &UserToken, team_id: &Uuid, status: Status) {
+	info!("Deleting team \"{}\" by user {}", team_id, user_token.user_id);
+	let UserToken { token, .. } = user_token;
+	debug!("token: {:#?}", token);
+	let endpoint = format!("/api/v1/team/{}", team_id);
+	let client = new_client().await;
+	let res = client.delete(&endpoint)
+		.header(auth_header(&token))
+		.dispatch().await;
+	check_status(&res, status);
 }
 
 // -------------------------------------------
@@ -244,12 +269,18 @@ async fn logout() {
 }
 
 // POST /api/v1/team
+// DELETE /api/v1/team/<team_id>
 #[tokio::test]
 async fn test_create_team() {
 	let test = setup().await;
-	let user_token = create_user(&test, "create_team").await;
-	let _ = create_team(&test, &user_token, "test_create_team").await;
+	let random = create_user(&test, "create_team_2").await;
+	let admin = create_user(&test, "create_team_admin").await;
+	let team_uuid = create_team(&test, &admin, "test_create_team").await;
 	// TODO fetch team
-	delete_self_user(&test, &user_token).await;
-	// delete_team(&test, &team).await; // TODO
+	delete_team(&test, &random, &team_uuid, Status::BadRequest).await;
+	delete_team(&test, &admin, &team_uuid, Status::Ok).await;
+	delete_team(&test, &random, &team_uuid, Status::BadRequest).await;
+	delete_team(&test, &admin, &team_uuid, Status::BadRequest).await;
+	delete_self_user(&test, &admin).await;
+	delete_self_user(&test, &random).await;
 }

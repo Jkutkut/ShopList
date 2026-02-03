@@ -42,19 +42,29 @@ fn bearer_token_from(req: &Request) -> Option<String> {
 }
 
 fn bearer_token_from_cookie(req: &Request) -> Option<String> {
+	debug!("bearer_token_from: cookie");
 	match req.cookies().get("jwt") {
-		Some(token) => Some(token.value().to_string()),
+		Some(token) => {
+			#[cfg(debug_assertions)]
+			debug!("token found in cookie jwt: {}", token.value());
+			Some(token.value().to_string())
+		},
 		_ => return None
 	}
 }
 
 fn bearer_token_from_header(req: &Request) -> Option<String> {
+	debug!("bearer_token_from_header");
 	let authorization = match req.headers().get_one("Authorization") {
 		Some(token) => token,
 		_ => return None
 	};
 	match authorization.split_once("Bearer ") {
-		Some((_, token)) => Some(token.to_string()),
+		Some((_, token)) => {
+			#[cfg(debug_assertions)]
+			debug!("token found in header Authorization: {}", token);
+			Some(token.to_string())
+		},
 		_ => None
 	}
 }
@@ -128,11 +138,16 @@ impl<'r> FromRequest<'r> for User {
 		match cache_client.try_get::<UserToken>(token.as_str()).await {
 			Some(user_token) => {
 				let user_id = user_token.user_id;
+				debug!("cached token belongs to user {}", user_id);
 				match cache_client.cached_value(
 					&user_id, expiration,
 					try_get_user,
 				).await {
-					Ok(user) => Outcome::Success(user),
+					Ok(user) => {
+						#[cfg(debug_assertions)]
+						debug!("user: {:#?}", user);
+						Outcome::Success(user)
+					},
 					_ => invalid(),
 				}
 			},

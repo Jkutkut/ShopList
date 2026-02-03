@@ -22,3 +22,15 @@ pub struct TeamRequest {
 	pub description: Option<String>,
 	pub image: Option<String>,
 }
+
+#[derive(Debug)]
+pub struct Team {
+	pub id: Uuid,
+	pub name: String,
+	pub description: Option<String>,
+	pub image: Option<String>,
+	pub created_at: String,
+	pub created_by: Uuid,
+	pub updated_at: String,
+	pub updated_by: Uuid,
+}

@@ -277,6 +277,27 @@ BEGIN
     RETURN team_id;
 END $$ LANGUAGE plpgsql;
 
+DROP FUNCTION IF EXISTS delete_team(users.id%TYPE, teams.id%TYPE);
+
+CREATE FUNCTION delete_team(
+    admin_uuid users.id%TYPE,
+    team_uuid teams.id%TYPE
+) RETURNS void
+AS $$
+BEGIN
+    DELETE FROM teams t
+    WHERE t.id = team_uuid
+    AND EXISTS (
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = admin_uuid
+          AND ur.team_id = t.id
+          AND ur.role = 'admin'
+    );
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'You are not an admin of this team';
+    END IF;
+END $$ LANGUAGE plpgsql;
+
 DROP FUNCTION IF EXISTS team_roles(users.id%TYPE);
 
 CREATE FUNCTION team_roles(

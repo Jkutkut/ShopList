@@ -47,12 +47,22 @@ async fn team_update(
 
 #[delete("/<team_id>")]
 async fn team_delete(
-	#[allow(unused_variables)]
 	user: guards::User,
-	#[allow(unused_variables)]
-	team_id: String, // TODO input
-) -> Result<Json<()>, InvalidResponse> { // TODO output
-	Err(route_error::not_implemented()) // TODO
+	team_id: UuidWrapper,
+	db: &State<DB>,
+) -> Result<Json<()>, InvalidResponse> {
+	let user_id: Uuid = match user.uuid.get() {
+		Ok(id) => id,
+		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
+	};
+	let team_id: Uuid = match team_id.get() {
+		Ok(id) => id,
+		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid team id"))
+	};
+	match db.delete_team(&user_id, &team_id).await {
+		Ok(_) => Ok(Json(())),
+		Err(err) => Err(InvalidResponse::new(Status::BadRequest, &err))
+	}
 }
 
 #[get("/<team_id>/members")]
