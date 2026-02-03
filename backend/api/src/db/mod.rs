@@ -79,6 +79,39 @@ impl DB {
 		}
 	}
 
+	pub async fn get_team(&self, team_id: &Uuid, user_id: &Uuid) -> Result<model::Team, String> {
+		info!("Getting team \"{}\" by user {}", team_id, user_id);
+		let query = "SELECT
+				t.id, t.name, t.description, t.image,
+				t.created_at, t.updated_at,
+				t.created_by, t.updated_by
+			FROM teams t, user_roles ur WHERE
+				t.id = $1 AND 
+				ur.user_id = $2 AND
+				t.id = ur.team_id";
+		let stmt = self.client().prepare(query).await.unwrap();
+		match self.client().query_one(&stmt, &[team_id, user_id]).await {
+			Ok(r) => {
+				let team = model::Team {
+					id: r.get::<'_, usize, Uuid>(0),
+					name: r.get(1),
+					description: r.get::<'_, usize, Option<String>>(2),
+					image: r.get::<'_, usize, Option<String>>(3),
+					created_at: r.get::<'_, usize, chrono::NaiveDateTime>(4).to_string(),
+					updated_at: r.get::<'_, usize, chrono::NaiveDateTime>(5).to_string(),
+					created_by: r.get::<'_, usize, Uuid>(6),
+					updated_by: r.get::<'_, usize, Uuid>(7),
+				};
+				debug!("Team: {:#?}", team);
+				Ok(team)
+			}
+			Err(e) => {
+				warn!("Error getting team: {}", e);
+				Err(e.to_string()) // TODO
+			}
+		}
+	}
+
 	pub async fn delete_team(&self, admin_uuid: &Uuid, team_id: &Uuid) -> Result<(), String> {
 		info!("Deleting team \"{}\" by user {}", team_id, admin_uuid);
 		let query = "SELECT delete_team($1, $2)";

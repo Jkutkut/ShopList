@@ -1,5 +1,6 @@
 use serde::{
 	Deserialize,
+	Serialize,
 };
 use uuid::Uuid;
 
@@ -23,7 +24,7 @@ pub struct TeamRequest {
 	pub image: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Team {
 	pub id: Uuid,
 	pub name: String,

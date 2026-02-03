@@ -36,8 +36,6 @@ async fn setup() -> Test {
 			.default_filter_or("api=debug")
 	).is_test(true).format_timestamp(None).try_init();
 
-	let rocket_instance = rocket().await;
-
 	let mut grpc_connect_attempts = 50;
 	while grpc_connect_attempts > 0 {
 		match grpc::connect_auth().await {
@@ -190,6 +188,27 @@ async fn create_team(test: &Test, user_token: &UserToken, team_name: &str) -> Uu
 	res.into_json().await.unwrap()
 }
 
+async fn fetch_team(_: &Test, user_token: &UserToken, team_id: &Uuid) -> model::Team {
+	let UserToken { token, .. } = user_token;
+	let endpoint = format!("/api/v1/team/{}", team_id);
+	let client = new_client().await;
+	let res = client.get(&endpoint)
+		.header(auth_header(&token))
+		.dispatch().await;
+	check_json_response(&res).await;
+	res.into_json().await.unwrap()
+}
+
+async fn fail_fetch_team(_: &Test, user_token: &UserToken, team_id: &Uuid) {
+	let UserToken { token, .. } = user_token;
+	let endpoint = format!("/api/v1/team/{}", team_id);
+	let client = new_client().await;
+	let res = client.get(&endpoint)
+		.header(auth_header(&token))
+		.dispatch().await;
+	check_response(&res, Status::BadRequest, "application/json").await;
+}
+
 async fn delete_team(_: &Test, user_token: &UserToken, team_id: &Uuid, status: Status) {
 	info!("Deleting team \"{}\" by user {}", team_id, user_token.user_id);
 	let UserToken { token, .. } = user_token;
@@ -269,6 +288,7 @@ async fn logout() {
 }
 
 // POST /api/v1/team
+// GET /api/v1/team/<team_id>
 // DELETE /api/v1/team/<team_id>
 #[tokio::test]
 async fn test_create_team() {
@@ -276,11 +296,15 @@ async fn test_create_team() {
 	let random = create_user(&test, "create_team_2").await;
 	let admin = create_user(&test, "create_team_admin").await;
 	let team_uuid = create_team(&test, &admin, "test_create_team").await;
-	// TODO fetch team
+	let team = fetch_team(&test, &admin, &team_uuid).await;
+	assert_eq!(team.name, "test_create_team");
+	fail_fetch_team(&test, &random, &team_uuid).await;
 	delete_team(&test, &random, &team_uuid, Status::BadRequest).await;
 	delete_team(&test, &admin, &team_uuid, Status::Ok).await;
 	delete_team(&test, &random, &team_uuid, Status::BadRequest).await;
 	delete_team(&test, &admin, &team_uuid, Status::BadRequest).await;
+	fail_fetch_team(&test, &admin, &team_uuid).await;
+	fail_fetch_team(&test, &random, &team_uuid).await;
 	delete_self_user(&test, &admin).await;
 	delete_self_user(&test, &random).await;
 }

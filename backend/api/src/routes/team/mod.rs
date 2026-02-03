@@ -27,12 +27,23 @@ async fn team_create(
 
 #[get("/<team_id>")]
 async fn team_get(
-	#[allow(unused_variables)]
 	user: guards::User,
-	#[allow(unused_variables)]
-	team_id: String, // TODO input
-) -> Result<Json<()>, InvalidResponse> { // TODO output
-	Err(route_error::not_implemented()) // TODO
+	team_id: UuidWrapper,
+	db: &State<DB>,
+) -> Result<Json<model::Team>, InvalidResponse> {
+	info!("Team get");
+	let user_id: Uuid = match user.uuid.get() {
+		Ok(id) => id,
+		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
+	};
+	let team_id: Uuid = match team_id.get() {
+		Ok(id) => id,
+		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid team id"))
+	};
+	match db.get_team(&team_id, &user_id).await {
+		Ok(team) => Ok(Json(team)),
+		Err(err) => Err(InvalidResponse::new(Status::BadRequest, &err))
+	}
 }
 
 #[put("/<team_id>")]
