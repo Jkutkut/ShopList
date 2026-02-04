@@ -2,10 +2,23 @@ use super::*;
 
 #[get("/roles")]
 async fn user_team_roles(
-	#[allow(unused_variables)]
 	user: guards::User,
-) -> Result<Json<Vec<()>>, InvalidResponse> { // TODO output
-	Err(route_error::not_implemented()) // TODO
+) -> Result<Json<UserTeamRoles>, InvalidResponse> {
+	info!("Get user team roles");
+	debug!("User: {:#?}", user);
+	let user_uuid: Uuid = user.uuid.get().unwrap();
+	let mut auth_grpc_client = grpc::connect_auth().await.unwrap();
+	let request = UserId { id: user_uuid.to_string() };
+	debug!("Request: {:#?}", request);
+	let team_roles = match auth_grpc_client.team_roles(request).await {
+		Ok(response) => response.into_inner(),
+		Err(e) => {
+			error!("GRPC error: {:#?}", e);
+			return Err(invalid_api(&format!("GRPC error: {:?}", e)))
+		}
+	};
+	debug!("Team roles: {:#?}", team_roles);
+	Ok(Json(team_roles))
 }
 
 #[post("/", data = "<team_request>")]

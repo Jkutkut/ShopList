@@ -19,6 +19,8 @@ use model::{
 	grpc::auth::{
 		User,
 		UserToken,
+		UserTeamRoles,
+		TeamRole,
 	},
 };
 use crate::guards::Team;
@@ -225,6 +227,16 @@ async fn delete_team(_: &Test, user_token: &UserToken, team_id: &Uuid, status: S
 	check_status(&res, status);
 }
 
+async fn fetch_user_team_roles(_: &Test, user_token: &UserToken) -> UserTeamRoles {
+	let UserToken { token, .. } = user_token;
+	let client = new_client().await;
+	let res = client.get("/api/v1/team/roles")
+		.header(auth_header(&token))
+		.dispatch().await;
+	check_json_response(&res).await;
+	res.into_json().await.unwrap()
+}
+
 // -------------------------------------------
 
 // GET /api
@@ -311,4 +323,37 @@ async fn test_create_team() {
 	fail_fetch_team(&test, &random, &team_uuid).await;
 	delete_self_user(&test, &admin).await;
 	delete_self_user(&test, &random).await;
+}
+
+// GET /api/v1/team/roles
+#[tokio::test]
+async fn test_user_team_roles() {
+	let test = setup().await;
+	let user = create_user(&test, "user_team_roles").await;
+	let UserTeamRoles { team_roles } = fetch_user_team_roles(&test, &user).await;
+	assert!(team_roles.is_empty());
+
+	let team01 = create_team(&test, &user, "user_team_roles_team01").await;
+	let team02 = create_team(&test, &user, "user_team_roles_team02").await;
+	let team03 = create_team(&test, &user, "user_team_roles_team03").await;
+
+	// TODO add as team member
+
+	let UserTeamRoles { team_roles } = fetch_user_team_roles(&test, &user).await;
+	assert_eq!(team_roles.len(), 3);
+
+	let check_team = |tr: &TeamRole, uuid: &str| {
+		match &tr.team {
+			Some(team) => team.uuid == uuid,
+			_ => panic!("team is not Some: {:#?}", tr),
+		}
+	};
+	let check_team_admin = |tr: &TeamRole, uuid: &str| {
+		tr.role == "admin" && check_team(tr, uuid)
+	};
+	assert!(team_roles.iter().any(|tr| check_team_admin(tr, &team01.to_string())));
+	assert!(team_roles.iter().any(|tr| check_team_admin(tr, &team02.to_string())));
+	assert!(team_roles.iter().any(|tr| check_team_admin(tr, &team03.to_string())));
+
+	delete_self_user(&test, &user).await;
 }
