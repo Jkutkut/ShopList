@@ -63,101 +63,94 @@ async fn team_delete(
 	}
 }
 
-#[get("/<team_id>/members")]
+#[get("/<_>/members")]
 async fn team_members(
-	#[allow(unused_variables)]
-	user: guards::User,
-	#[allow(unused_variables)]
-	team_id: String, // TODO input
+	team: guards::Team,
 ) -> Result<Json<Vec<()>>, InvalidResponse> { // TODO output
+	info!("Get team members");
+	debug!("Team: {:#?}", team);
 	Err(route_error::not_implemented()) // TODO
 }
 
-#[put("/<team_id>/members")]
+#[put("/<_>/members")]
 async fn team_members_update(
-	#[allow(unused_variables)]
-	user: guards::User,
-	#[allow(unused_variables)]
-	team_id: String, // TODO input
+	team: guards::Team,
 ) -> Result<Json<()>, InvalidResponse> { // TODO output
+	info!("Update team members");
+	debug!("Team: {:#?}", team);
 	Err(route_error::not_implemented()) // TODO
 }
 
-#[delete("/<team_id>/members/<user_id>")]
+#[delete("/<_>/members/<user_id>")]
 async fn team_member_delete(
 	#[allow(unused_variables)]
 	user: guards::User,
-	#[allow(unused_variables)]
-	team_id: String, // TODO input
+	team: guards::Team,
 	#[allow(unused_variables)]
 	user_id: UuidWrapper,
 ) -> Result<Json<()>, InvalidResponse> { // TODO output
+	info!("Delete team member");
+	debug!("Team: {:#?}", team);
 	Err(route_error::not_implemented()) // TODO
 }
 
 // Tags
 
-#[get("/<team_id>/tags")]
+#[get("/<_>/tags")]
 async fn team_tags(
-	#[allow(unused_variables)]
-	user: guards::User,
-	#[allow(unused_variables)]
-	team_id: String, // TODO input
+	team: guards::Team,
 ) -> Result<Json<Vec<()>>, InvalidResponse> { // TODO output
+	info!("Get team tags");
+	debug!("Team: {:#?}", team);
 	Err(route_error::not_implemented()) // TODO
 }
 
-#[post("/<team_id>/tags")] // TODO data
+#[post("/<_>/tags")] // TODO data
 async fn team_tags_update(
-	#[allow(unused_variables)]
-	user: guards::User,
-	#[allow(unused_variables)]
-	team_id: String, // TODO input
+	team: guards::Team,
 ) -> Result<Json<()>, InvalidResponse> { // TODO output
+	info!("Update team tags");
+	debug!("Team: {:#?}", team);
 	Err(route_error::not_implemented()) // TODO
 }
 
 // Product
 
-#[get("/<team_id>/products")]
+#[get("/<_>/products")]
 async fn team_products(
-	#[allow(unused_variables)]
-	user: guards::User,
-	#[allow(unused_variables)]
-	team_id: String, // TODO input
+	team: guards::Team,
 ) -> Result<Json<()>, InvalidResponse> { // TODO output
+	info!("Get team products");
+	debug!("Team: {:#?}", team);
 	Err(route_error::not_implemented()) // TODO
 }
 
-#[post("/<team_id>/product")] // TODO data
+#[post("/<_>/product")] // TODO data
 async fn team_product_create(
-	#[allow(unused_variables)]
-	user: guards::User,
-	#[allow(unused_variables)]
-	team_id: String, // TODO input
+	team: guards::Team,
 ) -> Result<Json<()>, InvalidResponse> { // TODO output
+	info!("Create team product");
+	debug!("Team: {:#?}", team);
 	Err(route_error::not_implemented()) // TODO
 }
 
 // List
 
-#[get("/<team_id>/lists")]
+#[get("/<_>/lists")]
 async fn team_lists(
-	#[allow(unused_variables)]
-	user: guards::User,
-	#[allow(unused_variables)]
-	team_id: String, // TODO input
+	team: guards::Team,
 ) -> Result<Json<()>, InvalidResponse> { // TODO output
+	info!("Get team lists");
+	debug!("Team: {:#?}", team);
 	Err(route_error::not_implemented()) // TODO
 }
 
-#[post("/<team_id>/list")] // TODO data
+#[post("/<_>/list")] // TODO data
 async fn team_list_create(
-	#[allow(unused_variables)]
-	user: guards::User,
-	#[allow(unused_variables)]
-	team_id: String, // TODO input
+	team: guards::Team,
 ) -> Result<Json<()>, InvalidResponse> { // TODO output
+	info!("Create team list");
+	debug!("Team: {:#?}", team);
 	Err(route_error::not_implemented()) // TODO
 }
 
