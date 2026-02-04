@@ -51,6 +51,7 @@ pub fn routes() -> RouteHandlerBuilder {
 		"/",
 		routes![cors::options],
 		catchers![
+			route_error::bad_request,
 			route_error::not_implemented,
 			route_error::unauthorized,
 			route_error::not_found,

@@ -16,6 +16,7 @@ use log::*;
 use crate::{
 	grpc,
 	cache,
+	db,
 };
 use model::UuidWrapper;
 use model::grpc::auth::{
@@ -23,6 +24,7 @@ use model::grpc::auth::{
 	User as GrpcUser,
 	UserToken,
 };
+use uuid::Uuid;
 
 fn bearer_token_from(req: &Request) -> Option<String> {
 	let token = match bearer_token_from_cookie(req) {
@@ -190,5 +192,49 @@ impl<'r> FromRequest<'r> for SessionToken {
 			_ => return Outcome::Error((Status::Unauthorized, ())),
 		};
 		Outcome::Success(Self::new(token))
+	}
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Team {
+	pub id: Uuid,
+	pub name: String,
+	pub description: Option<String>,
+	pub image: Option<String>,
+	pub created_at: String,
+	pub created_by: Uuid,
+	pub updated_at: String,
+	pub updated_by: Uuid,
+}
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for Team {
+	type Error = ();
+
+	async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+		info!("FromRequest Team");
+		let user_uuid = match req.guard::<User>().await {
+			Outcome::Success(user) => user.uuid.get().unwrap(),
+			_ => return Outcome::Error((Status::BadRequest, ())),
+		};
+		// /api/v1/team/<team_id>,
+		// but <team_id> is the first param in route def
+		// TODO this may break in the future
+		const PARAM_IDX: usize = 0;
+		let team_id = match req.param::<UuidWrapper>(PARAM_IDX) {
+			Some(Ok(team_id)) => match team_id.get() {
+				Ok(team_id) => team_id,
+				Err(_) => return Outcome::Error((Status::BadRequest, ())),
+			},
+			_ => return Outcome::Error((Status::BadRequest, ())),
+		};
+		debug!("team_id: {:?}", team_id);
+		let db = req.rocket().state::<db::DB>().unwrap();
+		let team = match db.get_team(&team_id, &user_uuid).await {
+			Ok(team) => team,
+			Err(_) => return Outcome::Error((Status::BadRequest, ())),
+		};
+		debug!("team: {:#?}", team);
+		Outcome::Success(team)
 	}
 }

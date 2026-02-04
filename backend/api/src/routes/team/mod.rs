@@ -25,25 +25,12 @@ async fn team_create(
 	}
 }
 
-#[get("/<team_id>")]
+#[get("/<_>")]
 async fn team_get(
-	user: guards::User,
-	team_id: UuidWrapper,
-	db: &State<DB>,
-) -> Result<Json<model::Team>, InvalidResponse> {
+	team: guards::Team,
+) -> Json<guards::Team> {
 	info!("Team get");
-	let user_id: Uuid = match user.uuid.get() {
-		Ok(id) => id,
-		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
-	};
-	let team_id: Uuid = match team_id.get() {
-		Ok(id) => id,
-		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid team id"))
-	};
-	match db.get_team(&team_id, &user_id).await {
-		Ok(team) => Ok(Json(team)),
-		Err(err) => Err(InvalidResponse::new(Status::BadRequest, &err))
-	}
+	Json(team)
 }
 
 #[put("/<team_id>")]

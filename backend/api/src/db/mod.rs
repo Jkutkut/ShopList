@@ -7,6 +7,7 @@ use crate::utils::env_var;
 use model::{
 	TeamRequest,
 };
+use crate::guards::Team;
 use uuid::Uuid;
 
 pub struct DB {
@@ -79,7 +80,7 @@ impl DB {
 		}
 	}
 
-	pub async fn get_team(&self, team_id: &Uuid, user_id: &Uuid) -> Result<model::Team, String> {
+	pub async fn get_team(&self, team_id: &Uuid, user_id: &Uuid) -> Result<Team, String> {
 		info!("Getting team \"{}\" by user {}", team_id, user_id);
 		let query = "SELECT
 				t.id, t.name, t.description, t.image,
@@ -92,7 +93,7 @@ impl DB {
 		let stmt = self.client().prepare(query).await.unwrap();
 		match self.client().query_one(&stmt, &[team_id, user_id]).await {
 			Ok(r) => {
-				let team = model::Team {
+				let team = Team {
 					id: r.get::<'_, usize, Uuid>(0),
 					name: r.get(1),
 					description: r.get::<'_, usize, Option<String>>(2),

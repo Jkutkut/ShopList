@@ -16,8 +16,12 @@ use rocket::{
 	},
 };
 use model::{
-	grpc::auth::*,
+	grpc::auth::{
+		User,
+		UserToken,
+	},
 };
+use crate::guards::Team;
 use uuid::Uuid;
 
 mod openapi;
@@ -188,7 +192,7 @@ async fn create_team(test: &Test, user_token: &UserToken, team_name: &str) -> Uu
 	res.into_json().await.unwrap()
 }
 
-async fn fetch_team(_: &Test, user_token: &UserToken, team_id: &Uuid) -> model::Team {
+async fn fetch_team(_: &Test, user_token: &UserToken, team_id: &Uuid) -> Team {
 	let UserToken { token, .. } = user_token;
 	let endpoint = format!("/api/v1/team/{}", team_id);
 	let client = new_client().await;

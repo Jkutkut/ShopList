@@ -22,6 +22,11 @@ impl<'r> Responder<'r, 'static> for InvalidResponse {
 	}
 }
 
+#[catch(400)]
+pub fn bad_request() -> InvalidResponse {
+	InvalidResponse::new(Status::BadRequest, "Bad Request")
+}
+
 #[catch(401)]
 pub fn unauthorized() -> InvalidResponse {
 	InvalidResponse::new(Status::Unauthorized, "Unauthorized")
