@@ -134,10 +134,12 @@ impl AuthService for Auth {
 		&self,
 		request: Request<UserId>,
 	) -> Result<Response<UserTeamRoles>, Status> {
+		info!("team_roles");
 		let user_id: Uuid = match request.into_inner().id.parse() {
 			Ok(id) => id,
 			Err(_) => return Err(Status::invalid_argument("Invalid user_id"))
 		};
+		debug!("User id: {}", user_id);
 		Ok(Response::new(self.db.team_roles(&user_id).await?))
 	}
 }

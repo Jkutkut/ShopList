@@ -244,6 +244,7 @@ impl ShoplistDbAuth {
 			Ok(rows) => rows,
 			Err(e) => {
 				if e.to_string().contains("not exists") {
+					warn!("User not found");
 					return Err(Status::not_found("User not found"));
 				}
 				error!("Error getting user roles: {}", e);
@@ -260,8 +261,8 @@ impl ShoplistDbAuth {
 			let team = Team {
 				uuid: uuid.to_string(),
 				name: row.get(2),
-				description: row.get(3),
-				image: row.get(4),
+				description: row.get::<'_, usize, Option<String>>(3).unwrap_or("".to_string()),
+				image: row.get::<'_, usize, Option<String>>(4).unwrap_or("".to_string()),
 				created_at: created_at.to_string(),
 				created_by: created_by.to_string(),
 				updated_at: updated_at.to_string(),
