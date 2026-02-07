@@ -194,6 +194,37 @@ CREATE TABLE list_products (
 );
 
 -- ____________ Functions ____________
+DROP FUNCTION IF EXISTS is_superuser(superusers.user_id%TYPE);
+
+CREATE FUNCTION is_superuser(
+    arg_user_id superusers.user_id%TYPE
+) RETURNS boolean
+AS $$
+BEGIN
+    RETURN EXISTS(SELECT 1 FROM superusers WHERE superusers.user_id = arg_user_id);
+END $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS is_team_admin(teams.id%TYPE, users.id%TYPE);
+
+CREATE FUNCTION is_team_admin(
+    arg_team_id teams.id%TYPE,
+    arg_user_id users.id%TYPE
+) RETURNS boolean
+AS $$
+BEGIN
+    IF is_superuser(arg_user_id) THEN
+        RETURN TRUE;
+    END IF;
+
+    RETURN EXISTS(
+        SELECT 1 FROM user_roles ur
+        WHERE
+            ur.team_id = arg_team_id AND
+            ur.user_id = arg_user_id AND
+            ur.role = 'admin'
+    );
+END $$ LANGUAGE plpgsql;
+
 DROP FUNCTION IF EXISTS create_user_basic_credentials(users.name%TYPE, basic_login.email%TYPE, basic_login.password%TYPE);
 
 CREATE FUNCTION create_user_basic_credentials(
@@ -285,14 +316,10 @@ CREATE FUNCTION delete_team(
 ) RETURNS void
 AS $$
 BEGIN
-    DELETE FROM teams t
-    WHERE t.id = team_id
-    AND EXISTS (
-        SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = admin_id
-          AND ur.team_id = t.id
-          AND ur.role = 'admin'
-    );
+    IF NOT is_team_admin(team_id, admin_id) THEN
+        RAISE EXCEPTION 'You are not an admin of this team';
+    END IF;
+    DELETE FROM teams t WHERE t.id = team_id;
     IF NOT FOUND THEN
         RAISE EXCEPTION 'You are not an admin of this team';
     END IF;
@@ -342,22 +369,32 @@ CREATE FUNCTION add_user_to_team(
     role user_roles.role%TYPE
 ) RETURNS void
 AS $$
-DECLARE
-    is_admin BOOLEAN;
 BEGIN
-    SELECT EXISTS(
-        SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = arg_admin_id
-          AND ur.team_id = arg_team_id
-          AND ur.role = 'admin'
-    ) INTO is_admin;
-    IF NOT is_admin THEN
+    IF NOT is_team_admin(arg_team_id, arg_admin_id) THEN
         RAISE EXCEPTION 'You are not an admin of this team';
     END IF;
-    INSERT INTO user_roles (user_id, role, team_id)
-    VALUES (arg_user_id, role, arg_team_id)
-    ON CONFLICT (user_id, team_id) DO UPDATE SET
-        role = EXCLUDED.role
-    WHERE user_roles.user_id = arg_user_id
-      AND user_roles.team_id = arg_team_id;
+    INSERT
+        INTO user_roles (user_id, role, team_id)
+        VALUES (arg_user_id, role, arg_team_id)
+        ON CONFLICT (user_id, team_id) DO
+            UPDATE
+                SET role = EXCLUDED.role
+                WHERE
+                    user_roles.user_id = arg_user_id AND
+                    user_roles.team_id = arg_team_id;
+END $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS delete_user_from_team(users.id%TYPE, teams.id%TYPE, users.id%TYPE);
+
+CREATE FUNCTION delete_user_from_team(
+    arg_admin_id users.id%TYPE,
+    arg_team_id teams.id%TYPE,
+    arg_user_id users.id%TYPE
+) RETURNS void
+AS $$
+BEGIN
+    IF NOT is_team_admin(arg_team_id, arg_admin_id) THEN
+        RAISE EXCEPTION 'You are not an admin of this team';
+    END IF;
+    DELETE FROM user_roles WHERE user_id = arg_user_id AND team_id = arg_team_id;
 END $$ LANGUAGE plpgsql;
