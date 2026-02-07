@@ -6,11 +6,12 @@ import ValidationFeedback from "../ValidationFeedback";
 interface Props {
     name: string;
     label?: string;
+    readonly?: boolean;
     placeholder?: string;
     type?: TextFieldType;
     autocomplete?: string;
     initialValue?: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onInputFocus?: () => void;
     onInputBlur?: () => void;
     validate?: ((value: string) => FormValidationState) | ((value: string) => {
@@ -27,6 +28,7 @@ interface Props {
 const TextField = ({
     name,
     label,
+    readonly = false,
     placeholder = "",
     type = TextFieldType.TEXT,
     autocomplete,
@@ -66,7 +68,7 @@ const TextField = ({
                 return;
             }
         }
-        onChange(e);
+        onChange?.(e);
     }
     className = `input-field ${className}`.trim();
     return <div className={className}>
@@ -74,6 +76,7 @@ const TextField = ({
         <input
             type={type}
             name={name}
+            readOnly={readonly}
             autoComplete={autocomplete}
             placeholder={placeholder}
             value={value}

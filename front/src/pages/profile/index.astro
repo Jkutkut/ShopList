@@ -1,7 +1,9 @@
 ---
 import userService, { client as userServiceClient } from "../../api/versions/v1/userService";
+import { INFINITE_VALIDATION_TIMEOUT } from "../../components/form/textField";
+import CopyTextField from "../../components/form/textField/CopyTextField";
 import Debug from "../../layouts/debug.astro";
-import { OPTIONS } from "../../mockup";
+import { IMAGES, OPTIONS } from "../../mockup";
 
 userServiceClient.addToken(Astro.cookies.get("jwt")!.value);
 const result = await userService.me();
@@ -10,6 +12,8 @@ if (result.isErr()) {
   return Astro.redirect("/");
 }
 const user = result.unwrap().data;
+
+user.image = IMAGES["1:1"]; // TODO
 ---
 
 <Debug
@@ -19,10 +23,19 @@ const user = result.unwrap().data;
 >
   <section class="col gap">
     <h1>{user.name}'s profile</h1>
-    <div class="row">
+    <div class="row gap">
       <div class="col gap full-w">
         <p>Member since: {new Date(user.created_at).toLocaleDateString()}</p>
         <p>Last updated: {new Date(user.updated_at).toLocaleDateString()}</p>
+        <CopyTextField
+          label="Id"
+          name="user-id"
+          initialValue={user.id}
+          readonly={true}
+          okMessage="User id copied to clipboard"
+          okMessageTimeout={INFINITE_VALIDATION_TIMEOUT}
+          client:only
+        />
       </div>
       <div class="profile-image">
         {user.image &&
@@ -42,7 +55,7 @@ const user = result.unwrap().data;
 
   const deleteButton = document.getElementById("delete-user")!;
   deleteButton.addEventListener("click", async () => {
-    const userUuid = deleteButton.dataset["userUuid"]!;
+    const userUuid = deleteButton.dataset["userId"]!;
     const result = await userService.deleteUser(userUuid);
     if (result.isErr()) {
       console.error("Unable to delete user:", result.unwrapErr());
