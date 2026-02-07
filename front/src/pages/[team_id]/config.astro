@@ -1,7 +1,7 @@
 ---
 import teamService, { client as teamServiceClient } from "../../api/versions/v1/teamService";
 import ConfigTeamForm from "../../components/form/ConfigTeamForm";
-import Debug from "../../layouts/debug.astro";
+import Page from "../../layouts/page.astro";
 import { OPTIONS } from "../../mockup";
 import { previousPageUrl } from "../../utils";
 
@@ -20,7 +20,7 @@ if (result.isErr()) {
 
 const team = result.unwrap().data;
 ---
-<Debug
+<Page
   title=`Shoplist - ${team.name} configuration`
   description=`Configure the team ${team.name}`
   options={[
@@ -29,4 +29,4 @@ const team = result.unwrap().data;
   ]}
 >
   <ConfigTeamForm client:load team={team} />
-</Debug>
+</Page>

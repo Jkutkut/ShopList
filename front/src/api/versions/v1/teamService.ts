@@ -21,7 +21,7 @@ const teamService = {
     return client.put<TeamRequest, Team>(`/team/${team_id}`, payload);
   },
   deleteTeam(team_id: Uuid) {
-    return client.delete(`/team/${team_id}`);
+    return client.delete<NothingResponse>(`/team/${team_id}`);
   },
   teamMembers(team_id: Uuid) {
     return client.get<TeamMembers>(`/team/${team_id}/members`);
