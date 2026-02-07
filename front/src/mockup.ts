@@ -1,3 +1,5 @@
+import type { Team, User } from "./types";
+
 export const IMAGES = {
   "1:1": "/assets/blank-1.1.svg",
   "2:1": "/assets/blank-2.1.svg",
@@ -11,13 +13,13 @@ export const TEXT = {
   "5": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
 }
 
-export const USER = {
+export const USER: User & { email: string } = {
   uuid: "user-a",
   name: "Jkutkut",
   email: "email@email.com",
   image: IMAGES["1:1"],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
 };
 
 export const PRODUCTS = [
@@ -191,51 +193,75 @@ export const LIST_PRODUCTS = {
   "list-c": [],
 };
 
-export const TEAMS = [
+export const TEAMS: (Team & { products: typeof PRODUCTS, lists: typeof LISTS })[] = [
   {
-    id: "team-a",
+    uuid: "team-a",
     name: "Team A",
     description: TEXT["2"],
     image: IMAGES["1:1"],
     products: PRODUCTS,
     lists: LISTS,
+    created_at: new Date().toISOString(),
+    created_by: USER.uuid,
+    updated_at: new Date().toISOString(),
+    updated_by: USER.uuid
   },
   {
-    id: "team-b",
+    uuid: "team-b",
     name: "Team B",
     description: TEXT["3"],
     products: PRODUCTS,
     lists: LISTS,
+    created_at: new Date().toISOString(),
+    created_by: USER.uuid,
+    updated_at: new Date().toISOString(),
+    updated_by: USER.uuid
   },
   {
-    id: "team-c",
+    uuid: "team-c",
     name: "Team C",
     description: TEXT["1"],
     image: IMAGES["1:1"],
     products: PRODUCTS,
     lists: LISTS,
+    created_at: new Date().toISOString(),
+    created_by: USER.uuid,
+    updated_at: new Date().toISOString(),
+    updated_by: USER.uuid
   },
   {
-    id: "team-d",
+    uuid: "team-d",
     name: "Team D",
     description: TEXT["2"],
     products: PRODUCTS,
     lists: LISTS,
+    created_at: new Date().toISOString(),
+    created_by: USER.uuid,
+    updated_at: new Date().toISOString(),
+    updated_by: USER.uuid
   },
   {
-    id: "team-e",
+    uuid: "team-e",
     name: "Team E",
     description: TEXT["3"],
     image: IMAGES["1:1"],
     products: PRODUCTS,
     lists: LISTS,
+    created_at: new Date().toISOString(),
+    created_by: USER.uuid,
+    updated_at: new Date().toISOString(),
+    updated_by: USER.uuid
   },
   {
-    id: "team-f",
+    uuid: "team-f",
     name: "Team F",
     description: TEXT["1"],
     products: PRODUCTS,
     lists: LISTS,
+    created_at: new Date().toISOString(),
+    created_by: USER.uuid,
+    updated_at: new Date().toISOString(),
+    updated_by: USER.uuid
   }
 ];
 
@@ -275,11 +301,11 @@ export const ALL_USERS = [
 ];
 
 export const ALL_TEAM_ROLES = TEAMS.map((team, idx) => ({
-  key: team.id,
+  key: team.uuid,
   value: ALL_USERS.map((user, userIdx) => ({
     role: (
       USER.uuid === USER.uuid ?
-      (TEAM_ROLES.find(role => role.team.id === team.id)?.role || undefined) :
+      (TEAM_ROLES.find(role => role.team.uuid === team.uuid)?.role || undefined) :
       (idx === userIdx) ? "admin" : "member"
     ),
     user
@@ -332,7 +358,7 @@ export const APPS = [
   { name: 'Shopping Lists', url: './lists', enabled: true },
   { name: 'Marvin', url: './marvin', enabled: false },
   { name: 'Products', url: './products', enabled: true },
-  // { name: 'Tags', url: './tags', enabled: false },
+  { name: 'Tags', url: './tags', enabled: false },
   { name: 'Config', url: './config', enabled: true },
   { name: 'Security', url: './security', enabled: true },
 ];

@@ -13,8 +13,8 @@ type Role = string; // TODO
 type Team = {
   uuid: Uuid;
   name: string;
-  description: string;
-  image: string;
+  description?: string;
+  image?: string;
   created_by: string;
   updated_by: string;
   created_at: string;

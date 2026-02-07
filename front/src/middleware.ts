@@ -4,7 +4,7 @@ const authRootPages = [
   "/new",
   "/profile",
   "/teams",
-  /^\/team-\w/, // TODO use uuid validator
+  /^\/[\w\d]{8}-[\w\d]{4}-[\w\d]{4}-[\w\d]{4}-[\w\d]{12}\//,
 ];
 
 export const onRequest = defineMiddleware((context, next) => {

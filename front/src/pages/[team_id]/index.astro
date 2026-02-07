@@ -1,16 +1,23 @@
 ---
+import teamService, { client as teamServiceClient } from "../../api/versions/v1/teamService";
 import Debug from "../../layouts/debug.astro";
-import { OPTIONS } from "../../mockup";
-import { TEAMS, APPS } from "../../mockup";
+import { OPTIONS, APPS } from "../../mockup";
 import { asUrl } from "../../utils";
 
 const { team_id } = Astro.params;
 
-const team = TEAMS.find(t => t.id === team_id);
-
-if (!team) {
+if (!team_id) {
   return Astro.redirect('/teams', 302);
 }
+
+teamServiceClient.addToken(Astro.cookies.get("jwt")!.value);
+const result = await teamService.getTeam(team_id);
+if (result.isErr()) {
+  console.error("Unable to get team:", result.unwrapErr());
+  return Astro.redirect("/teams");
+}
+
+const team = result.unwrap().data;
 ---
 
 <Debug
