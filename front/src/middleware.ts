@@ -4,7 +4,7 @@ const authRootPages = [
   "/new",
   "/profile",
   "/teams",
-  /^\/[\w\d]{8}-[\w\d]{4}-[\w\d]{4}-[\w\d]{4}-[\w\d]{12}\//,
+  /^\/[\w\d]{8}-[\w\d]{4}-[\w\d]{4}-[\w\d]{4}-[\w\d]{12}\//, // TODO use UUID_V4_REGEX
 ];
 
 export const onRequest = defineMiddleware((context, next) => {

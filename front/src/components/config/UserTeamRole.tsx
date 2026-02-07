@@ -1,16 +1,19 @@
 import { useState, type ChangeEvent } from "react";
-import type { Uuid } from "../../types";
+import type { Team, UserRole, Uuid } from "../../types";
 import RoleSelector from "./RoleSelector";
+import teamService from "../../api/versions/v1/teamService";
 
 interface Props {
+    team: Team;
     currentUserId: Uuid;
-    teamUserRole: any;
+    teamUserRole: UserRole;
     iAmAdmin: boolean;
     onRemove: (userId: Uuid) => void;
     onChangeRole: (userId: Uuid, newRole: string) => void;
 }
 
 const UserTeamRole = ({
+    team,
     currentUserId,
     teamUserRole,
     iAmAdmin,
@@ -18,15 +21,29 @@ const UserTeamRole = ({
     onChangeRole
 }: Props) => {
     const [value, setValue] = useState(teamUserRole.role);
-    const onChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const onChange = async (e: ChangeEvent<HTMLSelectElement>) => {
         const newRole = e.target.value;
         if (newRole === value) {
+            return;
+        }
+        const r = await teamService.updateTeamMember(team.id, {
+            user_id: teamUserRole.user.id,
+            role: newRole
+        });
+        if (r.isErr()) {
+            console.error("Error updating team member role", r.unwrapErr().detail.message);
+            setValue(teamUserRole.role);
             return;
         }
         setValue(newRole);
         onChangeRole(teamUserRole.user.id, newRole);
     };
-    const onRemoveClick = () => {
+    const onRemoveClick = async () => {
+        const r = await teamService.deleteTeamMember(team.id, teamUserRole.user.id)
+        if (r.isErr()) {
+            console.error("Error removing team member", r.unwrapErr().detail.message);
+            return;
+        }
         onRemove(teamUserRole.user.id);
     };
 

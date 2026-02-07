@@ -33,6 +33,11 @@ type TeamRequest = {
   img?: string;
 };
 
+type UserRoleRequest = {
+  user_id: Uuid;
+  role: string;
+};
+
 export type {
   RegisterBasicRequest,
   LoginBasicRequest,
@@ -45,4 +50,5 @@ export type {
   TeamRolesResponse,
   TeamRequest,
   Uuid,
+  UserRoleRequest,
 };

@@ -7,3 +7,5 @@ export const asUrl = (url: string, Astro: any) => {
 
 export const previousPageUrl = (Astro: any) =>
   Astro.request.url.split('/').slice(0, -1).join('/') || '/';
+
+export const UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
