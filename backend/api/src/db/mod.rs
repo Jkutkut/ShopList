@@ -3,11 +3,19 @@ use tokio_postgres::{
 	NoTls,
 };
 use log::*;
-use crate::utils::env_var;
 use model::{
 	TeamRequest,
 };
-use crate::guards::Team;
+use crate::{
+	utils::env_var,
+	guards::{
+		Team,
+		User
+	},
+	model::{
+		UserRole,
+	},
+};
 use uuid::Uuid;
 
 pub struct DB {
@@ -127,6 +135,44 @@ impl DB {
 				Err(e.to_string()) // TODO
 			}
 		}
+	}
+
+	pub async fn get_team_members(&self, team_id: &Uuid) -> Result<Vec<UserRole>, String> {
+		info!("Getting team members");
+		debug!("Team: {:#?}", team_id);
+		let query = "SELECT
+				u.id, u.name,
+				u.created_at, u.updated_at,
+				(SELECT true FROM superusers WHERE user_id = u.id) IS NOT NULL AS is_superuser,
+				u.image,
+				ur.role
+			FROM users u, user_roles ur WHERE
+				u.id = ur.user_id AND
+				ur.team_id = $1";
+		let stmt = self.client().prepare(query).await.unwrap();
+		let rows = match self.client().query(&stmt, &[team_id]).await {
+			Ok(r) => r,
+			Err(e) => {
+				warn!("Error getting team members: {}", e);
+				return Err(e.to_string()); // TODO
+			}
+		};
+		let mut result = Vec::new();
+		for row in rows {
+			result.push(UserRole {
+				user: User {
+					id: row.get::<'_, usize, Uuid>(0).into(),
+					name: row.get(1),
+					created_at: row.get::<'_, usize, chrono::NaiveDateTime>(2).to_string(),
+					updated_at: row.get::<'_, usize, chrono::NaiveDateTime>(3).to_string(),
+					is_superuser: row.get::<'_, usize, bool>(4),
+					image: row.get::<'_, usize, Option<String>>(5),
+				},
+				role: row.get::<'_, usize, String>(6),
+			});
+		}
+		debug!("Team members ({}): {:#?}", result.len(), result);
+		Ok(result)
 	}
 
 	pub async fn add_user_to_team(

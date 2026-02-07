@@ -7,10 +7,10 @@ use model::{
 };
 use crate::guards;
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UserRole {
-	user: guards::User,
-	role: String,
+	pub user: guards::User,
+	pub role: String,
 }
 
 #[derive(Debug, Deserialize)]

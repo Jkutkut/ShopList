@@ -23,7 +23,10 @@ use ::model::{
 		TeamRole,
 	},
 };
-use crate::guards::Team;
+use crate::{
+	guards::Team,
+	model::UserRole,
+};
 use uuid::Uuid;
 
 mod openapi;
@@ -238,6 +241,17 @@ async fn fetch_user_team_roles(_: &Test, user_token: &UserToken) -> UserTeamRole
 	res.into_json().await.unwrap()
 }
 
+async fn fetch_team_members(_: &Test, team_id: &Uuid, user_token: &UserToken) -> Vec<UserRole> {
+	let UserToken { token, .. } = user_token;
+	let endpoint = format!("/api/v1/team/{team_id}/members");
+	let client = new_client().await;
+	let res = client.get(&endpoint)
+		.header(auth_header(&token))
+		.dispatch().await;
+	check_json_response(&res).await;
+	res.into_json().await.unwrap()
+}
+
 async fn add_user_to_team(_: &Test, user: &UserToken, team: &Uuid, user_to_add: &UserToken, role: &str, should_succeed: bool) {
 	info!("Adding user \"{}\" to team \"{}\" as {} by user \"{}\"", user_to_add.user_id, team, role, user.user_id);
 	let endpoint = format!("/api/v1/team/{}/members", team);
@@ -347,6 +361,7 @@ async fn test_create_team() {
 
 // GET /api/v1/team/roles
 // PUT /api/v1/team/<team_id>/members
+// GET /api/v1/team/<team_id>/members
 #[tokio::test]
 async fn test_user_team_roles() {
 	let test = setup().await;
@@ -390,6 +405,23 @@ async fn test_user_team_roles() {
 	assert_eq!(team_roles.len(), 2);
 	assert!(team_roles.iter().any(|tr| check_team_admin(tr, &other_team.to_string())));
 	assert!(team_roles.iter().any(|tr| check_team_member(tr, &team01.to_string())));
+
+	// Modify roles
+	add_user_to_team(&test, &user, &team01, &other_team_user, "admin", true).await;
+	let UserTeamRoles { team_roles } = fetch_user_team_roles(&test, &other_team_user).await;
+	assert_eq!(team_roles.len(), 2);
+	assert!(team_roles.iter().any(|tr| check_team_admin(tr, &other_team.to_string())));
+	assert!(team_roles.iter().any(|tr| check_team_admin(tr, &team01.to_string())));
+
+	// Fetch team members
+	let team_members = fetch_team_members(&test, &team01, &user).await;
+	assert_eq!(team_members.len(), 2);
+	assert!(team_members.iter().any(|ur| ur.user.id.to_string() == user.user_id));
+	assert!(team_members.iter().any(|ur| ur.user.id.to_string() == other_team_user.user_id));
+	let team_members = fetch_team_members(&test, &team01, &other_team_user).await;
+	assert_eq!(team_members.len(), 2);
+	assert!(team_members.iter().any(|ur| ur.user.id.to_string() == user.user_id));
+	assert!(team_members.iter().any(|ur| ur.user.id.to_string() == other_team_user.user_id));
 
 	delete_self_user(&test, &user).await;
 	delete_self_user(&test, &other_team_user).await;

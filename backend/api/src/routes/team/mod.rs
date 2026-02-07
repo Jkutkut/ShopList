@@ -82,10 +82,14 @@ async fn team_delete(
 #[get("/<_>/members")]
 async fn team_members(
 	team: guards::Team,
-) -> Result<Json<Vec<()>>, InvalidResponse> { // TODO output
+	db: &State<DB>,
+) -> Result<Json<Vec<UserRole>>, InvalidResponse> {
 	info!("Get team members");
 	debug!("Team: {:#?}", team);
-	Err(route_error::not_implemented()) // TODO
+	match db.get_team_members(&team.id).await {
+		Ok(members) => Ok(Json(members)),
+		Err(err) => Err(InvalidResponse::new(Status::BadRequest, &err))
+	}
 }
 
 #[put("/<_>/members", data = "<user_role>")]
