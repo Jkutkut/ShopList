@@ -3,7 +3,6 @@ import type {
   TeamRequest,
   NothingResponse,
   Uuid,
-  TeamMembers
 } from "./types";
 import { HttpClient } from "../../client";
 import { APIVersion } from "../../types";
@@ -24,7 +23,7 @@ const teamService = {
     return client.delete<NothingResponse>(`/team/${team_id}`);
   },
   teamMembers(team_id: Uuid) {
-    return client.get<TeamMembers>(`/team/${team_id}/members`);
+    return client.get<UserRole[]>(`/team/${team_id}/members`);
   },
   updateTeamMember(team_id: Uuid, payload: UserRole) {
     return client.put<UserRole, NothingResponse>(`/team/${team_id}/members`, payload);

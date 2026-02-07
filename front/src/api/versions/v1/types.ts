@@ -31,11 +31,7 @@ type TeamRequest = {
   name: string;
   description?: string;
   img?: string;
-}
-
-type TeamMembers = {
-  team_members: UserRole[];
-}
+};
 
 export type {
   RegisterBasicRequest,
@@ -49,5 +45,4 @@ export type {
   TeamRolesResponse,
   TeamRequest,
   Uuid,
-  TeamMembers
 };

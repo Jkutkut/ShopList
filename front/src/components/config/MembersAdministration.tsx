@@ -1,9 +1,9 @@
-import type { Team, User, Uuid } from "../../types";
+import type { Team, User, UserRole, Uuid } from "../../types";
 import UserTeamRole from "./UserTeamRole";
 
 interface Props {
     team: Team;
-    teamRoles: any[];
+    teamRoles: UserRole[];
     user: User;
 }
 

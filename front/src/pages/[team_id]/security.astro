@@ -1,10 +1,9 @@
 ---
 import teamService, { client as teamServiceClient } from "../../api/versions/v1/teamService";
-// import userService, { client as userServiceClient } from "../../api/versions/v1/userService";
+import userService, { client as userServiceClient } from "../../api/versions/v1/userService";
 import MembersAdministration from "../../components/config/MembersAdministration";
 import Page from "../../layouts/page.astro";
-import { TEAMS } from "../../mockup";
-import { ALL_TEAM_ROLES, OPTIONS, TEAM_ROLES, USER } from "../../mockup";
+import { OPTIONS } from "../../mockup";
 import { previousPageUrl } from "../../utils";
 
 const { team_id } = Astro.params;
@@ -23,22 +22,26 @@ if (teamResult.isErr()) {
 
 const team = teamResult.unwrap().data;
 
-// userServiceClient.addToken(Astro.cookies.get("jwt")!.value);
-// const [
-//   meResult
-// ] = await Promise.all([
-//   userService.me()
-// ]);
+userServiceClient.addToken(Astro.cookies.get("jwt")!.value);
+const [
+  meResult,
+  teamMembersResult
+] = await Promise.all([
+  userService.me(),
+  teamService.teamMembers(team_id)
+]);
 
-// if (meResult.isErr()) {
-//   console.error("Unable to get user info:", meResult.unwrapErr());
-//   return Astro.redirect("/teams");
-// }
+if (meResult.isErr()) {
+  console.error("Unable to get user info:", meResult.unwrapErr());
+  return Astro.redirect("/teams");
+}
+if (teamMembersResult.isErr()) {
+  console.error("Unable to get team members:", teamMembersResult.unwrapErr());
+  return Astro.redirect("/teams");
+}
 
-// const user = meResult.unwrap().data;
-const user = USER;
-
-const teamRoles = ALL_TEAM_ROLES[TEAMS[0].id]; // TODO mockup for now
+const user = meResult.unwrap().data;
+const teamRoles = teamMembersResult.unwrap().data;
 ---
 <Page
   title=`Shoplist - ${team.name} security`
