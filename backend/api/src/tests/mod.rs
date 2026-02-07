@@ -293,8 +293,8 @@ async fn get_user() {
 	let user_token = create_user(&test, "get_user_me").await;
 	let user = fetch_me(&test, &user_token).await;
 	debug!("user: {:#?}", user);
-	// assert_eq!(user, fetch_user(&test, &user_token, &user.uuid).await);
-	assert_eq!(user.uuid, user_token.user_id);
+	// assert_eq!(user, fetch_user(&test, &user_token, &user.id).await);
+	assert_eq!(user.id, user_token.user_id);
 	delete_self_user(&test, &user_token).await;
 }
 
@@ -331,16 +331,16 @@ async fn test_create_team() {
 	let test = setup().await;
 	let random = create_user(&test, "create_team_2").await;
 	let admin = create_user(&test, "create_team_admin").await;
-	let team_uuid = create_team(&test, &admin, "test_create_team").await;
-	let team = fetch_team(&test, &admin, &team_uuid).await;
+	let team_id = create_team(&test, &admin, "test_create_team").await;
+	let team = fetch_team(&test, &admin, &team_id).await;
 	assert_eq!(team.name, "test_create_team");
-	fail_fetch_team(&test, &random, &team_uuid).await;
-	delete_team(&test, &random, &team_uuid, Status::BadRequest).await;
-	delete_team(&test, &admin, &team_uuid, Status::Ok).await;
-	delete_team(&test, &random, &team_uuid, Status::BadRequest).await;
-	delete_team(&test, &admin, &team_uuid, Status::BadRequest).await;
-	fail_fetch_team(&test, &admin, &team_uuid).await;
-	fail_fetch_team(&test, &random, &team_uuid).await;
+	fail_fetch_team(&test, &random, &team_id).await;
+	delete_team(&test, &random, &team_id, Status::BadRequest).await;
+	delete_team(&test, &admin, &team_id, Status::Ok).await;
+	delete_team(&test, &random, &team_id, Status::BadRequest).await;
+	delete_team(&test, &admin, &team_id, Status::BadRequest).await;
+	fail_fetch_team(&test, &admin, &team_id).await;
+	fail_fetch_team(&test, &random, &team_id).await;
 	delete_self_user(&test, &admin).await;
 	delete_self_user(&test, &random).await;
 }
@@ -369,17 +369,17 @@ async fn test_user_team_roles() {
 	add_user_to_team(&test, &other_team_user, &team01, &random_user, "member", false).await;
 	add_user_to_team(&test, &other_team_user, &team01, &random_user, "admin", false).await;
 
-	let check_team = |tr: &TeamRole, uuid: &str| {
+	let check_team = |tr: &TeamRole, id: &str| {
 		match &tr.team {
-			Some(team) => team.uuid == uuid,
+			Some(team) => team.id == id,
 			_ => panic!("team is not Some: {:#?}", tr),
 		}
 	};
-	let check_team_admin = |tr: &TeamRole, uuid: &str| {
-		tr.role == "admin" && check_team(tr, uuid)
+	let check_team_admin = |tr: &TeamRole, id: &str| {
+		tr.role == "admin" && check_team(tr, id	)
 	};
-	let check_team_member = |tr: &TeamRole, uuid: &str| {
-		tr.role == "member" && check_team(tr, uuid)
+	let check_team_member = |tr: &TeamRole, id: &str| {
+		tr.role == "member" && check_team(tr, id)
 	};
 	let UserTeamRoles { team_roles } = fetch_user_team_roles(&test, &user).await;
 	assert_eq!(team_roles.len(), 3);

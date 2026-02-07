@@ -6,9 +6,9 @@ async fn user_team_roles(
 ) -> Result<Json<UserTeamRoles>, InvalidResponse> {
 	info!("Get user team roles");
 	debug!("User: {:#?}", user);
-	let user_uuid: Uuid = user.uuid.get().unwrap();
+	let user_id: Uuid = user.id.get().unwrap();
 	let mut auth_grpc_client = grpc::connect_auth().await.unwrap();
-	let request = UserId { id: user_uuid.to_string() };
+	let request = UserId { id: user_id.to_string() };
 	debug!("Request: {:#?}", request);
 	let team_roles = match auth_grpc_client.team_roles(request).await {
 		Ok(response) => response.into_inner(),
@@ -28,7 +28,7 @@ async fn team_create(
 	db: &State<DB>,
 ) -> Result<Json<UuidWrapper>, InvalidResponse> {
 	info!("Team create");
-	let user_id: Uuid = match user.uuid.get() {
+	let user_id: Uuid = match user.id.get() {
 		Ok(id) => id,
 		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
 	};
@@ -65,7 +65,7 @@ async fn team_delete(
 	team_id: UuidWrapper,
 	db: &State<DB>,
 ) -> Result<Json<()>, InvalidResponse> {
-	let user_id: Uuid = match user.uuid.get() {
+	let user_id: Uuid = match user.id.get() {
 		Ok(id) => id,
 		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
 	};
@@ -97,12 +97,12 @@ async fn team_members_update(
 ) -> Result<Json<()>, InvalidResponse> {
 	info!("Update team members");
 	debug!("Team: {:#?}, User: {:#?}, User role: {:#?}", team, user, user_role);
-	let user_uuid = user.uuid.get().unwrap();
+	let user_id = user.id.get().unwrap();
 	let new_member_id = match user_role.user_id.get_ref() {
 		Ok(id) => id,
 		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
 	};
-	match db.add_user_to_team(&team.id, &user_uuid, &new_member_id, &user_role.role).await {
+	match db.add_user_to_team(&team.id, &user_id, &new_member_id, &user_role.role).await {
 		Ok(_) => Ok(Json(())),
 		Err(err) => Err(InvalidResponse::new(Status::BadRequest, &err))
 	}

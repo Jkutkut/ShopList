@@ -139,7 +139,7 @@ impl ShoplistDbAuth {
 		match self.db_client.query_one(&stmt, &[&token]).await {
 			Ok(r) => {
 				let user = User {
-					uuid: r.get::<'_, usize, Uuid>(0).to_string(),
+					id: r.get::<'_, usize, Uuid>(0).to_string(),
 					name: r.get(1),
 					created_at: r.get::<'_, usize, chrono::NaiveDateTime>(2).to_string(),
 					updated_at: r.get::<'_, usize, chrono::NaiveDateTime>(3).to_string(),
@@ -253,13 +253,13 @@ impl ShoplistDbAuth {
 		};
 		let mut team_roles = Vec::new();
 		for row in rows {
-			let uuid: Uuid = row.get(1);
+			let id: Uuid = row.get(1);
 			let created_at: chrono::NaiveDateTime = row.get(5);
 			let created_by: Uuid = row.get(6);
 			let updated_at: chrono::NaiveDateTime = row.get(7);
 			let updated_by: Uuid = row.get(8);
 			let team = Team {
-				uuid: uuid.to_string(),
+				id: id.to_string(),
 				name: row.get(2),
 				description: row.get::<'_, usize, Option<String>>(3).unwrap_or("".to_string()),
 				image: row.get::<'_, usize, Option<String>>(4).unwrap_or("".to_string()),

@@ -8,7 +8,7 @@ async fn logout_current_user(
 	cache_client: &State<Cache>,
 	cookie_jar: &CookieJar<'_>,
 ) -> Result<(), InvalidResponse> {
-	info!("logout request: {}", user.uuid);
+	info!("logout request: {}", user.id);
 	let session_token = session_token.to_string();
 	let mut auth_grpc_client = grpc::connect_auth().await.unwrap();
 	let auth_request = tonic::Request::new(UserTokenRequest {
@@ -22,7 +22,7 @@ async fn logout_current_user(
 		}
 	};
 	cache_client.flush_user_token(
-		&session_token, &user.uuid.get().unwrap()
+		&session_token, &user.id.get().unwrap()
 	).await.map_err(|e| invalid_api(&e))?;
 	cookie_jar.remove(Cookie::from("jwt"));
 	Ok(())

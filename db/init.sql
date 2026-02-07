@@ -280,16 +280,16 @@ END $$ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS delete_team(users.id%TYPE, teams.id%TYPE);
 
 CREATE FUNCTION delete_team(
-    admin_uuid users.id%TYPE,
-    team_uuid teams.id%TYPE
+    admin_id users.id%TYPE,
+    team_id teams.id%TYPE
 ) RETURNS void
 AS $$
 BEGIN
     DELETE FROM teams t
-    WHERE t.id = team_uuid
+    WHERE t.id = team_id
     AND EXISTS (
         SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = admin_uuid
+        WHERE ur.user_id = admin_id
           AND ur.team_id = t.id
           AND ur.role = 'admin'
     );
@@ -336,9 +336,9 @@ END $$ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS add_user_to_team(users.id%TYPE, teams.id%TYPE, users.id%TYPE, user_roles.role%TYPE);
 
 CREATE FUNCTION add_user_to_team(
-    admin_uuid users.id%TYPE,
-    team_uuid teams.id%TYPE,
-    user_uuid users.id%TYPE,
+    admin_id users.id%TYPE,
+    team_id teams.id%TYPE,
+    user_id users.id%TYPE,
     role user_roles.role%TYPE
 ) RETURNS void
 AS $$
@@ -347,17 +347,17 @@ DECLARE
 BEGIN
     SELECT EXISTS(
         SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = admin_uuid
-          AND ur.team_id = team_uuid
+        WHERE ur.user_id = admin_id
+          AND ur.team_id = team_id
           AND ur.role = 'admin'
     ) INTO is_admin;
     IF NOT is_admin THEN
         RAISE EXCEPTION 'You are not an admin of this team';
     END IF;
     INSERT INTO user_roles (user_id, role, team_id)
-    VALUES (user_uuid, role, team_uuid)
+    VALUES (user_id, role, team_id)
     ON CONFLICT (user_id, team_id) DO UPDATE SET
         role = EXCLUDED.role
-    WHERE user_roles.user_id = user_uuid
-      AND user_roles.team_id = team_uuid;
+    WHERE user_roles.user_id = user_id
+      AND user_roles.team_id = team_id;
 END $$ LANGUAGE plpgsql;

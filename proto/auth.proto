@@ -58,7 +58,7 @@ message UserId {
 message Empty {}
 
 message User {
-  string uuid = 1;
+  string id = 1;
   string name = 2;
   string createdAt = 3;
   string updatedAt = 4;
@@ -67,7 +67,7 @@ message User {
 }
 
 message Team {
-  string uuid = 1;
+  string id = 1;
   string name = 2;
   string description = 3;
   string image = 4;

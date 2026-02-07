@@ -11,7 +11,7 @@ const MembersAdministration = ({
     teamRoles,
     user
 }: Props) => {
-    const iAmAdmin = teamRoles.some((teamRole: any) => teamRole.user.id === user.uuid && teamRole.role === 'admin');
+    const iAmAdmin = teamRoles.some((teamRole: any) => teamRole.user.id === user.id && teamRole.role === 'admin');
     const admins = teamRoles.filter((teamRole: any) => teamRole.role === 'admin');
     const members = teamRoles.filter((teamRole: any) => teamRole.role === 'member');
     return <>
@@ -20,7 +20,7 @@ const MembersAdministration = ({
         {admins.map((teamRole: any) => (
             <UserTeamRole
                 teamUserRole={teamRole}
-                iAmAdmin={iAmAdmin && teamRole.user.id !== user.uuid}
+                iAmAdmin={iAmAdmin && teamRole.user.id !== user.id}
             />
         ))}
         </div>

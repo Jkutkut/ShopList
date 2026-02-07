@@ -73,7 +73,7 @@ fn bearer_token_from_header(req: &Request) -> Option<String> {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
-	pub uuid: UuidWrapper,
+	pub id: UuidWrapper,
 	pub name: String,
 	pub created_at: String,
 	pub updated_at: String,
@@ -84,9 +84,9 @@ pub struct User {
 impl TryFrom<GrpcUser> for User {
 	type Error = ();
 	fn try_from(value: GrpcUser) -> Result<Self, Self::Error> {
-		let uuid = UuidWrapper::try_from(value.uuid.as_str()).map_err(|_| ())?;
+		let id = UuidWrapper::try_from(value.id.as_str()).map_err(|_| ())?;
 		Ok(User {
-			uuid,
+			id,
 			name: value.name,
 			created_at: value.created_at,
 			updated_at: value.updated_at,
@@ -162,7 +162,7 @@ impl<'r> FromRequest<'r> for User {
 					},
 					Err(_) => return invalid(),
 				};
-				cache_client.set(user.uuid.to_string().as_str(), &user, expiration).await;
+				cache_client.set(user.id.to_string().as_str(), &user, expiration).await;
 				Outcome::Success(user)
 			}
 		}
@@ -213,8 +213,8 @@ impl<'r> FromRequest<'r> for Team {
 
 	async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
 		info!("FromRequest Team");
-		let user_uuid = match req.guard::<User>().await {
-			Outcome::Success(user) => user.uuid.get().unwrap(),
+		let user_id = match req.guard::<User>().await {
+			Outcome::Success(user) => user.id.get().unwrap(),
 			_ => return Outcome::Error((Status::BadRequest, ())),
 		};
 		// /api/v1/team/<team_id>,
@@ -230,7 +230,7 @@ impl<'r> FromRequest<'r> for Team {
 		};
 		debug!("team_id: {:?}", team_id);
 		let db = req.rocket().state::<db::DB>().unwrap();
-		let team = match db.get_team(&team_id, &user_uuid).await {
+		let team = match db.get_team(&team_id, &user_id).await {
 			Ok(team) => team,
 			Err(_) => return Outcome::Error((Status::BadRequest, ())),
 		};

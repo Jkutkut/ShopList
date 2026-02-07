@@ -52,10 +52,10 @@ async fn create_user_basic_credentials(test: &Test, name: &str, email: &str, pas
 #[allow(dead_code)]
 async fn create_superuser_basic_credentials(test: &Test, name: &str, email: &str, password: &str) -> UserToken {
 	let user_token = create_user_basic_credentials(&test, name, email, password).await;
-	let super_user_uuid: Uuid = user_token.user_id.parse().unwrap();
+	let super_user_id: Uuid = user_token.user_id.parse().unwrap();
 	let query = "SELECT set_superuser($1);";
 	let stmt = test.db.db_client.prepare(query).await.unwrap();
-	test.db.db_client.execute(&stmt, &[&super_user_uuid]).await.unwrap();
+	test.db.db_client.execute(&stmt, &[&super_user_id]).await.unwrap();
 	user_token
 }
 
@@ -176,7 +176,7 @@ async fn db_test_change_password() {
 		&(email_base.to_string() + "1@marvin.com"),
 		password
 	).await;
-	let user1_uuid: Uuid = user_id.parse().unwrap();
+	let user1_id: Uuid = user_id.parse().unwrap();
 	let user2_token = create_user_basic_credentials(
 		&test,
 		&(user_base.to_string() + "2"),
@@ -188,14 +188,14 @@ async fn db_test_change_password() {
 		email_base.to_string() + "1@marvin.com", password.to_string()
 	).await.is_ok(), "Login should succeed");
 	assert!(test.db.basic_change_password(
-		user2_token, &user1_uuid, new_password.to_string()
+		user2_token, &user1_id, new_password.to_string()
 	).await.is_err(), "Other users should not be able to change password");
 	assert!(test.db.basic_login(
 		email_base.to_string() + "1@marvin.com", password.to_string()
 	).await.is_ok(), "Login should still succeed");
 
 	assert!(test.db.basic_change_password(
-		user1_token, &user1_uuid, new_password.to_string()
+		user1_token, &user1_id, new_password.to_string()
 	).await.is_ok(), "Each user can change their own password");
 	assert!(test.db.basic_login(
 		email_base.to_string() + "1@marvin.com", password.to_string()
@@ -205,7 +205,7 @@ async fn db_test_change_password() {
 	).await.is_ok(), "Login should succeed (Password changed)");
 
 	assert!(test.db.basic_change_password(
-		super_user_token, &user1_uuid, new_password.to_string() + "superuser"
+		super_user_token, &user1_id, new_password.to_string() + "superuser"
 	).await.is_ok(), "Superuser can change password");
 	assert!(test.db.basic_login(
 		email_base.to_string() + "1@marvin.com", new_password.to_string()
@@ -236,19 +236,19 @@ async fn db_test_logout_user() {
 		user_id: super_user_id,
 		..
 	} = create_superuser_basic_credentials(&test, super_user, super_email, super_password).await;
-	let super_uuid: Uuid = super_user_id.parse().unwrap();
+	let super_id: Uuid = super_user_id.parse().unwrap();
 	let UserToken { token, user_id, .. } = create_user_basic_credentials(&test, user, email, password).await;
-	let user_uuid: Uuid = user_id.parse().unwrap();
+	let user_id: Uuid = user_id.parse().unwrap();
 	assert!(test.db.me(&token).await.is_ok(), "User info should succeed");
 
 	assert!(test.db.logout_user(
 		&token,
-		&user_uuid
+		&user_id
 	).await.is_ok(), "User should be able to logout itself");
 	assert!(test.db.me(&token).await.is_err(), "Me should fail (User logged out)");
 	assert!(test.db.logout_user(
 		&token,
-		&user_uuid
+		&user_id
 	).await.is_err(), "User should not be able to logout itself again with invalid token");
 
 	let token = test.db.basic_login(
@@ -257,13 +257,13 @@ async fn db_test_logout_user() {
 
 	assert!(test.db.logout_user(
 		&super_token,
-		&user_uuid
+		&user_id
 	).await.is_ok(), "Superuser should be able to logout user");
 	assert!(test.db.me(&token).await.is_err(), "Me should fail (User logged out)");
 	assert!(test.db.me(&super_token).await.is_ok(), "Me should succeed (Superuser logged in)");
 	assert!(test.db.logout_user(
 		&super_token,
-		&super_uuid
+		&super_id
 	).await.is_ok(), "Superuser should be able to logout itself");
 	assert!(test.db.me(&super_token).await.is_err(), "Me should fail (Superuser logged out)");
 
@@ -323,11 +323,18 @@ async fn db_test_user_team_roles() {
 	let password = "marvin-password";
 	let email = "marvin-db_test_user_team_roles@marvin.com";
 
+	let other_user = "marvin_db_test_user_team_roles_other";
+	let other_password = "marvin-password";
+	let other_email = "marvin-db_test_user_team_roles_other@marvin.com";
+
 	ensure_users_deleted(&test, &[user]).await;
 	let user_id = create_user_basic_credentials(&test, user, email, password).await.user_id;
-	let user_uuid: Uuid = user_id.parse().unwrap();
+	let user_id: Uuid = user_id.parse().unwrap();
+	ensure_users_deleted(&test, &[other_user]).await;
+	let other_user_id = create_user_basic_credentials(&test, other_user, other_email, other_password).await.user_id;
+	let other_user_id: Uuid = other_user_id.parse().unwrap();
 
-	let user_team_roles = test.db.team_roles(&user_uuid).await;
+	let user_team_roles = test.db.team_roles(&user_id).await;
 	assert!(user_team_roles.is_ok(), "Team roles should succeed");
 	let user_team_roles = user_team_roles.unwrap().team_roles;
 	assert_eq!(user_team_roles.len(), 0);
@@ -346,7 +353,7 @@ async fn db_test_user_team_roles() {
 	for team in teams.iter() {
 		assert!(test.db.db_client.execute(&delete_team, &[team]).await.is_ok(), "Delete team {} should succeed", team);
 		let result = test.db.db_client.query_one(&stmt_new_team, &[
-			&user_uuid,
+			&user_id,
 			team,
 			&format!("This is the description for the team with name {}", team),
 			&"url://2-image.png"
@@ -356,6 +363,11 @@ async fn db_test_user_team_roles() {
 		team_ids.push(team_id);
 	}
 
+	let user_team_roles = test.db.team_roles(&user_id).await;
+	assert!(user_team_roles.is_ok(), "Team roles should succeed");
+	let user_team_roles = user_team_roles.unwrap().team_roles;
+	assert_eq!(user_team_roles.len(), 3);
+
 	let join_team = "INSERT INTO user_roles (user_id, team_id, role) VALUES ($1, $2, $3)";
 	let join_team = test.db.db_client.prepare(join_team).await.unwrap();
 	for (idx, team) in teams.iter().enumerate() {
@@ -364,14 +376,14 @@ async fn db_test_user_team_roles() {
 			_ => "member",
 		};
 		let result = test.db.db_client.execute(&join_team, &[
-			&user_uuid,
+			&other_user_id,
 			&team_ids[idx],
 			&role
 		]).await;
-		assert!(result.is_ok(), "Join team {} should succeed", team);
+		assert!(result.is_ok(), "Join team {} should succeed, but got: {:?}", team, result);
 	}
 
-	let user_team_roles = test.db.team_roles(&user_uuid).await;
+	let user_team_roles = test.db.team_roles(&other_user_id).await;
 	assert!(user_team_roles.is_ok(), "Team roles should succeed");
 	let user_team_roles = user_team_roles.unwrap().team_roles;
 	assert_eq!(user_team_roles.len(), 3);
@@ -390,7 +402,7 @@ async fn db_test_user_team_roles() {
 	}
 
 	ensure_users_deleted(&test, &[user]).await;
-	let user_team_roles = test.db.team_roles(&user_uuid).await;
+	let user_team_roles = test.db.team_roles(&user_id).await;
 	debug!("user_team_roles (deleted user): {:#?}", user_team_roles);
 	assert!(user_team_roles.is_err(), "Team roles should fail (User deleted)");
 }

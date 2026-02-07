@@ -1,7 +1,7 @@
 type Uuid = string;
 
 type User = {
-  uuid: Uuid;
+  id: Uuid;
   name: string;
   created_at: string;
   updated_at: string;
@@ -11,7 +11,7 @@ type User = {
 type Role = string; // TODO
 
 type Team = {
-  uuid: Uuid;
+  id: Uuid;
   name: string;
   description?: string;
   image?: string;

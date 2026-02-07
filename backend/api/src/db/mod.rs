@@ -61,13 +61,13 @@ impl DB {
 
 // Teams
 impl DB {
-	pub async fn create_team(&self, creator_uuid: &Uuid, team: &TeamRequest) -> Result<Uuid, String> {
-		info!("Creating team \"{}\" by user {}", team.name, creator_uuid);
+	pub async fn create_team(&self, creator_id: &Uuid, team: &TeamRequest) -> Result<Uuid, String> {
+		info!("Creating team \"{}\" by user {}", team.name, creator_id);
 		debug!("Team request: {:#?}", team);
 		let query = "SELECT new_team($1, $2, $3, $4)";
 		let stmt = self.client().prepare(query).await.unwrap();
 		match self.client().query_one(&stmt, &[
-			creator_uuid, &team.name, &team.description, &team.image
+			creator_id, &team.name, &team.description, &team.image
 		]).await {
 			Ok(r) => {
 				debug!("Team created: {:#?}", r);
@@ -113,11 +113,11 @@ impl DB {
 		}
 	}
 
-	pub async fn delete_team(&self, admin_uuid: &Uuid, team_id: &Uuid) -> Result<(), String> {
-		info!("Deleting team \"{}\" by user {}", team_id, admin_uuid);
+	pub async fn delete_team(&self, admin_id: &Uuid, team_id: &Uuid) -> Result<(), String> {
+		info!("Deleting team \"{}\" by user {}", team_id, admin_id);
 		let query = "SELECT delete_team($1, $2)";
 		let stmt = self.client().prepare(query).await.unwrap();
-		match self.client().execute(&stmt, &[admin_uuid, team_id]).await {
+		match self.client().execute(&stmt, &[admin_id, team_id]).await {
 			Ok(_) => {
 				debug!("Team deleted");
 				Ok(())

@@ -21,8 +21,8 @@ if (result.isErr()) {
 
 const team = result.unwrap().data;
 
-const teamRoles = ALL_TEAM_ROLES[TEAMS[0].uuid]; // TODO mockup for now
-const myRole = TEAM_ROLES.find((teamRole: any) => teamRole.team.id === team.uuid);
+const teamRoles = ALL_TEAM_ROLES[TEAMS[0].id]; // TODO mockup for now
+const myRole = TEAM_ROLES.find((teamRole: any) => teamRole.team.id === team.id);
 
 if (!myRole) {
   return Astro.redirect('/teams', 302);

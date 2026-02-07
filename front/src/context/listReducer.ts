@@ -187,9 +187,9 @@ const addProductToCategoryList = (state: ListContextType, {
     amount: undefined,
     unit: undefined,
     createdAt: new Date().toISOString(),
-    createdBy: USER.uuid, // TODO who am I?
+    createdBy: USER.id, // TODO who am I?
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.uuid, // TODO who am I?
+    updatedBy: USER.id, // TODO who am I?
   };
   state.listProducts.push(listProduct);
 }
