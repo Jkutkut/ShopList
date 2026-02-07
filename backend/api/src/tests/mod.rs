@@ -271,6 +271,27 @@ async fn add_user_to_team(_: &Test, user: &UserToken, team: &Uuid, user_to_add: 
 	}
 }
 
+async fn try_delete_user_from_team(
+	_: &Test,
+	user: &UserToken,
+	team: &Uuid,
+	other_user: &str,
+	should_succeed: bool
+) {
+	info!("Deleting user \"{}\" from team \"{}\" by user \"{}\"", other_user, team, user.user_id);
+	let UserToken { token, .. } = user;
+	let endpoint = format!("/api/v1/team/{}/members/{}", team, other_user);
+	let client = new_client().await;
+	let res = client.delete(&endpoint)
+		.header(auth_header(&token))
+		.dispatch().await;
+	if should_succeed {
+		check_json_response(&res).await;
+	} else {
+		check_json_content_type(&res);
+	}
+}
+
 // -------------------------------------------
 
 // GET /api
@@ -362,11 +383,13 @@ async fn test_create_team() {
 // GET /api/v1/team/roles
 // PUT /api/v1/team/<team_id>/members
 // GET /api/v1/team/<team_id>/members
+// DELETE /api/v1/team/<team_id>/members
 #[tokio::test]
 async fn test_user_team_roles() {
 	let test = setup().await;
 	let user = create_user(&test, "user_team_roles").await;
 	let other_team_user = create_user(&test, "user_team_roles_other").await;
+	let other_team_user_2 = create_user(&test, "user_team_roles_other_2").await;
 	let random_user = create_user(&test, "user_team_roles_random").await;
 	let random_user_2 = create_user(&test, "user_team_roles_random_2").await;
 	let UserTeamRoles { team_roles } = fetch_user_team_roles(&test, &user).await;
@@ -377,6 +400,7 @@ async fn test_user_team_roles() {
 	let other_team = create_team(&test, &other_team_user, "user_team_roles_other_team").await;
 
 	add_user_to_team(&test, &user, &team01, &other_team_user, "member", true).await;
+	add_user_to_team(&test, &user, &team01, &other_team_user_2, "member", true).await;
 	add_user_to_team(&test, &other_team_user, &other_team, &user, "admin", true).await;
 
 	add_user_to_team(&test, &random_user, &team01, &user, "member", false).await;
@@ -415,13 +439,27 @@ async fn test_user_team_roles() {
 
 	// Fetch team members
 	let team_members = fetch_team_members(&test, &team01, &user).await;
-	assert_eq!(team_members.len(), 2);
+	assert_eq!(team_members.len(), 3);
 	assert!(team_members.iter().any(|ur| ur.user.id.to_string() == user.user_id));
 	assert!(team_members.iter().any(|ur| ur.user.id.to_string() == other_team_user.user_id));
+	assert!(team_members.iter().any(|ur| ur.user.id.to_string() == other_team_user_2.user_id));
 	let team_members = fetch_team_members(&test, &team01, &other_team_user).await;
-	assert_eq!(team_members.len(), 2);
+	assert_eq!(team_members.len(), 3);
 	assert!(team_members.iter().any(|ur| ur.user.id.to_string() == user.user_id));
 	assert!(team_members.iter().any(|ur| ur.user.id.to_string() == other_team_user.user_id));
+	assert!(team_members.iter().any(|ur| ur.user.id.to_string() == other_team_user_2.user_id));
+
+	// Delete team members
+	// random vs admin
+	try_delete_user_from_team(&test, &random_user_2, &team01, &user.user_id, false).await;
+	// admin vs member
+	try_delete_user_from_team(&test, &user, &team01, &other_team_user.user_id, true).await;
+	// admin vs deleted member
+	try_delete_user_from_team(&test, &user, &team01, &other_team_user.user_id, false).await;
+	// member vs admin
+	try_delete_user_from_team(&test, &other_team_user, &team01, &user.user_id, false).await;
+	// member vs member
+	try_delete_user_from_team(&test, &other_team_user, &team01, &other_team_user_2.user_id, false).await;
 
 	delete_self_user(&test, &user).await;
 	delete_self_user(&test, &other_team_user).await;

@@ -114,15 +114,22 @@ async fn team_members_update(
 
 #[delete("/<_>/members/<user_id>")]
 async fn team_member_delete(
-	#[allow(unused_variables)]
 	user: guards::User,
 	team: guards::Team,
-	#[allow(unused_variables)]
 	user_id: UuidWrapper,
+	db: &State<DB>,
 ) -> Result<Json<()>, InvalidResponse> { // TODO output
 	info!("Delete team member");
-	debug!("Team: {:#?}", team);
-	Err(route_error::not_implemented()) // TODO
+	debug!("Team: {:#?}, admin: {:#?}, user: {:#?}", team, user, user_id);
+	let admin_id = user.id.get().unwrap();
+	let user_id = match user_id.get() {
+		Ok(id) => id,
+		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
+	};
+	match db.delete_team_member(&admin_id, &team.id, &user_id).await {
+		Ok(r) => Ok(Json(r)),
+		Err(err) => Err(InvalidResponse::new(Status::BadRequest, &err))
+	}
 }
 
 // Tags

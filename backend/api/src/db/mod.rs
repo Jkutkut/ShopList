@@ -200,4 +200,21 @@ impl DB {
 			}
 		}
 	}
+
+	pub async fn delete_team_member(&self, admin_id: &Uuid, team_id: &Uuid, user_id: &Uuid) -> Result<(), String> {
+		info!("Deleting team member");
+		debug!("Deleting user \"{}\" from team \"{}\" by user {}", user_id, team_id, admin_id);
+		let query = "SELECT delete_user_from_team($1, $2, $3)";
+		let stmt = self.client().prepare(query).await.unwrap();
+		match self.client().execute(&stmt, &[admin_id, team_id, user_id]).await {
+			Ok(_) => {
+				debug!("User deleted from team");
+				Ok(())
+			},
+			Err(e) => {
+				warn!("Error deleting user from team: {}", e);
+				Err(e.to_string()) // TODO
+			}
+		}
+	}
 }
