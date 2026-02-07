@@ -304,7 +304,7 @@ export const ALL_TEAM_ROLES = TEAMS.map((team, idx) => ({
   key: team.id,
   value: ALL_USERS.map((user, userIdx) => ({
     role: (
-      USER.id === USER.id ?
+      USER.id === user.id ?
       (TEAM_ROLES.find(role => role.team.id === team.id)?.role || undefined) :
       (idx === userIdx) ? "admin" : "member"
     ),

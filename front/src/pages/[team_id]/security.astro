@@ -1,7 +1,8 @@
 ---
 import teamService, { client as teamServiceClient } from "../../api/versions/v1/teamService";
+// import userService, { client as userServiceClient } from "../../api/versions/v1/userService";
 import MembersAdministration from "../../components/config/MembersAdministration";
-import Debug from "../../layouts/debug.astro";
+import Page from "../../layouts/page.astro";
 import { TEAMS } from "../../mockup";
 import { ALL_TEAM_ROLES, OPTIONS, TEAM_ROLES, USER } from "../../mockup";
 import { previousPageUrl } from "../../utils";
@@ -13,24 +14,33 @@ if (!team_id) {
 }
 
 teamServiceClient.addToken(Astro.cookies.get("jwt")!.value);
-const result = await teamService.getTeam(team_id);
-if (result.isErr()) {
-  console.error("Unable to get team:", result.unwrapErr());
+
+const teamResult = await teamService.getTeam(team_id);
+if (teamResult.isErr()) {
+  console.error("Unable to get team:", teamResult.unwrapErr());
   return Astro.redirect("/teams");
 }
 
-const team = result.unwrap().data;
+const team = teamResult.unwrap().data;
+
+// userServiceClient.addToken(Astro.cookies.get("jwt")!.value);
+// const [
+//   meResult
+// ] = await Promise.all([
+//   userService.me()
+// ]);
+
+// if (meResult.isErr()) {
+//   console.error("Unable to get user info:", meResult.unwrapErr());
+//   return Astro.redirect("/teams");
+// }
+
+// const user = meResult.unwrap().data;
+const user = USER;
 
 const teamRoles = ALL_TEAM_ROLES[TEAMS[0].id]; // TODO mockup for now
-const myRole = TEAM_ROLES.find((teamRole: any) => teamRole.team.id === team.id);
-
-if (!myRole) {
-  return Astro.redirect('/teams', 302);
-}
-
-const iAmAdmin = myRole.role === 'admin';
 ---
-<Debug
+<Page
   title=`Shoplist - ${team.name} security`
   description=`Manage users within ${team.name}`
   options={[
@@ -40,13 +50,11 @@ const iAmAdmin = myRole.role === 'admin';
 >
   <section class="col gap">
     <h1>Members of {team.name}</h1>
-    {iAmAdmin &&
-      <p>You are an admin</p>
-    }
     <MembersAdministration
       team={team}
       teamRoles={teamRoles}
-      user={USER}
+      user={user}
+      client:only
     />
   </section>
-</Debug>
+</Page>
