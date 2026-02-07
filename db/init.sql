@@ -336,9 +336,9 @@ END $$ LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS add_user_to_team(users.id%TYPE, teams.id%TYPE, users.id%TYPE, user_roles.role%TYPE);
 
 CREATE FUNCTION add_user_to_team(
-    admin_id users.id%TYPE,
-    team_id teams.id%TYPE,
-    user_id users.id%TYPE,
+    arg_admin_id users.id%TYPE,
+    arg_team_id teams.id%TYPE,
+    arg_user_id users.id%TYPE,
     role user_roles.role%TYPE
 ) RETURNS void
 AS $$
@@ -347,17 +347,17 @@ DECLARE
 BEGIN
     SELECT EXISTS(
         SELECT 1 FROM user_roles ur
-        WHERE ur.user_id = admin_id
-          AND ur.team_id = team_id
+        WHERE ur.user_id = arg_admin_id
+          AND ur.team_id = arg_team_id
           AND ur.role = 'admin'
     ) INTO is_admin;
     IF NOT is_admin THEN
         RAISE EXCEPTION 'You are not an admin of this team';
     END IF;
     INSERT INTO user_roles (user_id, role, team_id)
-    VALUES (user_id, role, team_id)
+    VALUES (arg_user_id, role, arg_team_id)
     ON CONFLICT (user_id, team_id) DO UPDATE SET
         role = EXCLUDED.role
-    WHERE user_roles.user_id = user_id
-      AND user_roles.team_id = team_id;
+    WHERE user_roles.user_id = arg_user_id
+      AND user_roles.team_id = arg_team_id;
 END $$ LANGUAGE plpgsql;
