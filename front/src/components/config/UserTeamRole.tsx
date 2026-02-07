@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent } from "react";
-import { ROLES } from "../../mockup";
 import type { Uuid } from "../../types";
+import RoleSelector from "./RoleSelector";
 
 interface Props {
     currentUserId: Uuid;
@@ -37,21 +37,12 @@ const UserTeamRole = ({
             <h3>{teamUserRole.user.name}</h3>
             {itsMe && <span>(you)</span>}
             <div className="row gap">
-                <select
-                    name={`role-selector-${teamUserRole.user.id}`}
-                    value={value}
+                <RoleSelector
+                    name={teamUserRole.user.id}
                     onChange={onChange}
+                    value={value}
                     disabled={!iAmAdmin}
-                >
-                    {ROLES.map((role: string) => (
-                        <option
-                            key={role}
-                            value={role}
-                        >
-                            {role}
-                        </option>
-                    ))}
-                </select>
+                />
                 {canRemove && <button className="btn btn-danger" onClick={onRemoveClick}>Remove</button>}
             </div>
         </div>
