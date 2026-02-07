@@ -1,6 +1,15 @@
 ---
+import userService, { client as userServiceClient } from "../api/versions/v1/userService";
 import Debug from "../layouts/debug.astro";
-import { OPTIONS, TEAM_ROLES } from "../mockup";
+import { OPTIONS } from "../mockup";
+
+userServiceClient.addToken(Astro.cookies.get("jwt")!.value);
+const result = await userService.teamRoles();
+if (result.isErr()) {
+  console.error("Unable to get team roles:", result.unwrapErr());
+  return Astro.redirect("/"); // TODO what do we do here?
+}
+const { team_roles: teamRoles } = result.unwrap().data;
 ---
 <Debug
   title="Teams"
@@ -11,7 +20,7 @@ import { OPTIONS, TEAM_ROLES } from "../mockup";
     <h1>Select a team or create one</h1>
   </section>
   <section class="col gap">
-    {TEAM_ROLES.map(teamRole => (
+    {teamRoles.map(teamRole => (
       <a href={teamRole.team.id}>
         <div class="team-card">
           {teamRole.team.name &&

@@ -27,7 +27,9 @@ type NothingResponse = {};
 type RegisterBasicResponse = TokenResponse;
 type LoginBasicResponse = TokenResponse;
 type UserResponse = User;
-type TeamRolesResponse = TeamRole[];
+type TeamRolesResponse = {
+  team_roles: TeamRole[];
+};
 
 const userService = {
   userInfo(user_id: string) {
