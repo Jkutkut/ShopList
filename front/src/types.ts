@@ -11,7 +11,7 @@ type User = {
 type Role = string; // TODO
 
 type Team = {
-  id: Uuid;
+  uuid: Uuid;
   name: string;
   description: string;
   image: string;
