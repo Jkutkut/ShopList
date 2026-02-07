@@ -30,9 +30,10 @@ impl Display for Endpoint {
 
 impl From<&Route> for Endpoint {
 	fn from(route: &Route) -> Self {
+		let path = route.uri.path().replace("<_>", "<team_id>");
 		Self {
 			method: route.method.to_string(),
-			path: route.uri.path().to_string(),
+			path,
 		}
 	}
 }
