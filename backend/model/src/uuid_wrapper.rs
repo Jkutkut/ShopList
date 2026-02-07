@@ -15,6 +15,11 @@ impl UuidWrapper {
 		self.0
 	}
 
+	pub fn get_ref(&self) -> &Result<Uuid, String> {
+		debug!("uuid get ref: {:?}", self.0);
+		&self.0
+	}
+
 	pub fn secure_parse(value: &str) -> Self {
 		debug!("uuid secure parse: {}", value);
 		const UUID_LENGTH: usize = 36;

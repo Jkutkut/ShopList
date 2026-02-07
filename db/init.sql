@@ -332,3 +332,32 @@ BEGIN
         JOIN teams t ON ur.team_id = t.id
     WHERE ur.user_id = usr_id;
 END $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS add_user_to_team(users.id%TYPE, teams.id%TYPE, users.id%TYPE, user_roles.role%TYPE);
+
+CREATE FUNCTION add_user_to_team(
+    admin_uuid users.id%TYPE,
+    team_uuid teams.id%TYPE,
+    user_uuid users.id%TYPE,
+    role user_roles.role%TYPE
+) RETURNS void
+AS $$
+DECLARE
+    is_admin BOOLEAN;
+BEGIN
+    SELECT EXISTS(
+        SELECT 1 FROM user_roles ur
+        WHERE ur.user_id = admin_uuid
+          AND ur.team_id = team_uuid
+          AND ur.role = 'admin'
+    ) INTO is_admin;
+    IF NOT is_admin THEN
+        RAISE EXCEPTION 'You are not an admin of this team';
+    END IF;
+    INSERT INTO user_roles (user_id, role, team_id)
+    VALUES (user_uuid, role, team_uuid)
+    ON CONFLICT (user_id, team_id) DO UPDATE SET
+        role = EXCLUDED.role
+    WHERE user_roles.user_id = user_uuid
+      AND user_roles.team_id = team_uuid;
+END $$ LANGUAGE plpgsql;

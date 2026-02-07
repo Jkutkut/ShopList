@@ -16,6 +16,7 @@ mod api_user_token;
 mod routes;
 mod guards;
 mod grpc;
+mod model;
 mod utils;
 
 #[cfg(test)]

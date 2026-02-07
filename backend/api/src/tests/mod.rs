@@ -15,7 +15,7 @@ use rocket::{
 		LocalResponse,
 	},
 };
-use model::{
+use ::model::{
 	grpc::auth::{
 		User,
 		UserToken,
@@ -184,7 +184,8 @@ async fn create_team(test: &Test, user_token: &UserToken, team_name: &str) -> Uu
 		db.execute(&stmt, &[&team_name]).await.unwrap();
 	}
 	let UserToken { token, .. } = user_token;
-	let req = test.client.post("/api/v1/team")
+	let client = new_client().await;
+	let req = client.post("/api/v1/team")
 		.header(auth_header(&token))
 		.json(&json!({
 			"name": team_name
@@ -235,6 +236,25 @@ async fn fetch_user_team_roles(_: &Test, user_token: &UserToken) -> UserTeamRole
 		.dispatch().await;
 	check_json_response(&res).await;
 	res.into_json().await.unwrap()
+}
+
+async fn add_user_to_team(_: &Test, user: &UserToken, team: &Uuid, user_to_add: &UserToken, role: &str, should_succeed: bool) {
+	info!("Adding user \"{}\" to team \"{}\" as {} by user \"{}\"", user_to_add.user_id, team, role, user.user_id);
+	let endpoint = format!("/api/v1/team/{}/members", team);
+	let client = new_client().await;
+	let response = client.put(&endpoint)
+		.header(auth_header(&user.token))
+		.json(&json!({
+			"role": role,
+			"user_id": user_to_add.user_id
+		}))
+		.dispatch().await;
+	if should_succeed {
+		check_json_response(&response).await;
+	}
+	else {
+		check_response(&response, Status::BadRequest, "application/json").await;
+	}
 }
 
 // -------------------------------------------
@@ -326,21 +346,28 @@ async fn test_create_team() {
 }
 
 // GET /api/v1/team/roles
+// PUT /api/v1/team/<team_id>/members
 #[tokio::test]
 async fn test_user_team_roles() {
 	let test = setup().await;
 	let user = create_user(&test, "user_team_roles").await;
+	let other_team_user = create_user(&test, "user_team_roles_other").await;
+	let random_user = create_user(&test, "user_team_roles_random").await;
+	let random_user_2 = create_user(&test, "user_team_roles_random_2").await;
 	let UserTeamRoles { team_roles } = fetch_user_team_roles(&test, &user).await;
 	assert!(team_roles.is_empty());
 
 	let team01 = create_team(&test, &user, "user_team_roles_team01").await;
 	let team02 = create_team(&test, &user, "user_team_roles_team02").await;
-	let team03 = create_team(&test, &user, "user_team_roles_team03").await;
+	let other_team = create_team(&test, &other_team_user, "user_team_roles_other_team").await;
 
-	// TODO add as team member
+	add_user_to_team(&test, &user, &team01, &other_team_user, "member", true).await;
+	add_user_to_team(&test, &other_team_user, &other_team, &user, "admin", true).await;
 
-	let UserTeamRoles { team_roles } = fetch_user_team_roles(&test, &user).await;
-	assert_eq!(team_roles.len(), 3);
+	add_user_to_team(&test, &random_user, &team01, &user, "member", false).await;
+	add_user_to_team(&test, &random_user, &team01, &random_user_2, "member", false).await;
+	add_user_to_team(&test, &other_team_user, &team01, &random_user, "member", false).await;
+	add_user_to_team(&test, &other_team_user, &team01, &random_user, "admin", false).await;
 
 	let check_team = |tr: &TeamRole, uuid: &str| {
 		match &tr.team {
@@ -351,9 +378,21 @@ async fn test_user_team_roles() {
 	let check_team_admin = |tr: &TeamRole, uuid: &str| {
 		tr.role == "admin" && check_team(tr, uuid)
 	};
+	let check_team_member = |tr: &TeamRole, uuid: &str| {
+		tr.role == "member" && check_team(tr, uuid)
+	};
+	let UserTeamRoles { team_roles } = fetch_user_team_roles(&test, &user).await;
+	assert_eq!(team_roles.len(), 3);
 	assert!(team_roles.iter().any(|tr| check_team_admin(tr, &team01.to_string())));
 	assert!(team_roles.iter().any(|tr| check_team_admin(tr, &team02.to_string())));
-	assert!(team_roles.iter().any(|tr| check_team_admin(tr, &team03.to_string())));
+	assert!(team_roles.iter().any(|tr| check_team_admin(tr, &other_team.to_string())));
+	let UserTeamRoles { team_roles } = fetch_user_team_roles(&test, &other_team_user).await;
+	assert_eq!(team_roles.len(), 2);
+	assert!(team_roles.iter().any(|tr| check_team_admin(tr, &other_team.to_string())));
+	assert!(team_roles.iter().any(|tr| check_team_member(tr, &team01.to_string())));
 
 	delete_self_user(&test, &user).await;
+	delete_self_user(&test, &other_team_user).await;
+	delete_self_user(&test, &random_user).await;
+	delete_self_user(&test, &random_user_2).await;
 }

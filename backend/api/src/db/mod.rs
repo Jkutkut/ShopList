@@ -128,4 +128,30 @@ impl DB {
 			}
 		}
 	}
+
+	pub async fn add_user_to_team(
+		&self,
+		team_id: &Uuid,
+		user_id: &Uuid,
+		new_member: &Uuid,
+		user_role: &String,
+	) -> Result<(), String> {
+		info!("Adding user to team");
+		debug!("Adding user \"{}\" to team \"{}\" as {} by user {}", new_member, team_id, user_role, user_id);
+		if user_id == new_member {
+			return Err("Cannot add yourself to a team".into());
+		}
+		let query = "SELECT add_user_to_team($1, $2, $3, $4)";
+		let stmt = self.client().prepare(query).await.unwrap();
+		match self.client().execute(&stmt, &[user_id, team_id, new_member, user_role]).await {
+			Ok(_) => {
+				debug!("User added to team");
+				Ok(())
+			},
+			Err(e) => {
+				warn!("Error adding user to team: {}", e);
+				Err(e.to_string()) // TODO
+			}
+		}
+	}
 }

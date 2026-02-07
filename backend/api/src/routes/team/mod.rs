@@ -33,7 +33,10 @@ async fn team_create(
 		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
 	};
 	match db.create_team(&user_id, &team_request).await {
-		Ok(team_id) => Ok(Json(team_id.into())),
+		Ok(team_id) => {
+			info!("Team created: {}", team_id);
+			Ok(Json(team_id.into()))
+		},
 		Err(err) => Err(InvalidResponse::new(Status::InternalServerError, &err))
 	}
 }
@@ -85,13 +88,24 @@ async fn team_members(
 	Err(route_error::not_implemented()) // TODO
 }
 
-#[put("/<_>/members")]
+#[put("/<_>/members", data = "<user_role>")]
 async fn team_members_update(
+	user: guards::User,
 	team: guards::Team,
-) -> Result<Json<()>, InvalidResponse> { // TODO output
+	user_role: Json<UserRoleRequest>,
+	db: &State<DB>,
+) -> Result<Json<()>, InvalidResponse> {
 	info!("Update team members");
-	debug!("Team: {:#?}", team);
-	Err(route_error::not_implemented()) // TODO
+	debug!("Team: {:#?}, User: {:#?}, User role: {:#?}", team, user, user_role);
+	let user_uuid = user.uuid.get().unwrap();
+	let new_member_id = match user_role.user_id.get_ref() {
+		Ok(id) => id,
+		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
+	};
+	match db.add_user_to_team(&team.id, &user_uuid, &new_member_id, &user_role.role).await {
+		Ok(_) => Ok(Json(())),
+		Err(err) => Err(InvalidResponse::new(Status::BadRequest, &err))
+	}
 }
 
 #[delete("/<_>/members/<user_id>")]
