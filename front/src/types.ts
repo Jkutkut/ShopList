@@ -1,5 +1,7 @@
+type Uuid = string;
+
 type User = {
-  uuid: string;
+  uuid: Uuid;
   name: string;
   created_at: string;
   updated_at: string;
@@ -9,7 +11,7 @@ type User = {
 type Role = string; // TODO
 
 type Team = {
-  id: string;
+  id: Uuid;
   name: string;
   description: string;
   image: string;
@@ -24,9 +26,16 @@ type TeamRole = {
   role: Role
 };
 
+type UserRole = {
+  user: User,
+  role: Role
+};
+
 export type {
+  Uuid,
   User,
   Role,
   Team,
-  TeamRole
+  TeamRole,
+  UserRole
 };

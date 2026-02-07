@@ -416,7 +416,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/team'
+                $ref: '#/components/schemas/uuid'
         '400':
           description: Bad request
           content:
@@ -591,8 +591,8 @@ paths:
                     role:
                       $ref: '#/components/schemas/role'
     put:
-      summary: Add or update team members
-      description: Add or update members of a team by team ID
+      summary: Add or update a team member
+      description: Add or update a member of a team by team and user ID.
       tags:
         - team
       security:
@@ -608,14 +608,12 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  user_id:
-                    $ref: '#/components/schemas/uuid'
-                  role:
-                    $ref: '#/components/schemas/role'
+              type: object
+              properties:
+                user_id:
+                  $ref: '#/components/schemas/uuid'
+                role:
+                  $ref: '#/components/schemas/role'
       responses:
         '200':
           description: Team member added

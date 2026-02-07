@@ -1,41 +1,25 @@
-import type { TeamRole, User } from "../../../types";
+import type {
+  RegisterBasicRequest,
+  LoginBasicRequest,
+  ChangeBasicPasswordRequest,
+  TokenResponse,
+  NothingResponse,
+  RegisterBasicResponse,
+  LoginBasicResponse,
+  UserResponse,
+  TeamRolesResponse,
+  Uuid,
+} from "./types";
 import { HttpClient } from "../../client";
 import { APIVersion } from "../../types";
 
 const client = HttpClient.create({ version: APIVersion.V1});
 
-type RegisterBasicRequest = {
-  name: string;
-  email: string;
-  password: string;
-};
-
-type LoginBasicRequest = {
-  email: string;
-  password: string;
-};
-
-type ChangeBasicPasswordRequest = {
-  user_id: string;
-  new_password: string;
-};
-
-type TokenResponse = {
-  token: string;
-};
-type NothingResponse = {};
-type RegisterBasicResponse = TokenResponse;
-type LoginBasicResponse = TokenResponse;
-type UserResponse = User;
-type TeamRolesResponse = {
-  team_roles: TeamRole[];
-};
-
 const userService = {
-  userInfo(user_id: string) {
+  userInfo(user_id: Uuid) {
     return client.get<UserResponse>(`/user/${user_id}`);
   },
-  deleteUser(user_id: string) {
+  deleteUser(user_id: Uuid) {
     return client.delete<NothingResponse>(`/user/${user_id}`);
   },
   registerBasic(payload: RegisterBasicRequest) {
@@ -56,33 +40,21 @@ const userService = {
   logout() {
     return client.post<null, NothingResponse>("/user/logout");
   },
-  logoutUser(userId: string) {
+  logoutUser(userId: Uuid) {
     return client.post<null, NothingResponse>(`/user/logout/${userId}`);
   },
   logoutEveryone() {
     return client.post<null, NothingResponse>("/user/logout/everyone");
   },
-  setAsSuperuser(userId: string) {
+  setAsSuperuser(userId: Uuid) {
     return client.post<null, NothingResponse>(`/user/superuser/${userId}`);
   },
-  removeAsSuperuser(userId: string) {
+  removeAsSuperuser(userId: Uuid) {
     return client.delete<NothingResponse>(`/user/superuser/${userId}`);
   },
   teamRoles() {
     return client.get<TeamRolesResponse>("/team/roles");
   }
-};
-
-export type {
-  RegisterBasicRequest,
-  LoginBasicRequest,
-  ChangeBasicPasswordRequest,
-  TokenResponse,
-  NothingResponse,
-  RegisterBasicResponse,
-  LoginBasicResponse,
-  UserResponse,
-  TeamRolesResponse,
 };
 
 export default userService;
