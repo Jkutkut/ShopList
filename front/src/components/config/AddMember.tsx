@@ -75,10 +75,6 @@ const AddMember = ({
             isDeletion: false
         });
     };
-
-    console.log("AddMember", { team, teamRoles });
-    console.log("AddMember form", { userId, role, isFormValid });
-
     return <>
         {!expanded && (
             <button

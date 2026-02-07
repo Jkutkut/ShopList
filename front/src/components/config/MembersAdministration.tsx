@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Team, User, UserRole, Uuid } from "../../types";
 import AddMember from "./AddMember";
 import UserTeamRole from "./UserTeamRole";
+import userService from "../../api/versions/v1/userService";
 
 interface Props {
     team: Team;
@@ -25,22 +26,16 @@ const MembersAdministration = ({
     const admins = roles.filter((teamRole: any) => teamRole.role === 'admin');
     const members = roles.filter((teamRole: any) => teamRole.role === 'member');
 
-    console.log("user", user);
-    console.log("team", team);
-    console.log("roles", roles);
-
-    console.log("iAmAdmin", iAmAdmin);
-    console.log("admins", admins);
-    console.log("members", members);
-
-    const updateRole = ({
+    const updateRole = async ({
         userId,
         role: newRole,
         isDeletion = false
     }: UpdateRoleProps) => {
         console.info("Update role of user with id", userId, "to", newRole, "isDeletion:", isDeletion);
+        let found = false;
         const updatedRoles = roles.map((teamRole: any) => {
             if (teamRole.user.id === userId) {
+                found = true;
                 if (isDeletion) {
                     return null;
                 }
@@ -51,6 +46,15 @@ const MembersAdministration = ({
             }
             return teamRole;
         }).filter(Boolean) as UserRole[];
+        if (!found && !isDeletion) {
+            // const user = (await userService.userInfo(userId)).unwrap().data; // Already validated
+            // updatedRoles.push({
+            //     user,
+            //     role: newRole
+            // });
+            // TODO load user
+            window.location.href = window.location.href;
+        }
         setRoles(updatedRoles);
     };
     const onChangeRole = (userId: Uuid, newRole: string) => {
