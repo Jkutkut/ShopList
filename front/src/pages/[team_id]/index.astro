@@ -18,16 +18,17 @@ if (result.isErr()) {
 }
 
 const team = result.unwrap().data;
+const teamName = team.display_name || team.name;
 ---
 
 <Page
-  title={team.name}
+  title={teamName}
   description={team.description}
   options={OPTIONS['team']}
   icon={team.image}
 >
   <section>
-    <h1 class="desktop-only">{team.name}</h1>
+    <h1 class="desktop-only">{teamName}</h1>
     {team.description &&
       <p>{team.description}</p>
     }

@@ -28,7 +28,7 @@ const [
   teamMembersResult
 ] = await Promise.all([
   userService.me(),
-  teamService.teamMembers(team_id)
+  teamService.teamMembers(team.id)
 ]);
 
 if (meResult.isErr()) {
@@ -42,17 +42,19 @@ if (teamMembersResult.isErr()) {
 
 const user = meResult.unwrap().data;
 const teamRoles = teamMembersResult.unwrap().data;
+
+const teamName = team.display_name || team.name;
 ---
 <Page
-  title=`Shoplist - ${team.name} security`
-  description=`Manage users within ${team.name}`
+  title=`Shoplist - ${teamName} security`
+  description=`Manage users within ${teamName}`
   options={[
     { name: 'Back', url: previousPageUrl(Astro) },
     ...OPTIONS['security-team']
   ]}
 >
   <section class="col gap">
-    <h1>Members of {team.name}</h1>
+    <h1>Members of {teamName}</h1>
     <MembersAdministration
       team={team}
       teamRoles={teamRoles}

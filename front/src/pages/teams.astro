@@ -21,11 +21,9 @@ const { team_roles: teamRoles } = result.unwrap().data;
   </section>
   <section class="col gap">
     {teamRoles.map(teamRole => (
-      <a href={teamRole.team.id}>
+      <a href={teamRole.team.name}>
         <div class="team-card">
-          {teamRole.team.name &&
-            <h2>{teamRole.team.name}</h2>
-          }
+          <h2>{teamRole.team.display_name || teamRole.team.name}</h2>
           {teamRole.team.image &&
             <img src={teamRole.team.image} alt={teamRole.team.name} />
           }

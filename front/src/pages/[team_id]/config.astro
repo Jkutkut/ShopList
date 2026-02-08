@@ -19,10 +19,11 @@ if (result.isErr()) {
 }
 
 const team = result.unwrap().data;
+const teamName = team.display_name || team.name;
 ---
 <Page
-  title=`Shoplist - ${team.name} configuration`
-  description=`Configure the team ${team.name}`
+  title=`Shoplist - ${teamName} configuration`
+  description=`Configure the team ${teamName}`
   options={[
     { name: 'Back', url: previousPageUrl(Astro) },
     ...OPTIONS['config-team']

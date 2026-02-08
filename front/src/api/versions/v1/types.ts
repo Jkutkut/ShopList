@@ -29,6 +29,7 @@ type TeamRolesResponse = {
 
 type TeamRequest = {
   name: string;
+  display_name?: string;
   description?: string;
   img?: string;
 };

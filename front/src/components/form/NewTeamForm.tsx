@@ -3,10 +3,12 @@ import useForm from "../../hooks/useForm";
 import { FormValidationState, TextField, TextFieldType } from "./textField";
 import ValidationFeedback from "./ValidationFeedback";
 import teamService from "../../api/versions/v1/teamService";
+import { VALID_TEAM_REGEX } from "../../utils";
 
 const NewTeamForm = () => {
-    const { name, description, img, onChange } = useForm({
+    const { name, displayName, description, img, onChange } = useForm({
         name: "",
+        displayName: "",
         description: "",
         img: "",
     });
@@ -14,6 +16,9 @@ const NewTeamForm = () => {
 
     const nameValidator = (value: string) => {
         if (!value) {
+            return FormValidationState.ERROR;
+        }
+        if (!VALID_TEAM_REGEX.test(value)) {
             return FormValidationState.ERROR;
         }
         return FormValidationState.SUCCESS;
@@ -24,6 +29,7 @@ const NewTeamForm = () => {
     };
     const isFormValid = [
         nameValidator(name),
+        descriptionValidator(displayName),
         descriptionValidator(description),
     ].every((v) => v === FormValidationState.SUCCESS);
 
@@ -40,6 +46,7 @@ const NewTeamForm = () => {
         }
         const payload = {
             name,
+            display_name: displayName,
             description,
             // TODO img
         };
@@ -62,6 +69,16 @@ const NewTeamForm = () => {
                 label="Name"
                 type={TextFieldType.TEXT}
                 initialValue={name}
+                onChange={onInputChange}
+                validate={nameValidator}
+                errorMessage="Invalid team name. Team names must be between 3 and 50 alphanumeric characters, '_' or '-'."
+                okMessage="Team name is valid"
+            />
+            <TextField
+                name="displayName"
+                label="Display Name"
+                type={TextFieldType.TEXT}
+                initialValue={displayName}
                 onChange={onInputChange}
             />
             <TextField

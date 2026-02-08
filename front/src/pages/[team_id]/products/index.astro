@@ -19,13 +19,13 @@ if (result.isErr()) {
 }
 
 const team = result.unwrap().data;
-
+const teamName = team.display_name || team.name;
 const products = TEAMS[0].products;
 ---
 
 <Page
-  title={`${team.name}'s products`}
-  description=`Manage the products of the team ${team.name}`
+  title={`${teamName}'s products`}
+  description=`Manage the products of the team ${teamName}`
   options={[
     { name: 'Back', url: previousPageUrl(Astro) },
     ...OPTIONS['products']
@@ -33,7 +33,7 @@ const products = TEAMS[0].products;
   icon={team.image}
 >
   <section>
-    <h1>Products of {team.name}</h1>
+    <h1>Products of {teamName}</h1>
   </section>
   <section class="col gap">
     {products.map(product => (

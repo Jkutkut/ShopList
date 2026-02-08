@@ -12,8 +12,9 @@ interface Props {
 const ConfigTeamForm = ({
     team,
 }: Props) => {
-    const { name, description, img, onChange } = useForm({
+    const { name, displayName, description, img, onChange } = useForm({
         name: team.name,
+        displayName: team.display_name,
         description: team.description,
         img: team.image,
     });
@@ -38,6 +39,13 @@ const ConfigTeamForm = ({
                 label="Name"
                 type={TextFieldType.TEXT}
                 initialValue={name}
+                onChange={onChange}
+            />
+            <TextField
+                name="display_name"
+                label="Display name"
+                type={TextFieldType.TEXT}
+                initialValue={displayName}
                 onChange={onChange}
             />
             <TextField
