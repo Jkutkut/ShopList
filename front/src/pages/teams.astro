@@ -1,6 +1,6 @@
 ---
 import userService, { client as userServiceClient } from "../api/versions/v1/userService";
-import Debug from "../layouts/debug.astro";
+import Page from "../layouts/page.astro";
 import { OPTIONS } from "../mockup";
 
 userServiceClient.addToken(Astro.cookies.get("jwt")!.value);
@@ -11,7 +11,7 @@ if (result.isErr()) {
 }
 const { team_roles: teamRoles } = result.unwrap().data;
 ---
-<Debug
+<Page
   title="Teams"
   description="Manage your teams and permissions"
   options={OPTIONS['teams']}
@@ -40,10 +40,9 @@ const { team_roles: teamRoles } = result.unwrap().data;
   <section>
     <a href="/new" class="btn btn-primary">Create a new team</a>
   </section>
-</Debug>
+</Page>
 
 <style>
-
   .team-card {
     --img-size: 128px;
 

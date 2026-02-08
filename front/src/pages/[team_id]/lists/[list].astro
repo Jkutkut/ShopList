@@ -1,10 +1,10 @@
 ---
 import teamService, { client as teamServiceClient } from "../../../api/versions/v1/teamService";
-import Debug from "../../../layouts/debug.astro";
 import { LIST_PRODUCTS, LISTS, OPTIONS } from "../../../mockup";
 import ListLayout from "../../../components/list/ListLayout";
 import "../../../styles/list.css"
 import { asUrl, previousPageUrl } from "../../../utils";
+import Page from "../../../layouts/page.astro";
 
 const { list: listParam, team_id } = Astro.params;
 
@@ -29,7 +29,7 @@ const list_id: keyof typeof LIST_PRODUCTS = listParam as keyof typeof LIST_PRODU
 const list = LISTS.find((l) => l.id === list_id)!;
 
 ---
-<Debug
+<Page
   title={list.name}
   description=`Manage your list ${list.name}`
   options={[
@@ -39,4 +39,4 @@ const list = LISTS.find((l) => l.id === list_id)!;
   icon={list.image || team.image}
 >
   <ListLayout client:only id={list_id} />
-</Debug>
+</Page>

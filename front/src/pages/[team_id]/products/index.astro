@@ -1,7 +1,7 @@
 ---
 import teamService, { client as teamServiceClient } from "../../../api/versions/v1/teamService";
 import DateLabel from "../../../components/date/DateLabel";
-import Debug from "../../../layouts/debug.astro";
+import Page from "../../../layouts/page.astro";
 import { OPTIONS, TEAMS } from "../../../mockup";
 import { previousPageUrl } from "../../../utils";
 
@@ -23,7 +23,7 @@ const team = result.unwrap().data;
 const products = TEAMS[0].products;
 ---
 
-<Debug
+<Page
   title={`${team.name}'s products`}
   description=`Manage the products of the team ${team.name}`
   options={[
@@ -66,7 +66,7 @@ const products = TEAMS[0].products;
   <section>
     <a class="btn btn-primary">Create a new product</a>
   </section>
-</Debug>
+</Page>
 
 <style>
   .product-card {

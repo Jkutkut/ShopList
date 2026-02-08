@@ -359,8 +359,8 @@ export const APPS = [
   { name: 'Marvin', url: './marvin', enabled: false },
   { name: 'Products', url: './products', enabled: true },
   { name: 'Tags', url: './tags', enabled: false },
-  { name: 'Config', url: './config', enabled: true },
-  { name: 'Security', url: './security', enabled: true },
+  { name: 'Security - Users', url: './security', enabled: true },
+  { name: 'Team config', url: './config', enabled: true },
 ];
 
 export const ACTION = (action: string) => {

@@ -1,7 +1,7 @@
 ---
 import teamService, { client as teamServiceClient } from "../../../api/versions/v1/teamService";
 import DateLabel from "../../../components/date/DateLabel";
-import Debug from "../../../layouts/debug.astro";
+import Page from "../../../layouts/page.astro";
 import { OPTIONS, TEAMS } from "../../../mockup";
 import { asUrl, previousPageUrl } from "../../../utils";
 
@@ -23,7 +23,7 @@ const team = result.unwrap().data;
 const lists = TEAMS[0].lists;
 
 ---
-<Debug
+<Page
   title="Lists"
   description="Manage your lists"
   options={[
@@ -68,7 +68,7 @@ const lists = TEAMS[0].lists;
   <section>
     <a href={asUrl("./new", Astro)} class="btn btn-primary">Create a new list</a>
   </section>
-</Debug>
+</Page>
 
 <style>
   .list-card {

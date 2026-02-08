@@ -1,6 +1,6 @@
 ---
 import teamService, { client as teamServiceClient } from "../../api/versions/v1/teamService";
-import Debug from "../../layouts/debug.astro";
+import Page from "../../layouts/page.astro";
 import { OPTIONS, APPS } from "../../mockup";
 import { asUrl } from "../../utils";
 
@@ -20,7 +20,7 @@ if (result.isErr()) {
 const team = result.unwrap().data;
 ---
 
-<Debug
+<Page
   title={team.name}
   description={team.description}
   options={OPTIONS['team']}
@@ -42,7 +42,7 @@ const team = result.unwrap().data;
       </a>
     ))}
   </section>
-</Debug>
+</Page>
 
 <style>
   .app-card {

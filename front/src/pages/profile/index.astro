@@ -2,7 +2,7 @@
 import userService, { client as userServiceClient } from "../../api/versions/v1/userService";
 import { INFINITE_VALIDATION_TIMEOUT } from "../../components/form/textField";
 import CopyTextField from "../../components/form/textField/CopyTextField";
-import Debug from "../../layouts/debug.astro";
+import Page from "../../layouts/page.astro";
 import { IMAGES, OPTIONS } from "../../mockup";
 
 userServiceClient.addToken(Astro.cookies.get("jwt")!.value);
@@ -16,7 +16,7 @@ const user = result.unwrap().data;
 user.image = IMAGES["1:1"]; // TODO
 ---
 
-<Debug
+<Page
   title="Profile"
   description="Manage your profile"
   options={OPTIONS['profile']}
@@ -48,7 +48,7 @@ user.image = IMAGES["1:1"]; // TODO
       <a id="delete-user" data-user-id={user.id} class="btn btn-danger">Delete user</a>
     </div>
   </section>
-</Debug>
+</Page>
 
 <script>
   import userService from "../../api/versions/v1/userService";
