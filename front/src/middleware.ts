@@ -1,10 +1,10 @@
 import { defineMiddleware } from "astro/middleware";
 
-const authRootPages = [
-  "/new",
-  "/profile",
-  "/teams",
-  /^\/[\w\d]{8}-[\w\d]{4}-[\w\d]{4}-[\w\d]{4}-[\w\d]{12}\//, // TODO use UUID_V4_REGEX
+const notAuthRootPages: (string | RegExp)[] = [
+  "/",
+  "/login",
+  "/register",
+  /^\/d{3}\/?$/
 ];
 
 export const onRequest = defineMiddleware((context, next) => {
@@ -16,11 +16,11 @@ export const onRequest = defineMiddleware((context, next) => {
   if (isAuthenticated && currentPath === "/") {
     return context.redirect("/teams", 302);
   }
-  const isAuthPage = authRootPages.some((page) => {
+  const isAuthPage = !notAuthRootPages.some((page) => {
     if (page instanceof RegExp) {
       return page.test(currentPath);
     }
-    return currentPath.startsWith(page);
+    return currentPath === page;
   });
   if (!isAuthenticated && isAuthPage) {
     return context.redirect("/login", 302);
