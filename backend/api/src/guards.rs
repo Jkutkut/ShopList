@@ -17,6 +17,7 @@ use crate::{
 	grpc,
 	cache,
 	db,
+	utils,
 };
 use model::UuidWrapper;
 use model::grpc::auth::{
@@ -222,19 +223,29 @@ impl<'r> FromRequest<'r> for Team {
 		// but <team_id> is the first param in route def
 		// TODO this may break in the future
 		const PARAM_IDX: usize = 0;
-		let team_id = match req.param::<UuidWrapper>(PARAM_IDX) {
+		let db = req.rocket().state::<db::DB>().unwrap();
+		let team = match req.param::<UuidWrapper>(PARAM_IDX) {
 			Some(Ok(team_id)) => match team_id.get() {
-				Ok(team_id) => team_id,
-				Err(_) => return Outcome::Error((Status::BadRequest, ())),
+				Ok(team_id) => match db.get_team(&team_id, &user_id).await {
+					Ok(team) => team,
+					Err(_) => return Outcome::Error((Status::BadRequest, ())),
+				},
+				Err(_) => match req.param::<String>(PARAM_IDX) {
+					Some(Ok(team_name)) => {
+						if !utils::is_valid_team_name(&team_name) {
+							return Outcome::Error((Status::BadRequest, ()));
+						}
+						match db.get_team_by_name(&team_name, &user_id).await {
+							Ok(team) => team,
+							Err(_) => return Outcome::Error((Status::BadRequest, ())),
+						}
+					},
+					_ => return Outcome::Error((Status::BadRequest, ())),
+				}
 			},
 			_ => return Outcome::Error((Status::BadRequest, ())),
 		};
-		debug!("team_id: {:?}", team_id);
-		let db = req.rocket().state::<db::DB>().unwrap();
-		let team = match db.get_team(&team_id, &user_id).await {
-			Ok(team) => team,
-			Err(_) => return Outcome::Error((Status::BadRequest, ())),
-		};
+		#[cfg(debug_assertions)]
 		debug!("team: {:#?}", team);
 		Outcome::Success(team)
 	}

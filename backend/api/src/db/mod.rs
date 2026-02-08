@@ -88,37 +88,56 @@ impl DB {
 		}
 	}
 
-	pub async fn get_team(&self, team_id: &Uuid, user_id: &Uuid) -> Result<Team, String> {
-		info!("Getting team \"{}\" by user {}", team_id, user_id);
-		let query = "SELECT
+	fn get_team_query(&self, key: &str) -> String {
+		format!("SELECT
 				t.id, t.name,
 				t.display_name,
 				t.description, t.image,
 				t.created_at, t.updated_at,
 				t.created_by, t.updated_by
 			FROM teams t, user_roles ur WHERE
-				t.id = $1 AND 
+				t.{} = $1 AND 
 				ur.user_id = $2 AND
-				t.id = ur.team_id";
-		let stmt = self.client().prepare(query).await.unwrap();
+				t.id = ur.team_id", key)
+	}
+
+	fn get_team_query_parser(&self, r: &tokio_postgres::Row) -> Team {
+		let team = Team {
+			id: r.get::<'_, usize, Uuid>(0),
+			name: r.get(1),
+			display_name: r.get::<'_, usize, Option<String>>(2),
+			description: r.get::<'_, usize, Option<String>>(3),
+			image: r.get::<'_, usize, Option<String>>(4),
+			created_at: r.get::<'_, usize, chrono::NaiveDateTime>(5).to_string(),
+			updated_at: r.get::<'_, usize, chrono::NaiveDateTime>(6).to_string(),
+			created_by: r.get::<'_, usize, Uuid>(7),
+			updated_by: r.get::<'_, usize, Uuid>(8),
+		};
+		debug!("Team: {:#?}", team);
+		team
+	}
+
+	pub async fn get_team(&self, team_id: &Uuid, user_id: &Uuid) -> Result<Team, String> {
+		info!("Getting team \"{}\" by user {}", team_id, user_id);
+		let query = self.get_team_query("id");
+		let stmt = self.client().prepare(&query).await.unwrap();
 		match self.client().query_one(&stmt, &[team_id, user_id]).await {
-			Ok(r) => {
-				let team = Team {
-					id: r.get::<'_, usize, Uuid>(0),
-					name: r.get(1),
-					display_name: r.get::<'_, usize, Option<String>>(2),
-					description: r.get::<'_, usize, Option<String>>(3),
-					image: r.get::<'_, usize, Option<String>>(4),
-					created_at: r.get::<'_, usize, chrono::NaiveDateTime>(5).to_string(),
-					updated_at: r.get::<'_, usize, chrono::NaiveDateTime>(6).to_string(),
-					created_by: r.get::<'_, usize, Uuid>(7),
-					updated_by: r.get::<'_, usize, Uuid>(8),
-				};
-				debug!("Team: {:#?}", team);
-				Ok(team)
-			}
+			Ok(r) => Ok(self.get_team_query_parser(&r)),
 			Err(e) => {
 				warn!("Error getting team: {}", e);
+				Err(e.to_string()) // TODO
+			}
+		}
+	}
+
+	pub async fn get_team_by_name(&self, team_name: &str, user_id: &Uuid) -> Result<Team, String> {
+		info!("Getting team \"{}\" by user {}", team_name, user_id);
+		let query = self.get_team_query("name");
+		let stmt = self.client().prepare(&query).await.unwrap();
+		match self.client().query_one(&stmt, &[&team_name, user_id]).await {
+			Ok(r) => Ok(self.get_team_query_parser(&r)),
+			Err(e) => {
+				warn!("Error getting team by name: {}", e);
 				Err(e.to_string()) // TODO
 			}
 		}

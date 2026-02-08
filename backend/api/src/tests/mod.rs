@@ -124,55 +124,61 @@ async fn create_user(test: &Test, key: &str) -> UserToken {
 	user_token
 }
 
-async fn delete_self_user(test: &Test, user_token: &UserToken) {
+async fn delete_self_user(_: &Test, user_token: &UserToken) {
 	let UserToken { user_id, token, .. } = user_token;
 	let endpoint = format!("/api/v1/user/{user_id}");
-	let res = test.client.delete(&endpoint)
+	let client = new_client().await;
+	let res = client.delete(&endpoint)
 		.header(auth_header(&token))
 		.dispatch().await;
 	assert_eq!(res.status(), Status::Ok);
 }
 
-async fn fetch_me(test: &Test, user_token: &UserToken) -> User {
+async fn fetch_me(_: &Test, user_token: &UserToken) -> User {
 	let UserToken { token, .. } = user_token;
-	let res = test.client.get("/api/v1/user/me")
+	let client = new_client().await;
+	let res = client.get("/api/v1/user/me")
 		.header(auth_header(&token))
 		.dispatch().await;
 	check_json_response(&res).await;
 	res.into_json().await.unwrap()
 }
 
-async fn fail_fetch_me(test: &Test, user_token: &UserToken) {
+async fn fail_fetch_me(_: &Test, user_token: &UserToken) {
 	let UserToken { token, .. } = user_token;
-	let res = test.client.get("/api/v1/user/me")
+	let client = new_client().await;
+	let res = client.get("/api/v1/user/me")
 		.header(auth_header(&token))
 		.dispatch().await;
 	check_response(&res, Status::Unauthorized, "application/json").await;
 }
 
 #[allow(dead_code)]
-async fn fetch_user(test: &Test, user_token: &UserToken, user_id: &str) -> User {
+async fn fetch_user(_: &Test, user_token: &UserToken, user_id: &str) -> User {
 	let UserToken { token, .. } = user_token;
 	let endpoint = format!("/api/v1/user/{}", user_id);
-	let res = test.client.get(&endpoint)
+	let client = new_client().await;
+	let res = client.get(&endpoint)
 		.header(auth_header(&token))
 		.dispatch().await;
 	check_json_response(&res).await;
 	res.into_json().await.unwrap()
 }
 
-async fn login_user(test: &Test, key: &str) -> UserToken {
+async fn login_user(_: &Test, key: &str) -> UserToken {
 	sleep(Duration::from_secs(1)); // Ensure the JWT token is different
 	let credentials = create_user_credentials(key);
-	let req = test.client.post("/api/v1/user/login/basic").json(&credentials);
+	let client = new_client().await;
+	let req = client.post("/api/v1/user/login/basic").json(&credentials);
 	let res = req.dispatch().await;
 	check_json_response(&res).await;
 	res.into_json().await.unwrap()
 }
 
-async fn logout_user(test: &Test, user_token: &UserToken) {
+async fn logout_user(_: &Test, user_token: &UserToken) {
 	let UserToken { token, .. } = user_token;
-	let res = test.client.post("/api/v1/user/logout")
+	let client = new_client().await;
+	let res = client.post("/api/v1/user/logout")
 		.header(auth_header(&token))
 		.dispatch().await;
 	check_status(&res, Status::Ok);
@@ -191,7 +197,8 @@ async fn create_team(test: &Test, user_token: &UserToken, team_name: &str) -> Uu
 	let req = client.post("/api/v1/team")
 		.header(auth_header(&token))
 		.json(&json!({
-			"name": team_name
+			"name": team_name,
+			"display_name": team_name
 		}));
 	let res = req.dispatch().await;
 	check_json_response(&res).await;
