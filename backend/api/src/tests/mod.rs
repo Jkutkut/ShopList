@@ -25,7 +25,10 @@ use ::model::{
 };
 use crate::{
 	guards::Team,
-	model::UserRole,
+	model::{
+		UserRole,
+		Product,
+	},
 };
 use uuid::Uuid;
 
@@ -299,6 +302,32 @@ async fn try_delete_user_from_team(
 	}
 }
 
+async fn create_product(test: &Test, user: &UserToken, team_id: &Uuid, product_name: &str) -> Product {
+	info!("Creating product");
+	debug!("Creating product {} for team {} by user {}", product_name, team_id, &user.user_id);
+	{
+		let db = test.client.rocket().state::<db::DB>().unwrap().client();
+		let query = "DELETE FROM products WHERE name = $1";
+		let stmt = db.prepare(query).await.unwrap();
+		db.execute(&stmt, &[&product_name]).await.unwrap();
+	}
+	let UserToken { token, .. } = user;
+	let client = new_client().await;
+	let endpoint = format!("/api/v1/team/{}/product", team_id);
+	let req = client.post(&endpoint)
+		.header(auth_header(&token))
+		.json(&json!({
+			"name": product_name,
+			"description": product_name
+		}));
+	let res = req.dispatch().await;
+	check_json_response(&res).await;
+	let product: Product = res.into_json().await.unwrap();
+	assert_eq!(product.name, product_name);
+	assert_eq!(product.description, Some(product_name.into()));
+	product
+}
+
 // -------------------------------------------
 
 // GET /api
@@ -472,4 +501,19 @@ async fn test_user_team_roles() {
 	delete_self_user(&test, &other_team_user).await;
 	delete_self_user(&test, &random_user).await;
 	delete_self_user(&test, &random_user_2).await;
+}
+
+// POST /api/v1/team/<team_id>/product
+#[tokio::test]
+async fn test_products() {
+	let test = setup().await;
+	let user = create_user(&test, "test_products").await;
+	let team = create_team(&test, &user, "team_test_products").await;
+
+	let _ = create_product(&test, &user, &team, "product_1").await;
+	let _ = create_product(&test, &user, &team, "product_2").await;
+	let _ = create_product(&test, &user, &team, "product_3").await;
+
+	delete_team(&test, &user, &team, Status::Ok).await;
+	delete_self_user(&test, &user).await;
 }

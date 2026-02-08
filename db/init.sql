@@ -403,3 +403,32 @@ BEGIN
     END IF;
     DELETE FROM user_roles WHERE user_id = arg_user_id AND team_id = arg_team_id;
 END $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS new_product(users.id%TYPE, teams.id%TYPE, products.name%TYPE, products.description%TYPE, products.image%TYPE);
+
+CREATE FUNCTION new_product(
+    arg_creator users.id%TYPE,
+    arg_team_id teams.id%TYPE,
+    arg_name products.name%TYPE,
+    arg_description products.description%TYPE,
+    arg_image products.image%TYPE
+) RETURNS TABLE (
+    id products.id%TYPE,
+    name products.name%TYPE,
+    team_id products.team_id%TYPE,
+    description products.description%TYPE,
+    image products.image%TYPE,
+    created_at products.created_at%TYPE,
+    created_by products.created_by%TYPE,
+    updated_at products.updated_at%TYPE,
+    updated_by products.updated_by%TYPE
+)
+AS $$
+DECLARE
+
+BEGIN
+    RETURN QUERY
+    INSERT INTO products as p (name, team_id, description, image, created_by, updated_by)
+        VALUES (arg_name, arg_team_id, arg_description, arg_image, arg_creator, arg_creator)
+        RETURNING p.id, p.name, p.team_id, p.description, p.image, p.created_at, p.created_by, p.updated_at, p.updated_by;
+END $$ LANGUAGE plpgsql;

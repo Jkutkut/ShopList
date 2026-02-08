@@ -14,6 +14,8 @@ use crate::{
 	},
 	model::{
 		UserRole,
+		Product,
+		ProductRequest,
 	},
 };
 use uuid::Uuid;
@@ -118,7 +120,7 @@ impl DB {
 	}
 
 	pub async fn get_team(&self, team_id: &Uuid, user_id: &Uuid) -> Result<Team, String> {
-		info!("Getting team \"{}\" by user {}", team_id, user_id);
+		info!("Getting team by id \"{}\" by user {}", team_id, user_id);
 		let query = self.get_team_query("id");
 		let stmt = self.client().prepare(&query).await.unwrap();
 		match self.client().query_one(&stmt, &[team_id, user_id]).await {
@@ -131,7 +133,7 @@ impl DB {
 	}
 
 	pub async fn get_team_by_name(&self, team_name: &str, user_id: &Uuid) -> Result<Team, String> {
-		info!("Getting team \"{}\" by user {}", team_name, user_id);
+		info!("Getting team by name \"{}\" by user {}", team_name, user_id);
 		let query = self.get_team_query("name");
 		let stmt = self.client().prepare(&query).await.unwrap();
 		match self.client().query_one(&stmt, &[&team_name, user_id]).await {
@@ -236,6 +238,42 @@ impl DB {
 			Err(e) => {
 				warn!("Error deleting user from team: {}", e);
 				Err(e.to_string()) // TODO
+			}
+		}
+	}
+}
+
+// Product
+impl DB {
+	fn get_product_query_parser(&self, row: &tokio_postgres::Row) -> Product {
+		let product = Product {
+			id: row.get::<'_, usize, Uuid>(0),
+			name: row.get(1),
+			team_id: row.get::<'_, usize, Uuid>(2),
+			description: row.get::<'_, usize, Option<String>>(3),
+			image: row.get::<'_, usize, Option<String>>(4),
+			created_at: row.get::<'_, usize, chrono::NaiveDateTime>(5).to_string(),
+			created_by: row.get::<'_, usize, Uuid>(6),
+			updated_at: row.get::<'_, usize, chrono::NaiveDateTime>(7).to_string(),
+			updated_by: row.get::<'_, usize, Uuid>(8),
+		};
+		debug!("Product: {:#?}", product);
+		product
+	}
+
+	pub async fn create_product(&self, team_id: &Uuid, user_id: &Uuid, product: &ProductRequest) -> Result<Product, String> {
+		info!("Creating product");
+		debug!("Creating product Team: {:#?}, Product: {:#?}, user_id: {:#?}", team_id, product, user_id);
+		let query = "SELECT * FROM new_product($1, $2, $3, $4, $5)";
+		let stmt = self.client().prepare(query).await.unwrap();
+		match self.client().query_one(&stmt, &[
+			user_id, team_id,
+			&product.name, &product.description, &product.image
+		]).await {
+			Ok(r) => Ok(self.get_product_query_parser(&r)),
+			Err(e) => {
+				warn!("Error creating product: {}", e);
+				return Err(e.to_string()); // TODO
 			}
 		}
 	}
