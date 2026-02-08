@@ -132,7 +132,7 @@ async fn team_member_delete(
 	}
 }
 
-// Tags
+// Tags // TODO migrate to tags
 
 #[get("/<_>/tags")]
 async fn team_tags(
@@ -152,27 +152,7 @@ async fn team_tags_update(
 	Err(route_error::not_implemented()) // TODO
 }
 
-// Product
-
-#[get("/<_>/products")]
-async fn team_products(
-	team: guards::Team,
-) -> Result<Json<()>, InvalidResponse> { // TODO output
-	info!("Get team products");
-	debug!("Team: {:#?}", team);
-	Err(route_error::not_implemented()) // TODO
-}
-
-#[post("/<_>/product")] // TODO data
-async fn team_product_create(
-	team: guards::Team,
-) -> Result<Json<()>, InvalidResponse> { // TODO output
-	info!("Create team product");
-	debug!("Team: {:#?}", team);
-	Err(route_error::not_implemented()) // TODO
-}
-
-// List
+// List // TODO migrate to list
 
 #[get("/<_>/lists")]
 async fn team_lists(
@@ -207,9 +187,6 @@ pub fn routes() -> RouteHandlerBuilder {
 			// Tags
 			team_tags,
 			team_tags_update,
-			// Product
-			team_products,
-			team_product_create,
 			// List
 			team_lists,
 			team_list_create,

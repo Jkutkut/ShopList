@@ -907,7 +907,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/result'
-  /api/v1/product/{product_id}:
+  /api/v1/team/{team_id}/product/{product_id}:
     put:
       summary: Update team product
       description: Update a product of a team by team ID and product ID
@@ -916,6 +916,11 @@ paths:
       security:
         - bearerAuth: []
       parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
         - name: product_id
           in: path
           required: true
@@ -960,6 +965,11 @@ paths:
       security:
         - bearerAuth: []
       parameters:
+        - name: team_id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/uuid'
         - name: product_id
           in: path
           required: true
