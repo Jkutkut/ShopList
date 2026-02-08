@@ -57,6 +57,7 @@ CREATE TABLE basic_login (
 CREATE TABLE teams (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   name text NOT NULL UNIQUE,
+  display_name text,
   description text,
   image text,
   created_at timestamp DEFAULT now() NOT NULL,
@@ -64,7 +65,8 @@ CREATE TABLE teams (
   updated_at timestamp DEFAULT now() NOT NULL,
   updated_by uuid,
   FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL,
-  FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE SET NULL
+  FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE SET NULL,
+  CONSTRAINT teams_name_length CHECK (length(name) <= 50)
 );
 
 CREATE TABLE user_roles (
@@ -289,11 +291,12 @@ BEGIN
     DELETE FROM credentials WHERE credentials.user_id = usr_id;
 END $$ LANGUAGE plpgsql;
 
-DROP FUNCTION IF EXISTS new_team(users.id%TYPE, teams.name%TYPE, teams.description%TYPE, teams.image%TYPE);
+DROP FUNCTION IF EXISTS new_team(users.id%TYPE, teams.name%TYPE, teams.display_name%TYPE, teams.description%TYPE, teams.image%TYPE);
 
 CREATE FUNCTION new_team(
     creator users.id%TYPE,
     name teams.name%TYPE,
+    display_name teams.display_name%TYPE,
     description teams.description%TYPE,
     image teams.image%TYPE
 ) RETURNS teams.id%TYPE
@@ -301,8 +304,8 @@ AS $$
 DECLARE
     team_id teams.id%TYPE;
 BEGIN
-    INSERT INTO teams (name, description, image, created_by, updated_by)
-        VALUES (name, description, image, creator, creator)
+    INSERT INTO teams (name, display_name, description, image, created_by, updated_by)
+        VALUES (name, display_name, description, image, creator, creator)
         RETURNING id INTO team_id;
     INSERT INTO user_roles (user_id, role, team_id) VALUES (creator, 'admin', team_id);
     RETURN team_id;
@@ -333,6 +336,7 @@ CREATE FUNCTION team_roles(
     role_name user_roles.role%TYPE,
     team_id teams.id%TYPE,
     team_name teams.name%TYPE,
+    team_display_name teams.display_name%TYPE,
     team_description teams.description%TYPE,
     team_image teams.image%TYPE,
     team_created_at teams.created_at%TYPE,
@@ -352,6 +356,7 @@ BEGIN
     SELECT
         ur.role,
         t.id, t.name,
+        t.display_name,
         t.description, t.image,
         t.created_at, t.created_by,
         t.updated_at, t.updated_by

@@ -72,10 +72,10 @@ impl DB {
 	pub async fn create_team(&self, creator_id: &Uuid, team: &TeamRequest) -> Result<Uuid, String> {
 		info!("Creating team \"{}\" by user {}", team.name, creator_id);
 		debug!("Team request: {:#?}", team);
-		let query = "SELECT new_team($1, $2, $3, $4)";
+		let query = "SELECT new_team($1, $2, $3, $4, $5)";
 		let stmt = self.client().prepare(query).await.unwrap();
 		match self.client().query_one(&stmt, &[
-			creator_id, &team.name, &team.description, &team.image
+			creator_id, &team.name, &team.display_name, &team.description, &team.image
 		]).await {
 			Ok(r) => {
 				debug!("Team created: {:#?}", r);
@@ -91,7 +91,9 @@ impl DB {
 	pub async fn get_team(&self, team_id: &Uuid, user_id: &Uuid) -> Result<Team, String> {
 		info!("Getting team \"{}\" by user {}", team_id, user_id);
 		let query = "SELECT
-				t.id, t.name, t.description, t.image,
+				t.id, t.name,
+				t.display_name,
+				t.description, t.image,
 				t.created_at, t.updated_at,
 				t.created_by, t.updated_by
 			FROM teams t, user_roles ur WHERE
@@ -104,12 +106,13 @@ impl DB {
 				let team = Team {
 					id: r.get::<'_, usize, Uuid>(0),
 					name: r.get(1),
-					description: r.get::<'_, usize, Option<String>>(2),
-					image: r.get::<'_, usize, Option<String>>(3),
-					created_at: r.get::<'_, usize, chrono::NaiveDateTime>(4).to_string(),
-					updated_at: r.get::<'_, usize, chrono::NaiveDateTime>(5).to_string(),
-					created_by: r.get::<'_, usize, Uuid>(6),
-					updated_by: r.get::<'_, usize, Uuid>(7),
+					display_name: r.get::<'_, usize, Option<String>>(2),
+					description: r.get::<'_, usize, Option<String>>(3),
+					image: r.get::<'_, usize, Option<String>>(4),
+					created_at: r.get::<'_, usize, chrono::NaiveDateTime>(5).to_string(),
+					updated_at: r.get::<'_, usize, chrono::NaiveDateTime>(6).to_string(),
+					created_by: r.get::<'_, usize, Uuid>(7),
+					updated_by: r.get::<'_, usize, Uuid>(8),
 				};
 				debug!("Team: {:#?}", team);
 				Ok(team)

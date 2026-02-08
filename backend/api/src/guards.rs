@@ -199,6 +199,7 @@ impl<'r> FromRequest<'r> for SessionToken {
 pub struct Team {
 	pub id: Uuid,
 	pub name: String,
+	pub display_name: Option<String>,
 	pub description: Option<String>,
 	pub image: Option<String>,
 	pub created_at: String,

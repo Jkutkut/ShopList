@@ -18,6 +18,7 @@ pub struct ApiRegisterBasicCredentials {
 #[derive(Debug, Deserialize)]
 pub struct TeamRequest {
 	pub name: String,
+	pub display_name: Option<String>,
 	pub description: Option<String>,
 	pub image: Option<String>,
 }

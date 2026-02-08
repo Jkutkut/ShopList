@@ -254,15 +254,16 @@ impl ShoplistDbAuth {
 		let mut team_roles = Vec::new();
 		for row in rows {
 			let id: Uuid = row.get(1);
-			let created_at: chrono::NaiveDateTime = row.get(5);
-			let created_by: Uuid = row.get(6);
-			let updated_at: chrono::NaiveDateTime = row.get(7);
-			let updated_by: Uuid = row.get(8);
+			let created_at: chrono::NaiveDateTime = row.get(6);
+			let created_by: Uuid = row.get(7);
+			let updated_at: chrono::NaiveDateTime = row.get(8);
+			let updated_by: Uuid = row.get(9);
 			let team = Team {
 				id: id.to_string(),
 				name: row.get(2),
-				description: row.get::<'_, usize, Option<String>>(3).unwrap_or("".to_string()),
-				image: row.get::<'_, usize, Option<String>>(4).unwrap_or("".to_string()),
+				display_name: row.get::<'_, usize, Option<String>>(3).unwrap_or("".to_string()),
+				description: row.get::<'_, usize, Option<String>>(4).unwrap_or("".to_string()),
+				image: row.get::<'_, usize, Option<String>>(5).unwrap_or("".to_string()),
 				created_at: created_at.to_string(),
 				created_by: created_by.to_string(),
 				updated_at: updated_at.to_string(),
@@ -357,15 +358,18 @@ impl ShoplistDbAuth {
 	async fn can_modify_user(&self, user_id: &Uuid, token: &str) -> bool {
 		info!("Checking if can modify user: {}", user_id);
 		let query = "SELECT EXISTS (
-			SELECT 1 FROM credentials WHERE user_id = $1 AND token = $2 AND expires_at > now()
-		) OR EXISTS (
-			SELECT 1 FROM credentials, superusers
-			WHERE credentials.token = $2 AND credentials.expires_at > now() AND credentials.user_id = superusers.user_id
+			SELECT 1 FROM credentials
+			WHERE
+				credentials.token = $2 AND
+				credentials.expires_at > now() AND
+				(
+					credentials.user_id = $1 OR
+					is_superuser(user_id)
+				)
 		);";
 		let stmt = self.db_client.prepare(query).await.unwrap();
 		match self.db_client.query_one(&stmt, &[&user_id, &token]).await {
 			Ok(r) => {
-				debug!("Can modify user: {:?}", r);
 				let r = r.get::<'_, usize, bool>(0);
 				info!("Can modify user: {:?}", r);
 				r
@@ -380,8 +384,8 @@ impl ShoplistDbAuth {
 	async fn is_superuser(&self, token: &str) -> bool {
 		info!("Checking if is superuser");
 		let query = "SELECT EXISTS (
-			SELECT 1 FROM credentials, superusers
-			WHERE credentials.token = $1 AND credentials.expires_at > now() AND credentials.user_id = superusers.user_id
+			SELECT 1 FROM credentials
+			WHERE credentials.token = $1 AND credentials.expires_at > now() AND is_superuser(credentials.user_id)
 		);";
 		let stmt = self.db_client.prepare(query).await.unwrap();
 		match self.db_client.query_one(&stmt, &[&token]).await {

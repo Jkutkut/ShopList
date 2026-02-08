@@ -69,12 +69,13 @@ message User {
 message Team {
   string id = 1;
   string name = 2;
-  string description = 3;
-  string image = 4;
-  string createdAt = 5;
-  string createdBy = 6;
-  string updatedAt = 7;
-  string updatedBy = 8;
+  string display_name = 3;
+  string description = 4;
+  string image = 5;
+  string createdAt = 6;
+  string createdBy = 7;
+  string updatedAt = 8;
+  string updatedBy = 9;
 }
 
 message TeamRole {

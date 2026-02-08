@@ -345,7 +345,7 @@ async fn db_test_user_team_roles() {
 		"marvin_db_test_user_team_roles_team3",
 	];
 
-	let query_new_team = "SELECT new_team($1, $2, $3, $4)";
+	let query_new_team = "SELECT new_team($1, $2, $3, $4, $5)";
 	let stmt_new_team = test.db.db_client.prepare(query_new_team).await.unwrap();
 	let delete_team = "DELETE FROM teams WHERE name = $1";
 	let delete_team = test.db.db_client.prepare(delete_team).await.unwrap();
@@ -354,6 +354,7 @@ async fn db_test_user_team_roles() {
 		assert!(test.db.db_client.execute(&delete_team, &[team]).await.is_ok(), "Delete team {} should succeed", team);
 		let result = test.db.db_client.query_one(&stmt_new_team, &[
 			&user_id,
+			team,
 			team,
 			&format!("This is the description for the team with name {}", team),
 			&"url://2-image.png"

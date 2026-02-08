@@ -4,6 +4,7 @@ classDiagram
     class teams {
         id
         name
+        display_name
         description
         image
         created_at
