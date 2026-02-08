@@ -261,6 +261,29 @@ impl DB {
 		product
 	}
 
+	pub async fn get_products(&self, team_id: &Uuid) -> Result<Vec<Product>, String> {
+		info!("Getting team products");
+		debug!("Team: {:#?}", team_id);
+		let query = "SELECT
+				id, name, team_id, description, image,
+				created_at, created_by, updated_at, updated_by
+			FROM products WHERE team_id = $1";
+		let stmt = self.client().prepare(query).await.unwrap();
+		let rows = match self.client().query(&stmt, &[team_id]).await {
+			Ok(r) => r,
+			Err(e) => {
+				warn!("Error getting team products: {}", e);
+				return Err(e.to_string()); // TODO
+			}
+		};
+		let mut result = Vec::new();
+		for row in rows {
+			result.push(self.get_product_query_parser(&row));
+		}
+		debug!("Team {} products ({}): {:#?}", team_id, result.len(), result);
+		Ok(result)
+	}
+
 	pub async fn create_product(&self, team_id: &Uuid, user_id: &Uuid, product: &ProductRequest) -> Result<Product, String> {
 		info!("Creating product");
 		debug!("Creating product Team: {:#?}, Product: {:#?}, user_id: {:#?}", team_id, product, user_id);

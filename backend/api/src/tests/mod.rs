@@ -328,6 +328,18 @@ async fn create_product(test: &Test, user: &UserToken, team_id: &Uuid, product_n
 	product
 }
 
+async fn fetch_products(_: &Test, user: &UserToken, team_id: &Uuid) -> Vec<Product> {
+	info!("Fetching products for team {}", team_id);
+	let UserToken { token, .. } = user;
+	let client = new_client().await;
+	let endpoint = format!("/api/v1/team/{}/products", team_id);
+	let res = client.get(&endpoint)
+		.header(auth_header(&token))
+		.dispatch().await;
+	check_json_response(&res).await;
+	res.into_json().await.unwrap()
+}
+
 // -------------------------------------------
 
 // GET /api
@@ -503,6 +515,7 @@ async fn test_user_team_roles() {
 	delete_self_user(&test, &random_user_2).await;
 }
 
+// GET /api/v1/team/<team_id>/products
 // POST /api/v1/team/<team_id>/product
 #[tokio::test]
 async fn test_products() {
@@ -510,9 +523,15 @@ async fn test_products() {
 	let user = create_user(&test, "test_products").await;
 	let team = create_team(&test, &user, "team_test_products").await;
 
-	let _ = create_product(&test, &user, &team, "product_1").await;
-	let _ = create_product(&test, &user, &team, "product_2").await;
-	let _ = create_product(&test, &user, &team, "product_3").await;
+	let p01 = create_product(&test, &user, &team, "product_1").await;
+	let p02 = create_product(&test, &user, &team, "product_2").await;
+	let p03 = create_product(&test, &user, &team, "product_3").await;
+
+	let products = fetch_products(&test, &user, &team).await;
+	assert_eq!(products.len(), 3);
+	assert!(products.iter().any(|p| p.id == p01.id));
+	assert!(products.iter().any(|p| p.id == p02.id));
+	assert!(products.iter().any(|p| p.id == p03.id));
 
 	delete_team(&test, &user, &team, Status::Ok).await;
 	delete_self_user(&test, &user).await;

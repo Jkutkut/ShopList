@@ -3,10 +3,14 @@ use super::*;
 #[get("/<_>/products")]
 async fn team_products(
 	team: guards::Team,
+	db: &State<DB>,
 ) -> Result<Json<Vec<Product>>, InvalidResponse> {
 	info!("Get team products");
 	debug!("Team: {:#?}", team);
-	Err(route_error::not_implemented()) // TODO
+	match db.get_products(&team.id).await {
+		Ok(products) => Ok(Json(products)),
+		Err(err) => Err(InvalidResponse::new(Status::BadRequest, &err))
+	}
 }
 
 #[post("/<_>/product", data = "<product_request>")]
@@ -72,8 +76,6 @@ pub fn routes() -> RouteHandlerBuilder {
 	RouteHandlerBuilder::new(
 		"/",
 		routes![
-			product_update,
-			product_delete,
 			product_update_tags,
 			product_delete_tag,
 		],
@@ -84,6 +86,8 @@ pub fn routes() -> RouteHandlerBuilder {
 				routes![
 					team_products,
 					team_product_create,
+					product_update,
+					product_delete,
 				],
 				catchers![],
 				vec![],
