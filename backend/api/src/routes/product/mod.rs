@@ -29,15 +29,26 @@ async fn team_product_create(
 	}
 }
 
-#[put("/team/<_>/product/<product_id>", data = "<product_request>")]
+#[put("/<_>/product/<product_id>", data = "<product_request>")]
 async fn product_update(
 	team: guards::Team,
+	user: guards::User,
 	product_id: UuidWrapper,
 	product_request: Json<ProductRequest>,
-) -> Result<Json<()>, InvalidResponse> { // TODO output
+	db: &State<DB>,
+) -> Result<Json<()>, InvalidResponse> {
 	info!("Update team product");
-	debug!("Team: {:#?}, Product: {:#?}, Product request: {:#?}", team, product_id, product_request);
-	Err(route_error::not_implemented()) // TODO
+	let user_id = user.id.get().unwrap();
+	let team_id = team.id;
+	debug!("Team: {:#?}, Product: {:#?}, Product request: {:#?}, user_id: {:#?}", team_id, product_id, product_request, user_id);
+	let product_id = match product_id.get() {
+		Ok(id) => id,
+		_ => return Err(InvalidResponse::new(Status::BadRequest, "Invalid product id"))
+	};
+	match db.update_product(&team_id, &product_id, &user_id, &product_request).await {
+		Ok(r) => Ok(Json(r)),
+		Err(err) => Err(InvalidResponse::new(Status::BadRequest, &err))
+	}
 }
 
 #[delete("/team/<_>/product/<product_id>")]

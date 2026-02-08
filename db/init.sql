@@ -432,3 +432,27 @@ BEGIN
         VALUES (arg_name, arg_team_id, arg_description, arg_image, arg_creator, arg_creator)
         RETURNING p.id, p.name, p.team_id, p.description, p.image, p.created_at, p.created_by, p.updated_at, p.updated_by;
 END $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS update_product(teams.id%TYPE, products.id%TYPE, users.id%TYPE, products.name%TYPE, products.description%TYPE, products.image%TYPE);
+
+CREATE FUNCTION update_product(
+    arg_team_id teams.id%TYPE,
+    arg_product_id products.id%TYPE,
+    arg_user_id users.id%TYPE,
+    arg_name products.name%TYPE,
+    arg_description products.description%TYPE,
+    arg_image products.image%TYPE
+) RETURNS void
+AS $$
+BEGIN
+    IF NOT is_team_admin(arg_team_id, arg_user_id) THEN
+        RAISE EXCEPTION 'You are not an admin of this team';
+    END IF;
+    UPDATE products SET
+        name = arg_name,
+        description = arg_description,
+        image = arg_image,
+        updated_by = arg_user_id,
+        updated_at = now()
+    WHERE id = arg_product_id;
+END $$ LANGUAGE plpgsql;

@@ -300,4 +300,24 @@ impl DB {
 			}
 		}
 	}
+
+	pub async fn update_product(&self, team_id: &Uuid, product_id: &Uuid, user_id: &Uuid, product: &ProductRequest) -> Result<(), String> {
+		info!("Updating product");
+		debug!("Updating product {} by {}: {:#?}", product_id, user_id, product);
+		let query = "SELECT update_product($1, $2, $3, $4, $5, $6)";
+		let stmt = self.client().prepare(query).await.unwrap();
+		match self.client().execute(&stmt, &[
+			team_id, product_id, user_id,
+			&product.name, &product.description, &product.image
+		]).await {
+			Ok(_) => {
+				debug!("Product updated");
+				Ok(())
+			},
+			Err(e) => {
+				warn!("Error updating product: {}", e);
+				Err(e.to_string()) // TODO
+			}
+		}
+	}
 }

@@ -340,6 +340,20 @@ async fn fetch_products(_: &Test, user: &UserToken, team_id: &Uuid) -> Vec<Produ
 	res.into_json().await.unwrap()
 }
 
+async fn update_product(_: &Test, user: &UserToken, team: &Uuid, product_id: &Uuid, name: &str, description: Option<&str>) {
+	let UserToken { token, .. } = user;
+	let client = new_client().await;
+	let endpoint = format!("/api/v1/team/{}/product/{}", team, product_id);
+	let req = client.put(&endpoint)
+		.header(auth_header(&token))
+		.json(&json!({
+			"name": name,
+			"description": description
+		}));
+	let res = req.dispatch().await;
+	check_json_response(&res).await;
+}
+
 // -------------------------------------------
 
 // GET /api
@@ -517,6 +531,7 @@ async fn test_user_team_roles() {
 
 // GET /api/v1/team/<team_id>/products
 // POST /api/v1/team/<team_id>/product
+// PUT /api/v1/team/<team_id>/product/<product_id>
 #[tokio::test]
 async fn test_products() {
 	let test = setup().await;
@@ -532,6 +547,13 @@ async fn test_products() {
 	assert!(products.iter().any(|p| p.id == p01.id));
 	assert!(products.iter().any(|p| p.id == p02.id));
 	assert!(products.iter().any(|p| p.id == p03.id));
+
+	update_product(&test, &user, &team, &p01.id, "product_1_updated", None).await;
+	update_product(&test, &user, &team, &p02.id, "product_2_updated", Some("product_2_description_updated")).await;
+	let products = fetch_products(&test, &user, &team).await;
+	assert_eq!(products.len(), 3);
+	assert!(products.iter().any(|p| p.id == p01.id && p.name == "product_1_updated"));
+	assert!(products.iter().any(|p| p.id == p02.id && p.name == "product_2_updated" && p.description == Some("product_2_description_updated".into())));
 
 	delete_team(&test, &user, &team, Status::Ok).await;
 	delete_self_user(&test, &user).await;
