@@ -1719,13 +1719,13 @@ components:
           $ref: '#/components/schemas/description'
         image:
           $ref: '#/components/schemas/image'
+    product_metadata:
+      type: object
+      properties:
         tags:
           type: array
           items:
             $ref: '#/components/schemas/tag'
-    product_metadata:
-      type: object
-      properties:
         generic:
           $ref: '#/components/schemas/product_obj'
           required: false
@@ -1742,7 +1742,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/product_obj'
         - $ref: '#/components/schemas/metadata'
-        - $ref: '#/components/schemas/product_metadata'
+        # - $ref: '#/components/schemas/product_metadata'
     list:
       allOf:
         - type: object
