@@ -2,12 +2,12 @@ import { useState, type FormEvent } from "react";
 import type { ProductRequest } from "../../api/versions/v1/types";
 import useExpanded from "../../hooks/useExpanded";
 import type { Product } from "../../types";
-import DateLabel from "../date/DateLabel";
 import type { Props as ManagerProps } from "./ProductManager";
 import useForm from "../../hooks/useForm";
 import { FormValidationState, TextField, TextFieldType } from "../form/textField";
 import ValidationFeedback from "../form/ValidationFeedback";
 import { IMAGES } from "../../mockup";
+import { Created, Updated } from "../date/Metadata";
 
 interface Props extends ManagerProps {
     product: Product;
@@ -17,7 +17,6 @@ interface Props extends ManagerProps {
 
 const ModifyProduct = ({
     product,
-    team,
     products,
     onUpdate,
     onDelete
@@ -54,12 +53,15 @@ const ModifyProduct = ({
                     }
                 </div>
                 <div className="row space-between wrap gap">
-                    <span className="">
-                        Created by {product.created_by} <DateLabel date={product.created_at} />
-                    </span>
-                    <span className="">
-                        Updated by {product.updated_by} <DateLabel date={product.updated_at} />
-                    </span>
+                    <Created
+                        author={product.created_by}
+                        date={product.created_at}
+                    />
+                    <Updated
+                        author={product.updated_by}
+                        date={product.updated_at}
+                        createdAt={product.created_at}
+                    />
                 </div>
             </div>
         </div>;

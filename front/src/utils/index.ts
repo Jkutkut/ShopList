@@ -10,3 +10,5 @@ export const previousPageUrl = (Astro: any) =>
 
 export const UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const VALID_TEAM_REGEX = /^[a-z][a-zA-Z0-9_\-]{1,48}[a-zA-Z0-9]$/;
+
+export const asDate = (date: Date | string | number) => (typeof date === "object") ? date : new Date(date);

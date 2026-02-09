@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { asDate } from "../../utils";
 
 const DEFAULT_REFRESH_INTERVAL = 60000;
 const NO_REFRESH_INTERVAL = -1;
@@ -33,7 +34,7 @@ const DateLabel = ({
     date,
     refreshInterval = DEFAULT_REFRESH_INTERVAL
 }: Props) => {
-    const dateObj = (typeof date === "object") ? date : new Date(date);
+    const dateObj = asDate(date);
     const dateStr = dateObj.toISOString();
     const [dateLabel, setDayLabel] = useState(date2str(dateObj));
 
