@@ -45,7 +45,7 @@ const products = productsArr.sort((a, b) => a.name.localeCompare(b.name));
 >
   <section>
     <h1>Products of {teamName}</h1>
-    <ProductManager client:load
+    <ProductManager client:only
       team={team}
       products={products}
     />

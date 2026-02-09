@@ -7,9 +7,20 @@
     max-width: 100%;
     width: 128px;
     height: auto;
+    max-height: 128px;
     object-fit: cover;
     border-radius: 0.5rem;
     margin-bottom: 1rem;
 
     float: right;
+}
+
+.product-card .image-description {
+    word-break: break-all;
+}
+
+@media screen and (max-width: 300px) {
+    .product-card .image-description {
+        flex-wrap: wrap;
+    }
 }

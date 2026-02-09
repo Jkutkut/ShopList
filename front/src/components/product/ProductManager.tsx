@@ -1,6 +1,5 @@
 import { useState } from "react";
 import type { Product, Team, Uuid } from "../../types";
-import DateLabel from "../date/DateLabel";
 import AddProduct from "./AddProduct";
 import ModifyProduct from "./ModifyProduct";
 import type { ProductRequest } from "../../api/versions/v1/types";
@@ -18,12 +17,15 @@ const ProductManager = ({
 
     const addProduct = (newProduct: ProductRequest) => {
         console.log("Adding product:", newProduct);
+        return null;
     };
     const updateProduct = (product: Product, productRequest: ProductRequest) => {
         console.log("Updating product:", product, productRequest);
+        return null;
     };
     const deleteProduct = (product: Product) => {
         console.log("Deleting product:", product);
+        return null;
     };
 
     console.debug("Rendering ProductManager");
