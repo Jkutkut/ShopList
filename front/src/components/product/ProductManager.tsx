@@ -3,11 +3,14 @@ import type { Product, Team, Uuid } from "../../types";
 import AddProduct from "./AddProduct";
 import ModifyProduct from "./ModifyProduct";
 import type { ProductRequest } from "../../api/versions/v1/types";
+import productService from "../../api/versions/v1/productService";
 
 interface Props {
     team: Team;
     products: Product[];
 }
+
+const ACTION_OK = null;
 
 const ProductManager = ({
     team,
@@ -15,17 +18,48 @@ const ProductManager = ({
 }: Props) => {
     const [products, setProducts] = useState<Product[]>(initialProducts);
 
-    const addProduct = (newProduct: ProductRequest) => {
+    const addProduct = async (newProduct: ProductRequest) => {
         console.log("Adding product:", newProduct);
-        return null;
+        const result = await productService.createProduct(team.id, newProduct);
+        if (result.isErr()) {
+            const error = result.unwrapErr();
+            console.error("Error creating product", error.detail.message);
+            return error.detail.message;
+        }
+        const product = result.unwrap().data;
+        setProducts([...products, product]
+            .sort((a, b) => a.name.localeCompare(b.name))
+        );
+        return ACTION_OK;
     };
-    const updateProduct = (product: Product, productRequest: ProductRequest) => {
+    const updateProduct = async (product: Product, productRequest: ProductRequest) => {
         console.log("Updating product:", product, productRequest);
-        return null;
+        const result = await productService.updateProduct(team.id, product.id, productRequest);
+        if (result.isErr()) {
+            const error = result.unwrapErr();
+            console.error("Error updating product", error.detail.message);
+            return error.detail.message;
+        }
+        const newProduct = {
+            ...product,
+            ...productRequest,
+        };
+        setProducts(products
+            .map(p => p.id === product.id ? newProduct : p)
+            .sort((a, b) => a.name.localeCompare(b.name))
+        );
+        return ACTION_OK;
     };
-    const deleteProduct = (product: Product) => {
+    const deleteProduct = async (product: Product) => {
         console.log("Deleting product:", product);
-        return null;
+        const result = await productService.deleteProduct(team.id, product.id);
+        if (result.isErr()) {
+            const error = result.unwrapErr();
+            console.error("Error deleting product", error.detail.message);
+            return error.detail.message;
+        }
+        setProducts(products.filter(p => p.id !== product.id));
+        return ACTION_OK;
     };
 
     console.debug("Rendering ProductManager");

@@ -7,7 +7,7 @@ import { FormValidationState, TextField, TextFieldType } from "../form/textField
 import ValidationFeedback from "../form/ValidationFeedback";
 
 interface Props extends ManagerProps {
-    onAdd: (product: ProductRequest) => void
+    onAdd: (product: ProductRequest) => Promise<string | null>
 }
 
 const AddProduct = ({
@@ -62,11 +62,17 @@ const AddProduct = ({
         if (!isFormValid) {
             return;
         }
-        onAdd({
+        const result = await onAdd({
             name,
             description,
             // TODO img
         });
+        if (result === null) {
+            toggleIsExpanded();
+        }
+        else {
+            setFeedback(result);
+        }
     };
 
     return <div className="product-card padding with-border col">

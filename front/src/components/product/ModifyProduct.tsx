@@ -11,8 +11,8 @@ import { IMAGES } from "../../mockup";
 
 interface Props extends ManagerProps {
     product: Product;
-    onUpdate: (product: Product, productRequest: ProductRequest) => string | null;
-    onDelete: (product: Product) => string | null;
+    onUpdate: (product: Product, productRequest: ProductRequest) => Promise<string | null>;
+    onDelete: (product: Product) => Promise<string | null>;
 }
 
 const ModifyProduct = ({
@@ -99,7 +99,7 @@ const ModifyProduct = ({
         if (!isFormValid) {
             return;
         }
-        const result = onUpdate(product, {
+        const result = await onUpdate(product, {
             name,
             description,
             // TODO img
@@ -113,7 +113,7 @@ const ModifyProduct = ({
     };
     const onDeleteClick = async (e: FormEvent) => {
         e.preventDefault();
-        const result = onDelete(product);
+        const result = await onDelete(product);
         if (result === null) {
             setIsExpanded(false);
         }
