@@ -1,11 +1,12 @@
 ---
 import teamService, { client as teamServiceClient } from "../../../api/versions/v1/teamService";
 import productService, { client as productServiceClient } from "../../../api/versions/v1/productService";
-import DateLabel from "../../../components/date/DateLabel";
 import Page from "../../../layouts/page.astro";
 import { OPTIONS, PRODUCTS } from "../../../mockup";
 import { previousPageUrl } from "../../../utils";
 import type { Product } from "../../../types";
+import ProductManager from "../../../components/product/ProductManager";
+import "../../../styles/product.css"
 
 const { team_id } = Astro.params;
 
@@ -44,59 +45,9 @@ const products = productsArr.sort((a, b) => a.name.localeCompare(b.name));
 >
   <section>
     <h1>Products of {teamName}</h1>
-  </section>
-  {products.length > 3 &&
-    <section> 
-      <a class="btn btn-primary">Create a new product</a>
-    </section>
-  }
-  <section class="col gap">
-    {products.map(product => (
-      <div class="product-card padding with-border col">
-        <div class="row wrap space-between">
-          {product.name &&
-            <h2 class="no-wrap">{product.name}</h2>
-          }
-          {product.image &&
-            <img src={product.image} alt={product.name} />
-          }
-        </div>
-        <div class="col gap">
-          {product.description &&
-            <p>{product.description}</p>
-          }
-          <div class="row space-between wrap gap">
-            <span class="">
-              Created by {product.created_by} <DateLabel client:only date={product.created_at} />
-            </span>
-            <span class="">
-              Updated by {product.updated_by} <DateLabel client:only date={product.updated_at} />
-            </span>
-          </div>
-          <a class="btn btn-primary btn-small no-animation">✏️</a>
-        </div>
-      </div>
-    ))}
-  </section>
-  <section>
-    <a class="btn btn-primary">Create a new product</a>
+    <ProductManager client:load
+      team={team}
+      products={products}
+    />
   </section>
 </Page>
-
-<style>
-  .product-card {
-    --img-size: 128px;
-  }
-
-  .product-card img {
-    aspect-ratio: 1 / 1;
-    max-width: 100%;
-    width: 128px;
-    height: auto;
-    object-fit: cover;
-    border-radius: 0.5rem;
-    margin-bottom: 1rem;
-
-    float: right;
-  }
-</style>

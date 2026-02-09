@@ -1,0 +1,15 @@
+.product-card {
+    --img-size: 128px;
+}
+
+.product-card img {
+    aspect-ratio: 1 / 1;
+    max-width: 100%;
+    width: 128px;
+    height: auto;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+
+    float: right;
+}
