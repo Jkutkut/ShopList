@@ -1,10 +1,12 @@
 {
   "name": "shoplist-front",
   "type": "module",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "scripts": {
     "dev": "astro dev --host",
-    "build": "astro build"
+    "build": "astro build",
+    "install": "npm install",
+    "update-package-lock": "npm update --package-lock-only"
   },
   "dependencies": {
     "@astrojs/react": "^4.4.2",
