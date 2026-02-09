@@ -51,14 +51,25 @@ async fn product_update(
 	}
 }
 
-#[delete("/team/<_>/product/<product_id>")]
+#[delete("/<_>/product/<product_id>")]
 async fn product_delete(
-	#[allow(unused_variables)]
+	team: guards::Team,
 	user: guards::User,
-	#[allow(unused_variables)]
 	product_id: UuidWrapper,
+	db: &State<DB>,
 ) -> Result<Json<()>, InvalidResponse> {
-	Err(route_error::not_implemented()) // TODO
+	info!("Delete team product");
+	let user_id = user.id.get().unwrap();
+	let team_id = team.id;
+	debug!("Team: {:#?}, Product: {:#?}, user_id: {:#?}", team_id, product_id, user_id);
+	let product_id = match product_id.get() {
+		Ok(id) => id,
+		_ => return Err(InvalidResponse::new(Status::BadRequest, "Invalid product id"))
+	};
+	match db.delete_product(&team_id, &product_id, &user_id).await {
+		Ok(r) => Ok(Json(r)),
+		Err(err) => Err(InvalidResponse::new(Status::BadRequest, &err))
+	}
 }
 
 #[post("/product/<product_id>/tags")] // TODO data

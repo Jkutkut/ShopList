@@ -320,4 +320,21 @@ impl DB {
 			}
 		}
 	}
+
+	pub async fn delete_product(&self, team_id: &Uuid, product_id: &Uuid, user_id: &Uuid) -> Result<(), String> {
+		info!("Deleting product");
+		debug!("Deleting product {} by {}, in team {}", product_id, user_id, team_id);
+		let query = "SELECT delete_product($1, $2, $3)";
+		let stmt = self.client().prepare(query).await.unwrap();
+		match self.client().execute(&stmt, &[team_id, product_id, user_id]).await {
+			Ok(_) => {
+				debug!("Product deleted");
+				Ok(())
+			},
+			Err(e) => {
+				warn!("Error deleting product: {}", e);
+				Err(e.to_string()) // TODO
+			}
+		}
+	}
 }

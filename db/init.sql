@@ -454,5 +454,20 @@ BEGIN
         image = arg_image,
         updated_by = arg_user_id,
         updated_at = now()
-    WHERE id = arg_product_id;
+    WHERE id = arg_product_id AND team_id = arg_team_id;
+END $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS delete_product(teams.id%TYPE, products.id%TYPE, users.id%TYPE);
+
+CREATE FUNCTION delete_product(
+    arg_team_id teams.id%TYPE,
+    arg_product_id products.id%TYPE,
+    arg_user_id users.id%TYPE
+) RETURNS void
+AS $$
+BEGIN
+    IF NOT is_team_admin(arg_team_id, arg_user_id) THEN
+        RAISE EXCEPTION 'You are not an admin of this team';
+    END IF;
+    DELETE FROM products WHERE id = arg_product_id AND team_id = arg_team_id;
 END $$ LANGUAGE plpgsql;
