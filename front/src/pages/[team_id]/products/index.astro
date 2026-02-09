@@ -1,9 +1,11 @@
 ---
 import teamService, { client as teamServiceClient } from "../../../api/versions/v1/teamService";
+import productService, { client as productServiceClient } from "../../../api/versions/v1/productService";
 import DateLabel from "../../../components/date/DateLabel";
 import Page from "../../../layouts/page.astro";
-import { OPTIONS, TEAMS } from "../../../mockup";
+import { OPTIONS, PRODUCTS } from "../../../mockup";
 import { previousPageUrl } from "../../../utils";
+import type { Product } from "../../../types";
 
 const { team_id } = Astro.params;
 
@@ -20,7 +22,15 @@ if (result.isErr()) {
 
 const team = result.unwrap().data;
 const teamName = team.display_name || team.name;
-const products = TEAMS[0].products;
+
+productServiceClient.addToken(Astro.cookies.get("jwt")!.value);
+const productsResult = await productService.getProducts(team_id);
+
+if (productsResult.isErr()) {
+  console.error("Unable to get products:", productsResult.unwrapErr());
+}
+const productsArr: Product[] = productsResult.isOk() ? productsResult.unwrap().data : [];
+const products = productsArr.sort((a, b) => a.name.localeCompare(b.name));
 ---
 
 <Page
@@ -35,6 +45,11 @@ const products = TEAMS[0].products;
   <section>
     <h1>Products of {teamName}</h1>
   </section>
+  {products.length > 3 &&
+    <section> 
+      <a class="btn btn-primary">Create a new product</a>
+    </section>
+  }
   <section class="col gap">
     {products.map(product => (
       <div class="product-card padding with-border col">
@@ -52,10 +67,10 @@ const products = TEAMS[0].products;
           }
           <div class="row space-between wrap gap">
             <span class="">
-              Created by {product.createdBy} <DateLabel client:only date={product.createdAt} />
+              Created by {product.created_by} <DateLabel client:only date={product.created_at} />
             </span>
             <span class="">
-              Updated by {product.updatedBy} <DateLabel client:only date={product.updatedAt} />
+              Updated by {product.updated_by} <DateLabel client:only date={product.updated_at} />
             </span>
           </div>
           <a class="btn btn-primary btn-small no-animation">✏️</a>

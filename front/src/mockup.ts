@@ -1,4 +1,4 @@
-import type { Team, User } from "./types";
+import type { Product, Team, User } from "./types";
 
 export const IMAGES = {
   "1:1": "/assets/blank-1.1.svg",
@@ -22,66 +22,66 @@ export const USER: User & { email: string } = {
   updated_at: new Date().toISOString(),
 };
 
-export const PRODUCTS = [
+export const PRODUCTS: Product[] = [
   {
     id: "product-a",
     name: "Product A",
     description: TEXT["1"],
     image: IMAGES["1:1"],
-    createdAt: new Date().toISOString(),
-    createdBy: USER.id,
-    updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    created_at: new Date().toISOString(),
+    created_by: USER.id,
+    updated_at: new Date().toISOString(),
+    updated_by: USER.id
   },
   {
     id: "product-b",
     name: "Product B",
     description: TEXT["2"],
     image: IMAGES["1:1"],
-    createdAt: new Date().toISOString(),
-    createdBy: USER.id,
-    updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    created_at: new Date().toISOString(),
+    created_by: USER.id,
+    updated_at: new Date().toISOString(),
+    updated_by: USER.id
   },
   {
     id: "product-c",
     name: "Product C",
     description: TEXT["3"],
     image: IMAGES["1:1"],
-    createdAt: new Date().toISOString(),
-    createdBy: USER.id,
-    updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    created_at: new Date().toISOString(),
+    created_by: USER.id,
+    updated_at: new Date().toISOString(),
+    updated_by: USER.id
   },
   {
     id: "product-d",
     name: "Product D",
     description: TEXT["1"],
     image: IMAGES["1:1"],
-    createdAt: new Date().toISOString(),
-    createdBy: USER.id,
-    updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    created_at: new Date().toISOString(),
+    created_by: USER.id,
+    updated_at: new Date().toISOString(),
+    updated_by: USER.id
   },
   {
     id: "product-e",
     name: "Product E",
     description: TEXT["2"],
     image: IMAGES["1:1"],
-    createdAt: new Date().toISOString(),
-    createdBy: USER.id,
-    updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    created_at: new Date().toISOString(),
+    created_by: USER.id,
+    updated_at: new Date().toISOString(),
+    updated_by: USER.id
   },
   {
     id: "product-f",
     name: "Product F",
     description: TEXT["3"],
     image: undefined,
-    createdAt: new Date().toISOString(),
-    createdBy: USER.id,
-    updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    created_at: new Date().toISOString(),
+    created_by: USER.id,
+    updated_at: new Date().toISOString(),
+    updated_by: USER.id
   }
 ];
 
@@ -91,30 +91,30 @@ export const LISTS = [
     name: "List A",
     description: TEXT["1"],
     image: IMAGES["1:1"],
-    createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    created_at: new Date().toISOString(),
+    created_by: USER.id,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updated_by: USER.id
   },
   {
     id: "list-b",
     name: "List B",
     description: TEXT["2"],
     image: IMAGES["1:1"],
-    createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    created_at: new Date().toISOString(),
+    created_by: USER.id,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updated_by: USER.id
   },
   {
     id: "list-c",
     name: "List C",
     description: TEXT["3"],
     image: IMAGES["1:1"],
-    createdAt: new Date().toISOString(),
-    createdBy: USER.id,
+    created_at: new Date().toISOString(),
+    created_by: USER.id,
     updatedAt: new Date().toISOString(),
-    updatedBy: USER.id
+    updated_by: USER.id
   }
 ];
 

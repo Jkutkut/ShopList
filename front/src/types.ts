@@ -32,11 +32,23 @@ type UserRole = {
   role: Role
 };
 
+type Product = {
+  id: Uuid;
+  name: string;
+  description?: string;
+  image?: string;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export type {
   Uuid,
   User,
   Role,
   Team,
   TeamRole,
-  UserRole
+  UserRole,
+  Product
 };

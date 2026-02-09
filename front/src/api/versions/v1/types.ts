@@ -39,6 +39,12 @@ type UserRoleRequest = {
   role: string;
 };
 
+type ProductRequest = {
+  name: string;
+  description?: string;
+  image?: string;
+}
+
 export type {
   RegisterBasicRequest,
   LoginBasicRequest,
@@ -52,4 +58,5 @@ export type {
   TeamRequest,
   Uuid,
   UserRoleRequest,
+  ProductRequest
 };
