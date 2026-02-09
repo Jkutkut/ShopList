@@ -4,7 +4,9 @@ const notAuthRootPages: (string | RegExp)[] = [
   "/",
   "/login",
   "/register",
-  /^\/d{3}\/?$/
+  /^\/d{3}\/?$/, // Error pages
+  // Astro only
+  /^\/_image/,
 ];
 
 export const onRequest = defineMiddleware((context, next) => {
