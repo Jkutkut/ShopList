@@ -156,16 +156,16 @@ async fn fail_fetch_me(_: &Test, user_token: &UserToken) {
 	check_response(&res, Status::Unauthorized, "application/json").await;
 }
 
-#[allow(dead_code)]
-async fn fetch_user(_: &Test, user_token: &UserToken, user_id: &str) -> User {
-	let UserToken { token, .. } = user_token;
-	let endpoint = format!("/api/v1/user/{}", user_id);
+async fn fetch_user(_: &Test, user_id: &str) -> Result<User, ()> {
 	let client = new_client().await;
+	let endpoint = format!("/api/v1/user/{}", user_id);
 	let res = client.get(&endpoint)
-		.header(auth_header(&token))
 		.dispatch().await;
-	check_json_response(&res).await;
-	res.into_json().await.unwrap()
+	check_json_content_type(&res);
+	match res.into_json().await {
+		Some(user) => Ok(user),
+		_ => Err(()),
+	}
 }
 
 async fn login_user(_: &Test, key: &str) -> UserToken {
@@ -398,16 +398,20 @@ async fn basic_register() {
 }
 
 // GET /api/v1/user/me
-// GET TODO /api/v1/user/<user_id>
+// GET /api/v1/user/<user_id>
 #[tokio::test]
 async fn get_user() {
 	let test = setup().await;
 	let user_token = create_user(&test, "get_user_me").await;
 	let user = fetch_me(&test, &user_token).await;
 	debug!("user: {:#?}", user);
-	// assert_eq!(user, fetch_user(&test, &user_token, &user.id).await);
+	assert_eq!(user, fetch_user(&test, &user.id).await.unwrap());
 	assert_eq!(user.id, user_token.user_id);
 	delete_self_user(&test, &user_token).await;
+
+	assert!(fetch_user(&test, &"").await.is_err());
+	assert!(fetch_user(&test, &"1223435").await.is_err());
+	assert!(fetch_user(&test, &"00000000-0000-0000-0000-000000000000").await.is_err());
 }
 
 // POST /api/v1/user/login/basic

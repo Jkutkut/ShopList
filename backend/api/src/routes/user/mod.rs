@@ -6,10 +6,22 @@ use super::*;
 
 #[get("/<user_id>")]
 async fn get_user(
-	#[allow(unused_variables)]
 	user_id: UuidWrapper,
+	db: &State<DB>,
 ) -> Result<Json<guards::User>, InvalidResponse> {
-	Err(route_error::not_implemented()) // TODO
+	info!("Get user by id request: {:?}", user_id);
+	let user_id: Uuid = match user_id.get() {
+		Ok(id) => id,
+		Err(_) => return Err(InvalidResponse::new(Status::BadRequest, "Invalid user id"))
+	};
+	match db.get_user_by_id(&user_id).await {
+		Ok(user) => Ok(Json(user)),
+		Err(e) if e == "User not found" => Err(InvalidResponse::new(Status::NotFound, &e)),
+		Err(e) => {
+			warn!("Error getting user by id: {}", e);
+			Err(InvalidResponse::new(Status::InternalServerError, &e))
+		}
+	}
 }
 
 #[delete("/<user_id>")]

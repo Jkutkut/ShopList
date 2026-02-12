@@ -69,6 +69,44 @@ impl DB {
 	}
 }
 
+// User
+impl DB {
+	pub async fn get_user_by_id(&self, user_id: &Uuid) -> Result<User, String> {
+		info!("Getting user by id \"{}\"", user_id);
+		let query = "SELECT
+			u.id, u.name,
+			u.created_at, u.updated_at,
+			(SELECT true FROM superusers WHERE user_id = u.id) IS NOT NULL AS is_superuser,
+			u.image
+		FROM users u WHERE u.id = $1";
+		let stmt = self.client().prepare(query).await.unwrap();
+		match self.client().query(&stmt, &[&user_id]).await {
+			Ok(r) if r.len() == 1 => {
+				let r = &r[0];
+				let user = User {
+					id: r.get::<'_, usize, Uuid>(0).into(),
+					name: r.get(1),
+					created_at: r.get::<'_, usize, chrono::NaiveDateTime>(2).to_string(),
+					updated_at: r.get::<'_, usize, chrono::NaiveDateTime>(3).to_string(),
+					is_superuser: r.get::<'_, usize, bool>(4),
+					image: r.get::<'_, usize, Option<String>>(5)
+				};
+				debug!("User: {:#?}", user);
+				Ok(user)
+			},
+			Ok(r) if r.len() == 0 => {
+				warn!("User not found");
+				Err("User not found".to_string())
+			},
+			Ok(_) => unreachable!(),
+			Err(e) => {
+				warn!("Error getting user by id: {}", e);
+				Err(e.to_string()) // TODO
+			}
+		}
+	}
+}
+
 // Teams
 impl DB {
 	pub async fn create_team(&self, creator_id: &Uuid, team: &TeamRequest) -> Result<Uuid, String> {
