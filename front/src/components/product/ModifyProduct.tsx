@@ -44,9 +44,11 @@ const ModifyProduct = ({
             </div>
             <div className="col gap">
                 <div className="image-description row gap space-between">
-                    {product.description &&
-                        <p>{product.description}</p>
-                    }
+                    <div>
+                        {product.description &&
+                            <p>{product.description}</p>
+                        }
+                    </div>
                     {product.image &&
                         <img src={product.image} alt={product.name} /> ||
                         <img src={IMAGES["1:1"]} alt={product.name} />
